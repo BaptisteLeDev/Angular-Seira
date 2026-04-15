@@ -1,6 +1,7 @@
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
+import { AuthService } from '../../../core/services/auth.service';
 
 @Component({
   selector: 'app-login',
@@ -12,9 +13,11 @@ import { Router, RouterLink } from '@angular/router';
 export class Login {
   private readonly fb = inject(FormBuilder);
   private readonly router = inject(Router);
+  private readonly authService = inject(AuthService);
 
   protected readonly showPassword = signal(false);
   protected readonly submitting = signal(false);
+  protected readonly submitError = signal<string | null>(null);
 
   protected readonly form = this.fb.nonNullable.group({
     email: ['', [Validators.required, Validators.email]],
@@ -33,8 +36,24 @@ export class Login {
       this.form.markAllAsTouched();
       return;
     }
+
+    const { email, password } = this.form.getRawValue();
     this.submitting.set(true);
-    // L'authentification réelle sera câblée au TP 2.
-    this.router.navigateByUrl('/dashboard');
+    this.submitError.set(null);
+
+    this.authService.login(email, password).subscribe({
+      next: () => {
+        this.submitting.set(false);
+        this.router.navigateByUrl('/dashboard');
+      },
+      error: (error: unknown) => {
+        this.submitting.set(false);
+        this.submitError.set(
+          error instanceof Error
+            ? error.message
+            : 'Connexion indisponible pour le moment (squelette en cours).',
+        );
+      },
+    });
   }
 }

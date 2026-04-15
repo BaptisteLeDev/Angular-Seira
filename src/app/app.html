@@ -1,12 +1,14 @@
 <a
   href="#main-content"
-  class="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-[100] focus:rounded-lg focus:bg-primary focus:px-4 focus:py-2 focus:font-headline focus:text-sm focus:font-bold focus:text-on-primary"
+  class="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-100 focus:rounded-lg focus:bg-primary focus:px-4 focus:py-2 focus:font-headline focus:text-sm focus:font-bold focus:text-on-primary"
 >
   Aller au contenu principal
 </a>
 
-<app-navbar />
+@if (!isHomeRoute() && !isLoginRoute()) {
+  <app-navbar />
+}
 
-<main id="main-content" class="min-h-screen pl-20">
+<main id="main-content" class="min-h-screen" [class.pl-20]="!isHomeRoute() && !isLoginRoute()">
   <router-outlet />
 </main>

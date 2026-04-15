@@ -129,7 +129,7 @@
       <!-- Submit -->
       <button
         type="submit"
-        [disabled]="submitting()"
+        [disabled]="form.invalid || submitting()"
         class="flex w-full items-center justify-center gap-2 rounded-lg bg-primary px-5 py-3 font-headline text-sm font-bold text-on-primary transition-opacity hover:opacity-90 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary disabled:opacity-60"
       >
         @if (submitting()) {
@@ -140,12 +140,18 @@
           <span class="icon-[heroicons--arrow-right] text-base" aria-hidden="true"></span>
         }
       </button>
+
+      @if (submitError(); as message) {
+        <p class="rounded-lg border border-error/50 bg-error-container px-4 py-3 text-sm text-on-error-container" role="alert">
+          {{ message }}
+        </p>
+      }
     </form>
 
     <p class="mt-6 text-center text-sm text-on-surface-variant">
-      Pas encore de compte ?
+      Pas inscrit ?
       <a
-        routerLink="/dashboard"
+        routerLink="/home"
         class="ml-1 font-medium text-primary hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary rounded"
       >
         Découvrir SeirAngular

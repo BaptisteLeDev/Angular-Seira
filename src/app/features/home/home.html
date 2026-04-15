@@ -1,6 +1,77 @@
-<div class="mx-auto max-w-7xl px-4 py-10 sm:px-6 sm:py-14 lg:px-12 lg:py-20">
+<div class="mx-auto max-w-7xl px-4 py-6 sm:px-6 sm:py-8 lg:px-12 lg:py-10">
+  <nav
+    class="flex items-center justify-between gap-4 rounded-xl bg-surface-container px-4 py-3 shadow-sm ghost-border sm:px-5"
+    aria-label="Navigation page d'accueil"
+  >
+    <div class="min-w-0 flex flex-1 items-center">
+      <a
+        class="truncate font-headline text-lg font-extrabold tracking-tight text-on-surface no-underline transition-colors hover:text-primary sm:text-xl"
+        routerLink="/home"
+      >
+        SeirAngular
+      </a>
+    </div>
+    <div class="flex items-center gap-3 sm:gap-4">
+      @if (!isAuthenticated()) {
+        <a
+          routerLink="/login"
+          class="inline-flex items-center gap-2 rounded-lg bg-primary px-3.5 py-2 font-headline text-sm font-bold text-on-primary transition-opacity hover:opacity-90 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary sm:px-5 sm:py-2.5"
+          aria-label="Connexion"
+        >
+          <span class="icon-[heroicons--arrow-right-end-on-rectangle] size-4" aria-hidden="true"></span>
+          Login
+        </a>
+      } @else {
+        <div class="relative">
+          <button
+            type="button"
+            (click)="toggleUserMenu()"
+            [attr.aria-expanded]="userMenuOpen()"
+            aria-haspopup="menu"
+            aria-label="Menu utilisateur"
+            class="h-10 w-10 overflow-hidden rounded-full ghost-border bg-surface-container-high focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+          >
+            <img [src]="avatarUrl" alt="Avatar utilisateur" class="h-full w-full object-cover" />
+          </button>
+
+          @if (userMenuOpen()) {
+            <div
+              role="menu"
+              class="absolute right-0 top-12 z-30 w-56 rounded-xl bg-surface-container p-2 shadow-xl ghost-border"
+            >
+              <div class="border-b border-outline-variant/60 px-3 py-2">
+                <p class="font-headline text-sm font-bold text-on-surface">
+                  {{ userDisplayName() }}
+                </p>
+                <p class="mt-0.5 text-xs text-on-surface-variant">{{ currentUser()?.email }}</p>
+              </div>
+              <a
+                routerLink="/dashboard"
+                (click)="closeUserMenu()"
+                class="mt-2 inline-flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium text-on-surface transition-colors hover:bg-surface-container-high"
+                role="menuitem"
+              >
+                <span class="icon-[heroicons--squares-2x2] size-4" aria-hidden="true"></span>
+                Dashboard
+              </a>
+              <button
+                type="button"
+                (click)="logout()"
+                class="mt-1 inline-flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium text-error transition-colors hover:bg-error/10"
+                role="menuitem"
+              >
+                <span class="icon-[heroicons--arrow-right-start-on-rectangle] size-4" aria-hidden="true"></span>
+                Se deconnecter
+              </button>
+            </div>
+          }
+        </div>
+      }
+    </div>
+  </nav>
+
   <!-- Hero -->
-  <section class="grid items-center gap-10 lg:grid-cols-[3fr_2fr] lg:gap-14">
+  <section class="mt-8 grid items-center gap-10 lg:mt-10 lg:grid-cols-[3fr_2fr] lg:gap-14">
     <div>
       <p class="mb-4 inline-flex items-center gap-2 rounded-full bg-surface-container px-3 py-1.5 font-headline text-[11px] font-bold uppercase tracking-widest text-primary ghost-border">
         <span class="icon-[heroicons--sparkles-solid] text-sm" aria-hidden="true"></span>
@@ -36,34 +107,42 @@
       </div>
     </div>
 
-    <!-- Visual stack (placeholder graphique en pure Tailwind) -->
+    <!-- Visual stack (animated beam style) -->
     <div
-      class="relative hidden aspect-square w-full overflow-hidden rounded-xl bg-surface-container ghost-border lg:block"
+      class="relative hidden aspect-square w-full overflow-hidden rounded-xl lg:block"
       aria-hidden="true"
     >
-      <div class="absolute inset-0 bg-linear-to-br from-primary/10 via-transparent to-surface-container-low"></div>
-      <div
-        class="absolute -left-16 -top-16 size-64 rounded-full blur-3xl"
-        style="background: radial-gradient(circle, var(--color-primary) 0%, transparent 70%); opacity: 0.25;"
-      ></div>
-      <div class="absolute inset-0 grid grid-cols-3 gap-3 p-6">
-        @for (cat of categories; track cat.id) {
+      <div class="absolute inset-0 p-6">
+        <div class="relative h-full w-full">
+          @for (node of beamNodes; track node.id) {
+            <div
+              class="pointer-events-none absolute left-1/2 top-1/2 h-px origin-left"
+              [style.width.%]="node.length"
+              [style.transform]="'translateY(-50%) rotate(' + node.angle + 'deg)'"
+            >
+              <span
+                class="beam-line block h-full w-full"
+                [style.--beam-color]="node.color"
+              ></span>
+            </div>
+          }
+
           <div
-            class="flex flex-col items-center justify-center gap-2 rounded-lg bg-surface/60 p-4 ghost-border backdrop-blur"
-            [style.border-left-color]="cat.color"
-            style="border-left-width: 3px;"
+            class="beam-core absolute left-1/2 top-1/2 z-20 flex h-18 w-18 -translate-x-1/2 -translate-y-1/2 flex-col items-center justify-center rounded-full"
           >
-            <span
-              class="text-3xl"
-              [class]="cat.icon"
-              aria-hidden="true"
-              [style.color]="cat.color"
-            ></span>
-            <span class="text-center font-headline text-[10px] font-bold uppercase tracking-widest text-on-surface-variant">
-              {{ cat.label }}
-            </span>
+            <span class="icon-[heroicons--sparkles-solid] text-2xl text-primary"></span>
           </div>
-        }
+
+          @for (node of beamNodes; track node.id) {
+            <div
+              class="beam-node absolute z-10 flex h-18 w-18 -translate-x-1/2 -translate-y-1/2 flex-col items-center justify-center gap-1 rounded-full p-2"
+              [style.left.%]="node.x"
+              [style.top.%]="node.y"
+            >
+              <span class="text-2xl" [class]="node.icon" [style.color]="node.color"></span>
+            </div>
+          }
+        </div>
       </div>
     </div>
   </section>
