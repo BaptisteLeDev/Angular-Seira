@@ -72,6 +72,14 @@ body {
   text-rendering: optimizeLegibility;
 }
 
+:root {
+  --radius-squircle: 1.2rem;
+}
+
+:where([class*='rounded']) {
+  border-radius: var(--radius-squircle) !important;
+}
+
 /* Hairline subtil sur surfaces sombres */
 @utility ghost-border {
   border: 1px solid color-mix(in srgb, var(--color-outline-variant) 60%, transparent);
