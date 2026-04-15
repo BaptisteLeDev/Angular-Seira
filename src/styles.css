@@ -1,3 +1,99 @@
-/* You can add global styles to this file, and also import other style files */
-
 @import 'tailwindcss';
+
+/* ---------------------------------------------------------------------------
+ * Design tokens — palette "noir cassé" (zinc / warm neutral), sans teinte
+ * bleutée. Exposés via @theme pour générer automatiquement les utilitaires
+ * Tailwind (bg-primary, text-on-surface-variant, border-cat-dev, …).
+ * ------------------------------------------------------------------------- */
+@theme {
+  /* Surfaces — warm neutral / near-black */
+  --color-background: #0b0b0c;
+  --color-surface: #0b0b0c;
+  --color-surface-bright: #2a2a2d;
+  --color-surface-dim: #09090a;
+  --color-surface-container-lowest: #050506;
+  --color-surface-container-low: #121214;
+  --color-surface-container: #18181b;
+  --color-surface-container-high: #242428;
+  --color-surface-container-highest: #2d2d31;
+  --color-surface-variant: #242428;
+
+  /* Foreground */
+  --color-on-surface: #fafafa;
+  --color-on-surface-variant: #a1a1aa;
+  --color-inverse-surface: #fafafa;
+  --color-inverse-on-surface: #52525b;
+
+  /* Primary accent — cyan doux pour contraster sur le neutre chaud */
+  --color-primary: #7bd0ff;
+  --color-primary-dim: #47c4ff;
+  --color-primary-container: #0e3a4d;
+  --color-on-primary: #041c27;
+  --color-on-primary-container: #97d8ff;
+
+  /* Outlines */
+  --color-outline: #71717a;
+  --color-outline-variant: #3f3f46;
+
+  /* States */
+  --color-error: #f87171;
+  --color-error-container: #5c1a1a;
+  --color-on-error-container: #fecaca;
+  --color-secondary: #a1a1aa;
+  --color-tertiary: #e4e4e7;
+
+  /* Category accents — cohérence entre chips + borders + icônes */
+  --color-cat-dev: #7bd0ff;         /* Développement → cyan */
+  --color-cat-design: #c084fc;      /* Design → violet */
+  --color-cat-project: #fbbf24;     /* Gestion de projet → ambre */
+  --color-cat-comm: #34d399;        /* Communication → émeraude */
+  --color-cat-security: #f87171;    /* Sécurité → rouge */
+  --color-cat-data: #818cf8;        /* Data → indigo */
+
+  /* Typographie */
+  --font-headline: 'Manrope', system-ui, sans-serif;
+  --font-body: 'Inter', system-ui, sans-serif;
+  --font-sans: 'Inter', system-ui, sans-serif;
+}
+
+/* ---------------------------------------------------------------------------
+ * Global baseline
+ * ------------------------------------------------------------------------- */
+html {
+  color-scheme: dark;
+}
+
+body {
+  background-color: var(--color-background);
+  color: var(--color-on-surface);
+  font-family: var(--font-body);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+/* Material Symbols (police chargée via index.html) */
+.material-symbols-outlined {
+  font-family: 'Material Symbols Outlined';
+  font-weight: normal;
+  font-style: normal;
+  font-size: 1.5rem;
+  line-height: 1;
+  letter-spacing: normal;
+  text-transform: none;
+  display: inline-block;
+  white-space: nowrap;
+  word-wrap: normal;
+  direction: ltr;
+  font-feature-settings: 'liga';
+  -webkit-font-smoothing: antialiased;
+  font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+}
+
+.material-symbols-outlined.filled {
+  font-variation-settings: 'FILL' 1, 'wght' 500, 'GRAD' 0, 'opsz' 24;
+}
+
+/* Hairline subtil sur surfaces sombres */
+@utility ghost-border {
+  border: 1px solid color-mix(in srgb, var(--color-outline-variant) 60%, transparent);
+}

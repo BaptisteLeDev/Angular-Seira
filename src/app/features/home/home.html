@@ -1,1 +1,183 @@
-<p>Page d'accueil!</p>
+<div class="mx-auto max-w-7xl px-4 py-10 sm:px-6 sm:py-14 lg:px-12 lg:py-20">
+  <!-- Hero -->
+  <section class="grid items-center gap-10 lg:grid-cols-[3fr_2fr] lg:gap-14">
+    <div>
+      <p class="mb-4 inline-flex items-center gap-2 rounded-full bg-surface-container px-3 py-1.5 font-headline text-[11px] font-bold uppercase tracking-widest text-primary ghost-border">
+        <span class="material-symbols-outlined filled text-sm" aria-hidden="true">flare</span>
+        EduFlow 2026
+      </p>
+      <h1 class="font-headline text-4xl font-extrabold leading-[1.05] tracking-tight text-on-surface sm:text-5xl lg:text-6xl">
+        Apprenez à construire
+        <br class="hidden sm:block" />
+        <span class="bg-linear-to-r from-primary via-on-surface to-on-surface-variant bg-clip-text text-transparent">
+          des produits qui durent.
+        </span>
+      </h1>
+      <p class="mt-6 max-w-xl text-base leading-relaxed text-on-surface-variant sm:text-lg">
+        Développement, design, gestion de projet, communication — une plateforme
+        d'apprentissage intégrée pour construire des compétences complètes.
+      </p>
+
+      <div class="mt-8 flex flex-wrap items-center gap-3">
+        <a
+          routerLink="/dashboard"
+          class="inline-flex items-center gap-2 rounded-lg bg-primary px-5 py-3 font-headline text-sm font-bold text-on-primary transition-opacity hover:opacity-90 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+        >
+          Explorer la plateforme
+          <span class="material-symbols-outlined text-base" aria-hidden="true">arrow_forward</span>
+        </a>
+        <a
+          routerLink="/login"
+          class="inline-flex items-center gap-2 rounded-lg px-5 py-3 font-headline text-sm font-bold text-on-surface transition-colors hover:bg-surface-container focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary ghost-border"
+        >
+          <span class="material-symbols-outlined text-base" aria-hidden="true">login</span>
+          Se connecter
+        </a>
+      </div>
+    </div>
+
+    <!-- Visual stack (placeholder graphique en pure Tailwind) -->
+    <div
+      class="relative hidden aspect-square w-full overflow-hidden rounded-xl bg-surface-container ghost-border lg:block"
+      aria-hidden="true"
+    >
+      <div class="absolute inset-0 bg-linear-to-br from-primary/10 via-transparent to-surface-container-low"></div>
+      <div
+        class="absolute -left-16 -top-16 size-64 rounded-full blur-3xl"
+        style="background: radial-gradient(circle, var(--color-primary) 0%, transparent 70%); opacity: 0.25;"
+      ></div>
+      <div class="absolute inset-0 grid grid-cols-3 gap-3 p-6">
+        @for (cat of categories; track cat.id) {
+          <div
+            class="flex flex-col items-center justify-center gap-2 rounded-lg bg-surface/60 p-4 ghost-border backdrop-blur"
+            [style.border-left-color]="cat.color"
+            style="border-left-width: 3px;"
+          >
+            <span
+              class="material-symbols-outlined text-3xl"
+              aria-hidden="true"
+              [style.color]="cat.color"
+            >
+              {{ cat.icon }}
+            </span>
+            <span class="text-center font-headline text-[10px] font-bold uppercase tracking-widest text-on-surface-variant">
+              {{ cat.label }}
+            </span>
+          </div>
+        }
+      </div>
+    </div>
+  </section>
+
+  <!-- Stats strip -->
+  <section
+    aria-labelledby="stats-heading"
+    class="mt-14 grid grid-cols-2 gap-3 sm:mt-20 sm:grid-cols-4 sm:gap-4"
+  >
+    <h2 id="stats-heading" class="sr-only">Chiffres clés</h2>
+    @for (stat of stats; track stat.label) {
+      <div class="flex items-center gap-3 rounded-xl bg-surface-container p-4 ghost-border sm:gap-4 sm:p-5">
+        <div class="flex size-10 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary sm:size-11">
+          <span class="material-symbols-outlined text-xl" aria-hidden="true">{{ stat.icon }}</span>
+        </div>
+        <div class="min-w-0">
+          <p class="font-headline text-xl font-extrabold leading-none text-on-surface sm:text-2xl">
+            {{ stat.value }}
+          </p>
+          <p class="mt-1 truncate font-headline text-[11px] uppercase tracking-widest text-on-surface-variant">
+            {{ stat.label }}
+          </p>
+        </div>
+      </div>
+    }
+  </section>
+
+  <!-- Categories -->
+  <section aria-labelledby="categories-heading" class="mt-16 sm:mt-24">
+    <div class="mb-6 flex flex-wrap items-end justify-between gap-3 sm:mb-8">
+      <div>
+        <p class="mb-2 font-headline text-xs font-bold uppercase tracking-[0.2em] text-primary">
+          Ce que vous apprendrez
+        </p>
+        <h2 id="categories-heading" class="font-headline text-2xl font-bold text-on-surface sm:text-3xl">
+          Six catégories, une trajectoire
+        </h2>
+      </div>
+      <a
+        routerLink="/courses"
+        class="inline-flex items-center gap-1 font-headline text-sm font-medium text-primary hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary rounded"
+      >
+        Voir le catalogue
+        <span class="material-symbols-outlined text-base" aria-hidden="true">arrow_forward</span>
+      </a>
+    </div>
+
+    <ul role="list" class="grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-5 lg:grid-cols-3">
+      @for (cat of categories; track cat.id) {
+        <li class="flex">
+          <a
+            routerLink="/courses"
+            class="group flex w-full items-start gap-4 rounded-xl border-l-4 bg-surface-container p-5 ghost-border transition-all duration-300 hover:-translate-y-0.5 hover:bg-surface-container-high focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+            [style.border-left-color]="cat.color"
+          >
+            <div
+              class="flex size-11 shrink-0 items-center justify-center rounded-lg transition-transform group-hover:scale-110"
+              [style.background-color]="cat.color + '1a'"
+            >
+              <span
+                class="material-symbols-outlined"
+                aria-hidden="true"
+                [style.color]="cat.color"
+              >
+                {{ cat.icon }}
+              </span>
+            </div>
+            <div class="min-w-0 flex-1">
+              <h3 class="font-headline text-base font-bold text-on-surface">
+                {{ cat.label }}
+              </h3>
+              <p class="mt-1 text-sm text-on-surface-variant">
+                Parcourez les matières liées au pôle {{ cat.label.toLowerCase() }}.
+              </p>
+            </div>
+            <span
+              class="material-symbols-outlined shrink-0 text-on-surface-variant transition-transform group-hover:translate-x-1 group-hover:text-on-surface"
+              aria-hidden="true"
+            >
+              arrow_forward
+            </span>
+          </a>
+        </li>
+      }
+    </ul>
+  </section>
+
+  <!-- Final CTA -->
+  <section
+    aria-labelledby="cta-heading"
+    class="relative mt-16 overflow-hidden rounded-xl bg-surface-container p-8 ghost-border sm:mt-24 sm:p-12"
+  >
+    <div
+      aria-hidden="true"
+      class="absolute inset-y-0 right-0 w-1/2 bg-linear-to-l from-primary/10 via-transparent to-transparent"
+    ></div>
+    <div class="relative grid items-center gap-6 lg:grid-cols-[1fr_auto]">
+      <div>
+        <h2 id="cta-heading" class="font-headline text-2xl font-extrabold text-on-surface sm:text-3xl">
+          Prêt à commencer votre parcours ?
+        </h2>
+        <p class="mt-3 max-w-xl text-on-surface-variant">
+          Accédez immédiatement au tableau de bord et reprenez votre apprentissage
+          là où il vous attend.
+        </p>
+      </div>
+      <a
+        routerLink="/dashboard"
+        class="inline-flex items-center justify-center gap-2 rounded-lg bg-primary px-6 py-3 font-headline text-sm font-bold text-on-primary transition-opacity hover:opacity-90 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+      >
+        Ouvrir le tableau de bord
+        <span class="material-symbols-outlined text-base" aria-hidden="true">arrow_forward</span>
+      </a>
+    </div>
+  </section>
+</div>

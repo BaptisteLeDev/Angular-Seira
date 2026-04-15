@@ -1,36 +1,164 @@
-<h1 class="mb-6 text-2xl font-bold">Courses</h1>
+<div class="mx-auto max-w-7xl px-4 py-8 sm:px-6 sm:py-10 lg:px-12 lg:py-14">
+  <!-- Header -->
+  <header class="mb-10 lg:mb-14">
+    <p class="mb-3 font-headline text-xs font-bold uppercase tracking-[0.2em] text-primary">
+      Catalogue
+    </p>
+    <h1 class="font-headline text-3xl font-extrabold leading-tight tracking-tight text-on-surface sm:text-4xl lg:text-5xl">
+      Votre trajectoire
+      <br class="hidden sm:block" />
+      <span class="bg-linear-to-r from-primary via-primary-dim to-on-surface bg-clip-text text-transparent">
+        d'apprentissage
+      </span>
+    </h1>
+    <p class="mt-4 max-w-2xl text-base leading-relaxed text-on-surface-variant sm:text-lg">
+      Parcours complet à travers le développement, le design, la gestion de projet et
+      la communication — tous les savoir-faire pour construire un produit complet.
+    </p>
+  </header>
 
-@if (courses.length === 0) {
-  <p class="text-gray-500">Aucune matière</p>
-} @else {
-  <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-    @for (course of courses; track course.id) {
-      <article
-        class="course-card"
-        [class.selected]="selectedCourseId() === course.id"
-        (click)="selectCourse(course.id)"
+  @if (courses.length === 0) {
+    <!-- Empty state -->
+    <div
+      class="flex flex-col items-center justify-center rounded-xl bg-surface-container p-12 text-center ghost-border"
+      role="status"
+    >
+      <span class="material-symbols-outlined mb-4 text-5xl text-on-surface-variant" aria-hidden="true">
+        folder_off
+      </span>
+      <p class="font-headline text-lg font-bold text-on-surface">Aucune matière disponible</p>
+      <p class="mt-1 text-sm text-on-surface-variant">Revenez plus tard, le catalogue sera bientôt en ligne.</p>
+    </div>
+  } @else {
+    <!-- Course grid — responsive 1 / 2 / 3 colonnes -->
+    <ul
+      role="list"
+      class="grid grid-cols-1 gap-5 sm:grid-cols-2 sm:gap-6 xl:grid-cols-3"
+      aria-label="Liste des matières"
+    >
+      @for (course of courses; track course.id) {
+        <li class="flex">
+          <article
+            class="group relative flex w-full cursor-pointer flex-col overflow-hidden rounded-xl border-l-4 bg-surface-container ghost-border transition-all duration-300 hover:-translate-y-1 hover:bg-surface-container-high focus-within:-translate-y-1"
+            [class.ring-2]="selectedCourseId() === course.id"
+            [class.ring-offset-2]="selectedCourseId() === course.id"
+            [class.ring-offset-background]="selectedCourseId() === course.id"
+            [style.border-left-color]="meta(course.category).color"
+            [style.--tw-ring-color]="selectedCourseId() === course.id ? meta(course.category).color : null"
+            [attr.aria-pressed]="selectedCourseId() === course.id"
+            (click)="selectCourse(course.id)"
+            (keyup.enter)="selectCourse(course.id)"
+            (keyup.space)="selectCourse(course.id)"
+            tabindex="0"
+          >
+            <!-- Visual tile -->
+            <div
+              class="relative flex h-36 items-center justify-center overflow-hidden bg-linear-to-br from-surface-container-high to-surface-container-low sm:h-40"
+              aria-hidden="true"
+            >
+              <div
+                class="absolute inset-0 opacity-20 transition-opacity duration-500 group-hover:opacity-40"
+                [style.background]="'radial-gradient(circle at 30% 30%, ' + meta(course.category).color + ', transparent 60%)'"
+              ></div>
+              <span
+                class="material-symbols-outlined relative text-6xl transition-transform duration-700 group-hover:scale-110"
+                style="font-variation-settings: 'FILL' 1, 'wght' 300, 'GRAD' 0, 'opsz' 48;"
+                [style.color]="meta(course.category).color"
+              >
+                {{ meta(course.category).icon }}
+              </span>
+            </div>
+
+            <!-- Body -->
+            <div class="flex flex-1 flex-col gap-4 p-5 sm:p-6">
+              <div class="flex items-start justify-between gap-3">
+                <h2 class="font-headline text-lg font-bold text-on-surface sm:text-xl">
+                  {{ course.title }}
+                </h2>
+                <span
+                  class="shrink-0 rounded-full px-2.5 py-1 font-headline text-[10px] font-bold uppercase tracking-widest"
+                  [style.background-color]="meta(course.category).color + '1a'"
+                  [style.color]="meta(course.category).color"
+                >
+                  {{ meta(course.category).label }}
+                </span>
+              </div>
+
+              <p class="line-clamp-2 text-sm text-on-surface-variant">
+                {{ course.description }}
+              </p>
+
+              <!-- Meta -->
+              <dl class="flex flex-wrap items-center gap-x-4 gap-y-2 text-xs text-on-surface-variant">
+                <div class="flex items-center gap-1.5">
+                  <span class="material-symbols-outlined text-sm" aria-hidden="true">play_circle</span>
+                  <dt class="sr-only">Vidéos</dt>
+                  <dd>{{ course.videoCount }} vidéos</dd>
+                </div>
+                <div class="flex items-center gap-1.5">
+                  <span class="material-symbols-outlined text-sm" aria-hidden="true">schedule</span>
+                  <dt class="sr-only">Durée</dt>
+                  <dd>{{ course.totalHours }} h</dd>
+                </div>
+              </dl>
+
+              <!-- Progress -->
+              <div class="space-y-2">
+                <div class="flex items-center justify-between font-mono text-[11px] text-on-surface-variant">
+                  <span>PROGRESSION</span>
+                  <span class="text-on-surface">{{ course.progressPercent / 100 | percent }}</span>
+                </div>
+                <div
+                  class="h-1 w-full overflow-hidden rounded-full bg-surface-container-highest"
+                  role="progressbar"
+                  [attr.aria-valuenow]="course.progressPercent"
+                  aria-valuemin="0"
+                  aria-valuemax="100"
+                  [attr.aria-label]="'Progression ' + course.title"
+                >
+                  <div
+                    class="h-full rounded-full transition-all duration-500"
+                    [style.width.%]="course.progressPercent"
+                    [style.background-color]="meta(course.category).color"
+                  ></div>
+                </div>
+              </div>
+
+              <!-- CTA -->
+              <a
+                [routerLink]="['/courses', course.id]"
+                (click)="$event.stopPropagation()"
+                class="mt-auto inline-flex items-center gap-1 self-start pt-2 font-headline text-xs font-bold uppercase tracking-widest transition-colors hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary rounded"
+                [style.color]="meta(course.category).color"
+              >
+                Voir le détail
+                <span class="material-symbols-outlined text-sm" aria-hidden="true">arrow_forward</span>
+              </a>
+            </div>
+          </article>
+        </li>
+      }
+    </ul>
+
+    <!-- Live region : selection hint -->
+    @if (selectedCourse(); as current) {
+      <div
+        class="mt-8 flex items-center gap-3 rounded-xl bg-surface-container-low px-5 py-4 ghost-border"
+        role="status"
+        aria-live="polite"
       >
-        <h2 class="text-lg font-semibold">{{ course.title }}</h2>
-        <p class="mt-1 text-sm text-gray-500">{{ course.description }}</p>
-
-        <div class="mt-3">
-          <div class="flex items-center justify-between text-sm">
-            <span>{{ course.videoCount }} videos &middot; {{ course.totalHours }}h</span>
-            <span>{{ course.progressPercent / 100 | percent }}</span>
-          </div>
-          <div class="mt-1 h-2 rounded-full bg-gray-200" role="progressbar" [attr.aria-valuenow]="course.progressPercent" aria-valuemin="0" aria-valuemax="100">
-            <div class="h-full rounded-full bg-blue-500 transition-all" [style.width.%]="course.progressPercent"></div>
-          </div>
-        </div>
-
-        <a
-          [routerLink]="['/courses', course.id]"
-          class="mt-3 inline-block text-sm text-blue-500 hover:underline"
-          (click)="$event.stopPropagation()"
+        <span
+          class="material-symbols-outlined"
+          aria-hidden="true"
+          [style.color]="meta(current.category).color"
         >
-          View details &rarr;
-        </a>
-      </article>
+          check_circle
+        </span>
+        <p class="text-sm text-on-surface">
+          <span class="font-headline font-bold">{{ current.title }}</span>
+          <span class="text-on-surface-variant"> sélectionné — cliquez à nouveau pour désélectionner.</span>
+        </p>
+      </div>
     }
-  </div>
-}
+  }
+</div>

@@ -1,5 +1,38 @@
-<div class="flex flex-col items-center justify-center py-20">
-  <h1 class="text-6xl font-bold text-gray-300">404</h1>
-  <p class="mt-4 text-lg text-gray-500">Page not found</p>
-  <a routerLink="/dashboard" class="mt-6 text-blue-500 hover:underline">Back to dashboard</a>
+<div
+  role="alert"
+  class="flex min-h-screen flex-col items-center justify-center px-6 py-12 text-center"
+>
+  <div
+    class="mb-8 flex size-24 items-center justify-center rounded-full bg-surface-container ghost-border"
+    aria-hidden="true"
+  >
+    <span class="material-symbols-outlined text-5xl text-primary">satellite_alt</span>
+  </div>
+
+  <p class="mb-3 font-headline text-xs font-bold uppercase tracking-[0.3em] text-primary">
+    Erreur 404
+  </p>
+  <h1 class="font-headline text-6xl font-extrabold tracking-tight text-on-surface lg:text-7xl">
+    Page introuvable
+  </h1>
+  <p class="mt-5 max-w-md text-lg text-on-surface-variant">
+    Cette page est en dehors de la trajectoire. Revenez au tableau de bord pour
+    reprendre votre apprentissage.
+  </p>
+
+  <div class="mt-8 flex flex-wrap items-center justify-center gap-3">
+    <a
+      routerLink="/dashboard"
+      class="inline-flex items-center gap-2 rounded-lg bg-primary px-5 py-2.5 font-headline text-sm font-bold text-on-primary transition-opacity hover:opacity-90 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+    >
+      <span class="material-symbols-outlined text-base" aria-hidden="true">home</span>
+      Retour au tableau de bord
+    </a>
+    <a
+      routerLink="/courses"
+      class="inline-flex items-center gap-2 rounded-lg px-5 py-2.5 font-headline text-sm font-bold text-on-surface transition-colors hover:bg-surface-container focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary ghost-border"
+    >
+      Explorer les matières
+    </a>
+  </div>
 </div>
