@@ -15,11 +15,11 @@ interface NavItem {
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class Navbar {
-  readonly appTitle = 'EduFlow';
+  readonly appTitle = 'SeirAngular';
 
   protected readonly primaryNav: readonly NavItem[] = [
-    { path: '/home', label: 'Accueil', icon: 'home' },
-    { path: '/dashboard', label: 'Tableau de bord', icon: 'space_dashboard' },
-    { path: '/courses', label: 'Matières', icon: 'auto_stories' },
+    { path: '/home', label: 'Accueil', icon: 'icon-[heroicons--home]' },
+    { path: '/dashboard', label: 'Tableau de bord', icon: 'icon-[heroicons--squares-2x2]' },
+    { path: '/courses', label: 'Matières', icon: 'icon-[heroicons--book-open]' },
   ];
 }

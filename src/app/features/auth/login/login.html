@@ -6,10 +6,10 @@
         class="mx-auto mb-4 flex size-14 items-center justify-center rounded-xl bg-primary/10 text-primary"
         aria-hidden="true"
       >
-        <span class="material-symbols-outlined filled text-3xl">flare</span>
+        <span class="icon-[heroicons--sparkles-solid] text-3xl"></span>
       </div>
       <p class="font-headline text-xs font-bold uppercase tracking-[0.3em] text-primary">
-        EduFlow
+        SeirAngular
       </p>
       <h1 class="mt-2 font-headline text-3xl font-extrabold tracking-tight text-on-surface">
         Connexion
@@ -36,17 +36,15 @@
         </label>
         <div class="relative">
           <span
-            class="material-symbols-outlined pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-lg text-on-surface-variant"
+            class="icon-[heroicons--envelope] pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-lg text-on-surface-variant"
             aria-hidden="true"
-          >
-            mail
-          </span>
+          ></span>
           <input
             id="email"
             type="email"
             autocomplete="email"
             formControlName="email"
-            placeholder="vous@eduflow.fr"
+            placeholder="vous@SeirAngular.fr"
             [attr.aria-invalid]="form.controls.email.invalid && form.controls.email.touched ? 'true' : null"
             aria-describedby="email-error"
             class="w-full rounded-lg bg-surface-container-lowest py-2.5 pl-12 pr-4 text-sm text-on-surface placeholder:text-on-surface-variant/50 ghost-border focus:outline-2 focus:-outline-offset-1 focus:outline-primary"
@@ -54,7 +52,7 @@
         </div>
         @if (form.controls.email.touched && form.controls.email.invalid) {
           <p id="email-error" class="flex items-center gap-1.5 text-xs text-error" role="alert">
-            <span class="material-symbols-outlined text-sm" aria-hidden="true">error</span>
+            <span class="icon-[heroicons--exclamation-triangle] text-sm" aria-hidden="true"></span>
             @if (form.controls.email.hasError('required')) {
               L'adresse email est obligatoire.
             } @else if (form.controls.email.hasError('email')) {
@@ -71,11 +69,9 @@
         </label>
         <div class="relative">
           <span
-            class="material-symbols-outlined pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-lg text-on-surface-variant"
+            class="icon-[heroicons--lock-closed] pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-lg text-on-surface-variant"
             aria-hidden="true"
-          >
-            lock
-          </span>
+          ></span>
           <input
             id="password"
             [type]="passwordInputType()"
@@ -93,14 +89,16 @@
             [attr.aria-pressed]="showPassword()"
             class="absolute right-3 top-1/2 -translate-y-1/2 rounded p-1.5 text-on-surface-variant transition-colors hover:text-primary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
           >
-            <span class="material-symbols-outlined text-lg" aria-hidden="true">
-              {{ showPassword() ? 'visibility_off' : 'visibility' }}
-            </span>
+            <span
+              class="text-lg"
+              [class]="showPassword() ? 'icon-[heroicons--eye-slash]' : 'icon-[heroicons--eye]'"
+              aria-hidden="true"
+            ></span>
           </button>
         </div>
         @if (form.controls.password.touched && form.controls.password.invalid) {
           <p id="password-error" class="flex items-center gap-1.5 text-xs text-error" role="alert">
-            <span class="material-symbols-outlined text-sm" aria-hidden="true">error</span>
+            <span class="icon-[heroicons--exclamation-triangle] text-sm" aria-hidden="true"></span>
             @if (form.controls.password.hasError('required')) {
               Le mot de passe est obligatoire.
             } @else if (form.controls.password.hasError('minlength')) {
@@ -135,11 +133,11 @@
         class="flex w-full items-center justify-center gap-2 rounded-lg bg-primary px-5 py-3 font-headline text-sm font-bold text-on-primary transition-opacity hover:opacity-90 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary disabled:opacity-60"
       >
         @if (submitting()) {
-          <span class="material-symbols-outlined animate-spin text-base" aria-hidden="true">progress_activity</span>
+          <span class="icon-[heroicons--arrow-path] animate-spin text-base" aria-hidden="true"></span>
           Connexion en cours…
         } @else {
           Se connecter
-          <span class="material-symbols-outlined text-base" aria-hidden="true">arrow_forward</span>
+          <span class="icon-[heroicons--arrow-right] text-base" aria-hidden="true"></span>
         }
       </button>
     </form>
@@ -150,7 +148,7 @@
         routerLink="/dashboard"
         class="ml-1 font-medium text-primary hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary rounded"
       >
-        Découvrir EduFlow
+        Découvrir SeirAngular
       </a>
     </p>
   </div>

@@ -12,7 +12,7 @@
       </span>
     </h1>
     <p class="mt-5 max-w-2xl text-lg leading-relaxed text-on-surface-variant">
-      Bienvenue sur EduFlow, votre plateforme e-learning. Reprenez votre parcours là où
+      Bienvenue sur SeirAngular, votre plateforme e-learning. Reprenez votre parcours là où
       vous l'aviez laissé ou explorez une nouvelle matière.
     </p>
   </header>
@@ -46,7 +46,7 @@
         class="inline-flex items-center gap-2 rounded-lg bg-primary px-5 py-2.5 font-headline text-sm font-bold text-on-primary transition-opacity hover:opacity-90 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
       >
         Commencer le parcours
-        <span class="material-symbols-outlined text-base" aria-hidden="true">arrow_forward</span>
+        <span class="icon-[heroicons--arrow-right] text-base" aria-hidden="true"></span>
       </a>
     </div>
   </section>
@@ -67,7 +67,7 @@
             class="group flex h-full flex-col rounded-xl bg-surface-container p-6 ghost-border transition-all duration-300 hover:-translate-y-1 hover:border-primary/40 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
           >
             <div class="mb-4 flex size-11 items-center justify-center rounded-lg bg-primary/10 text-primary">
-              <span class="material-symbols-outlined" aria-hidden="true">{{ action.icon }}</span>
+              <span class="text-2xl" [class]="action.icon" aria-hidden="true"></span>
             </div>
             <h3 class="mb-2 font-headline text-lg font-bold text-on-surface">
               {{ action.label }}
@@ -78,7 +78,7 @@
               aria-hidden="true"
             >
               Explorer
-              <span class="material-symbols-outlined text-sm">arrow_forward</span>
+              <span class="icon-[heroicons--arrow-right] text-sm"></span>
             </span>
           </a>
         </li>

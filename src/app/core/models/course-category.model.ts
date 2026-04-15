@@ -4,15 +4,44 @@ export interface CategoryMeta {
   readonly id: CourseCategory;
   readonly label: string;
   readonly icon: string;
-  /** CSS custom property exposed via Tailwind @theme (--color-cat-*). */
   readonly color: string;
 }
 
 export const CATEGORY_META: Readonly<Record<CourseCategory, CategoryMeta>> = {
-  dev: { id: 'dev', label: 'Développement', icon: 'code', color: 'var(--color-cat-dev)' },
-  design: { id: 'design', label: 'Design', icon: 'palette', color: 'var(--color-cat-design)' },
-  project: { id: 'project', label: 'Gestion de projet', icon: 'account_tree', color: 'var(--color-cat-project)' },
-  comm: { id: 'comm', label: 'Communication', icon: 'forum', color: 'var(--color-cat-comm)' },
-  security: { id: 'security', label: 'Sécurité', icon: 'shield', color: 'var(--color-cat-security)' },
-  data: { id: 'data', label: 'Data', icon: 'insights', color: 'var(--color-cat-data)' },
+  dev: {
+    id: 'dev',
+    label: 'Développement',
+    icon: 'icon-[heroicons--code-bracket]',
+    color: 'var(--color-cat-dev)',
+  },
+  design: {
+    id: 'design',
+    label: 'Design',
+    icon: 'icon-[heroicons--paint-brush]',
+    color: 'var(--color-cat-design)',
+  },
+  project: {
+    id: 'project',
+    label: 'Gestion de projet',
+    icon: 'icon-[heroicons--rectangle-group]',
+    color: 'var(--color-cat-project)',
+  },
+  comm: {
+    id: 'comm',
+    label: 'Communication',
+    icon: 'icon-[heroicons--chat-bubble-left-right]',
+    color: 'var(--color-cat-comm)',
+  },
+  security: {
+    id: 'security',
+    label: 'Sécurité',
+    icon: 'icon-[heroicons--shield-check]',
+    color: 'var(--color-cat-security)',
+  },
+  data: {
+    id: 'data',
+    label: 'Data',
+    icon: 'icon-[heroicons--chart-bar]',
+    color: 'var(--color-cat-data)',
+  },
 };

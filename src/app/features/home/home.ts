@@ -19,9 +19,9 @@ export class Home {
   protected readonly categories: readonly CategoryMeta[] = Object.values(CATEGORY_META);
 
   protected readonly stats: readonly Stat[] = [
-    { value: '24+', label: 'Matières actives', icon: 'auto_stories' },
-    { value: '180h', label: 'Contenu vidéo', icon: 'play_circle' },
-    { value: '12', label: 'Mentors experts', icon: 'groups' },
-    { value: '2.4k', label: 'Apprenants', icon: 'school' },
+    { value: '24+', label: 'Matières actives', icon: 'icon-[heroicons--book-open]' },
+    { value: '180h', label: 'Contenu vidéo', icon: 'icon-[heroicons--play-circle]' },
+    { value: '12', label: 'Mentors experts', icon: 'icon-[heroicons--user-group]' },
+    { value: '2.4k', label: 'Apprenants', icon: 'icon-[heroicons--academic-cap]' },
   ];
 }

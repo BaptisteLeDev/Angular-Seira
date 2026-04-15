@@ -22,19 +22,19 @@ export class Dashboard {
     {
       label: 'Parcourir les matières',
       description: '3 modules actifs dans votre parcours.',
-      icon: 'auto_stories',
+      icon: 'icon-[heroicons--book-open]',
       routerLink: '/courses',
     },
     {
       label: 'Mes objectifs',
       description: 'Suivez votre progression hebdomadaire.',
-      icon: 'target',
+      icon: 'icon-[heroicons--flag]',
       routerLink: '/courses',
     },
     {
       label: 'Session mentor',
       description: 'Réservez un créneau avec un formateur.',
-      icon: 'forum',
+      icon: 'icon-[heroicons--chat-bubble-left-right]',
       routerLink: '/dashboard',
     },
   ];
