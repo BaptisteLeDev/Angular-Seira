@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core';
 import { Router, RouterLink, RouterLinkActive } from '@angular/router';
-import { AuthService } from '../../../core/services/auth.service';
+import { AuthStore } from '../../../core/stores/auth.store';
 
 interface NavItem {
   readonly path: string;
@@ -16,26 +16,23 @@ interface NavItem {
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class Navbar {
-  private readonly authService = inject(AuthService);
+  private readonly auth = inject(AuthStore);
   private readonly router = inject(Router);
 
   readonly appTitle = 'SeirAngular';
-  protected readonly currentUser = computed(() => this.authService.currentUser());
-
-  protected readonly primaryNav: readonly NavItem[] = [
-    { path: '/home', label: 'Accueil', icon: 'icon-[heroicons--home]' },
-    { path: '/dashboard', label: 'Tableau de bord', icon: 'icon-[heroicons--squares-2x2]' },
-    { path: '/courses', label: 'Matières', icon: 'icon-[heroicons--book-open]' },
-  ];
-
-  protected isAuthenticated(): boolean {
-    return this.authService.isAuthenticated();
-  }
+  protected readonly currentUser = computed(() => this.auth.user());
+  protected readonly isAuthenticated = computed(() => this.auth.isAuthenticated());
 
   protected logout(): void {
-    this.authService.logout().subscribe({
+    this.auth.logout().subscribe({
       next: () => this.router.navigateByUrl('/login'),
       error: () => this.router.navigateByUrl('/login'),
     });
   }
+
+  protected readonly primaryNav: readonly NavItem[] = [
+    { path: '/home', label: 'Accueil', icon: 'icon-[heroicons--home]' },
+    { path: '/dashboard', label: 'Tableau de bord', icon: 'icon-[heroicons--squares-2x2]' },
+    { path: '/formations', label: 'Matières', icon: 'icon-[heroicons--book-open]' },
+  ];
 }

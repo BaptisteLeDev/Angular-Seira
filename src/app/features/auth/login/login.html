@@ -3,7 +3,7 @@
     <!-- Brand -->
     <div class="mb-10 text-center">
       <div
-        class="mx-auto mb-4 flex size-14 items-center justify-center rounded-xl bg-primary/10 text-primary"
+        class="mx-auto mb-4 flex size-14 items-center justify-center squircle-xl bg-primary/10 text-primary"
         aria-hidden="true"
       >
         <span class="icon-[heroicons--sparkles-solid] text-3xl"></span>
@@ -14,9 +14,7 @@
       <h1 class="mt-2 font-headline text-3xl font-extrabold tracking-tight text-on-surface">
         Connexion
       </h1>
-      <p class="mt-2 text-sm text-on-surface-variant">
-        Accédez à votre parcours e-learning.
-      </p>
+      <p class="mt-2 text-sm text-on-surface-variant">Accédez à votre parcours e-learning.</p>
     </div>
 
     <!-- Card -->
@@ -24,14 +22,17 @@
       [formGroup]="form"
       (ngSubmit)="submit()"
       novalidate
-      class="space-y-6 rounded-xl bg-surface-container p-8 ghost-border"
+      class="space-y-6 squircle-xl bg-surface-container p-8 ghost-border"
       aria-labelledby="login-form-heading"
     >
       <h2 id="login-form-heading" class="sr-only">Formulaire de connexion</h2>
 
       <!-- Email -->
       <div class="space-y-2">
-        <label for="email" class="block font-headline text-xs font-bold uppercase tracking-widest text-on-surface-variant">
+        <label
+          for="email"
+          class="block font-headline text-xs font-bold uppercase tracking-widest text-on-surface-variant"
+        >
           Adresse email
         </label>
         <div class="relative">
@@ -45,9 +46,11 @@
             autocomplete="email"
             formControlName="email"
             placeholder="vous@SeirAngular.fr"
-            [attr.aria-invalid]="form.controls.email.invalid && form.controls.email.touched ? 'true' : null"
+            [attr.aria-invalid]="
+              form.controls.email.invalid && form.controls.email.touched ? 'true' : null
+            "
             aria-describedby="email-error"
-            class="w-full rounded-lg bg-surface-container-lowest py-2.5 pl-12 pr-4 text-sm text-on-surface placeholder:text-on-surface-variant/50 ghost-border focus:outline-2 focus:-outline-offset-1 focus:outline-primary"
+            class="w-full squircle-lg bg-surface-container-lowest py-2.5 pl-12 pr-4 text-sm text-on-surface placeholder:text-on-surface-variant/50 ghost-border focus:outline-2 focus:-outline-offset-1 focus:outline-primary"
           />
         </div>
         @if (form.controls.email.touched && form.controls.email.invalid) {
@@ -64,7 +67,10 @@
 
       <!-- Password -->
       <div class="space-y-2">
-        <label for="password" class="block font-headline text-xs font-bold uppercase tracking-widest text-on-surface-variant">
+        <label
+          for="password"
+          class="block font-headline text-xs font-bold uppercase tracking-widest text-on-surface-variant"
+        >
           Mot de passe
         </label>
         <div class="relative">
@@ -78,16 +84,20 @@
             autocomplete="current-password"
             formControlName="password"
             placeholder="••••••••"
-            [attr.aria-invalid]="form.controls.password.invalid && form.controls.password.touched ? 'true' : null"
+            [attr.aria-invalid]="
+              form.controls.password.invalid && form.controls.password.touched ? 'true' : null
+            "
             aria-describedby="password-error"
-            class="w-full rounded-lg bg-surface-container-lowest py-2.5 pl-12 pr-12 text-sm text-on-surface placeholder:text-on-surface-variant/50 ghost-border focus:outline-2 focus:-outline-offset-1 focus:outline-primary"
+            class="w-full squircle-lg bg-surface-container-lowest py-2.5 pl-12 pr-12 text-sm text-on-surface placeholder:text-on-surface-variant/50 ghost-border focus:outline-2 focus:-outline-offset-1 focus:outline-primary"
           />
           <button
             type="button"
             (click)="togglePassword()"
-            [attr.aria-label]="showPassword() ? 'Masquer le mot de passe' : 'Afficher le mot de passe'"
+            [attr.aria-label]="
+              showPassword() ? 'Masquer le mot de passe' : 'Afficher le mot de passe'
+            "
             [attr.aria-pressed]="showPassword()"
-            class="absolute right-3 top-1/2 -translate-y-1/2 rounded p-1.5 text-on-surface-variant transition-colors hover:text-primary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+            class="absolute right-3 top-1/2 -translate-y-1/2 squircle-sm p-1.5 text-on-surface-variant transition-colors hover:text-primary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
           >
             <span
               class="text-lg"
@@ -110,17 +120,19 @@
 
       <!-- Options -->
       <div class="flex items-center justify-between">
-        <label class="inline-flex cursor-pointer items-center gap-2 text-sm text-on-surface-variant">
+        <label
+          class="inline-flex cursor-pointer items-center gap-2 text-sm text-on-surface-variant"
+        >
           <input
             type="checkbox"
             formControlName="remember"
-            class="size-4 rounded border-outline-variant bg-surface-container-lowest accent-primary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+            class="size-4 squircle-sm border-outline-variant bg-surface-container-lowest accent-primary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
           />
           Se souvenir de moi
         </label>
         <a
           href="#"
-          class="text-sm text-primary hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary rounded"
+          class="text-sm text-primary hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary squircle-sm"
         >
           Mot de passe oublié ?
         </a>
@@ -130,10 +142,13 @@
       <button
         type="submit"
         [disabled]="form.invalid || submitting()"
-        class="flex w-full items-center justify-center gap-2 rounded-lg bg-primary px-5 py-3 font-headline text-sm font-bold text-on-primary transition-opacity hover:opacity-90 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary disabled:opacity-60"
+        class="flex w-full items-center justify-center gap-2 squircle-lg bg-primary px-5 py-3 font-headline text-sm font-bold text-on-primary transition-opacity hover:opacity-90 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary disabled:opacity-60"
       >
         @if (submitting()) {
-          <span class="icon-[heroicons--arrow-path] animate-spin text-base" aria-hidden="true"></span>
+          <span
+            class="icon-[heroicons--arrow-path] animate-spin text-base"
+            aria-hidden="true"
+          ></span>
           Connexion en cours…
         } @else {
           Se connecter
@@ -142,7 +157,10 @@
       </button>
 
       @if (submitError(); as message) {
-        <p class="rounded-lg border border-error/50 bg-error-container px-4 py-3 text-sm text-on-error-container" role="alert">
+        <p
+          class="squircle-lg border border-error/50 bg-error-container px-4 py-3 text-sm text-on-error-container"
+          role="alert"
+        >
           {{ message }}
         </p>
       }
@@ -152,7 +170,7 @@
       Pas inscrit ?
       <a
         routerLink="/home"
-        class="ml-1 font-medium text-primary hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary rounded"
+        class="ml-1 font-medium text-primary hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary squircle-sm"
       >
         Découvrir SeirAngular
       </a>

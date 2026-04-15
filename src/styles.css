@@ -44,12 +44,21 @@
   --color-tertiary: #e4e4e7;
 
   /* Category accents — cohérence entre chips + borders + icônes */
-  --color-cat-dev: #7bd0ff;         /* Développement → cyan */
-  --color-cat-design: #c084fc;      /* Design → violet */
-  --color-cat-project: #fbbf24;     /* Gestion de projet → ambre */
-  --color-cat-comm: #34d399;        /* Communication → émeraude */
-  --color-cat-security: #f87171;    /* Sécurité → rouge */
-  --color-cat-data: #818cf8;        /* Data → indigo */
+  --color-cat-dev: #7bd0ff; /* Développement → cyan */
+  --color-cat-design: #c084fc; /* Design → violet */
+  --color-cat-project: #fbbf24; /* Gestion de projet → ambre */
+  --color-cat-comm: #34d399; /* Communication → émeraude */
+  --color-cat-security: #f87171; /* Sécurité → rouge */
+  --color-cat-data: #818cf8; /* Data → indigo */
+
+  /* Radius scale — ramp généreuse pour un feel premium / squircle */
+  --radius-xs: 0.5rem;
+  --radius-sm: 0.625rem;
+  --radius-md: 0.875rem;
+  --radius-lg: 1.125rem;
+  --radius-xl: 1.375rem;
+  --radius-2xl: 1.75rem;
+  --radius-3xl: 2.25rem;
 
   /* Typographie */
   --font-headline: 'Manrope', system-ui, sans-serif;
@@ -72,15 +81,22 @@ body {
   text-rendering: optimizeLegibility;
 }
 
-:root {
-  --radius-squircle: 1.2rem;
+/* ---------------------------------------------------------------------------
+ * Utilitaires custom
+ * squircle-*  : border-radius + corner-shape: squircle (CSS 4, fallback auto
+ *               sur border-radius classique si non supporté par le navigateur).
+ * ghost-border: hairline subtil sur surfaces sombres.
+ * ------------------------------------------------------------------------- */
+@utility squircle {
+  border-radius: var(--radius-md);
+  corner-shape: squircle;
 }
 
-:where([class*='rounded']) {
-  border-radius: var(--radius-squircle) !important;
+@utility squircle-* {
+  border-radius: --value(--radius-*);
+  corner-shape: squircle;
 }
 
-/* Hairline subtil sur surfaces sombres */
 @utility ghost-border {
   border: 1px solid color-mix(in srgb, var(--color-outline-variant) 60%, transparent);
 }

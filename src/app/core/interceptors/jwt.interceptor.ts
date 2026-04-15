@@ -1,15 +1,14 @@
 import { HttpInterceptorFn } from '@angular/common/http';
 import { inject } from '@angular/core';
 import { environment } from '@environments/environment';
-import { AuthService } from '../services/auth.service';
+import { AuthStore } from '../stores/auth.store';
 
 export const jwtInterceptor: HttpInterceptorFn = (req, next) => {
   if (isPublicAuthRoute(req.url)) {
     return next(req);
   }
 
-  const token = inject(AuthService).getToken();
-
+  const token = inject(AuthStore).getToken();
   if (!token) {
     return next(req);
   }

@@ -4,7 +4,7 @@
 >
   <a
     routerLink="/dashboard"
-    class="group flex flex-col items-center gap-1 rounded-lg text-primary focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-primary"
+    class="group flex flex-col items-center gap-1 squircle-lg text-primary focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-primary"
     [attr.aria-label]="appTitle + ' — accueil'"
   >
     <span class="icon-[heroicons--sparkles-solid] text-3xl" aria-hidden="true"></span>
@@ -24,7 +24,7 @@
           <span class="text-2xl" [class]="item.icon" aria-hidden="true"></span>
           <span class="sr-only">{{ item.label }}</span>
           <span
-            class="pointer-events-none absolute left-full ml-3 hidden whitespace-nowrap rounded-lg bg-surface-container-high px-3 py-1.5 text-xs font-medium text-on-surface shadow-lg ghost-border group-hover:block group-focus-visible:block"
+            class="pointer-events-none absolute left-full ml-3 hidden whitespace-nowrap squircle-lg bg-surface-container-high px-3 py-1.5 text-xs font-medium text-on-surface shadow-lg ghost-border group-hover:block group-focus-visible:block"
             role="tooltip"
           >
             {{ item.label }}
@@ -41,10 +41,13 @@
       class="group relative flex size-12 items-center justify-center text-on-surface-variant transition-colors duration-200 hover:text-error focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-primary"
       aria-label="Deconnexion"
     >
-      <span class="icon-[heroicons--arrow-right-start-on-rectangle] text-2xl" aria-hidden="true"></span>
+      <span
+        class="icon-[heroicons--arrow-right-start-on-rectangle] text-2xl"
+        aria-hidden="true"
+      ></span>
       <span class="sr-only">Deconnexion</span>
       <span
-        class="pointer-events-none absolute left-full ml-3 hidden whitespace-nowrap rounded-lg bg-surface-container-high px-3 py-1.5 text-xs font-medium text-on-surface shadow-lg ghost-border group-hover:block group-focus-visible:block"
+        class="pointer-events-none absolute left-full ml-3 hidden whitespace-nowrap squircle-lg bg-surface-container-high px-3 py-1.5 text-xs font-medium text-on-surface shadow-lg ghost-border group-hover:block group-focus-visible:block"
         role="tooltip"
       >
         Deconnexion
@@ -56,7 +59,10 @@
       class="group relative flex size-12 items-center justify-center text-on-surface-variant transition-colors duration-200 hover:text-primary focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-primary"
       aria-label="Connexion"
     >
-      <span class="icon-[heroicons--arrow-right-end-on-rectangle] text-2xl" aria-hidden="true"></span>
+      <span
+        class="icon-[heroicons--arrow-right-end-on-rectangle] text-2xl"
+        aria-hidden="true"
+      ></span>
       <span class="sr-only">Connexion</span>
     </a>
   }

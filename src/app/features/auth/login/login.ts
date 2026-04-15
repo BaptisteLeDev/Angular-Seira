@@ -1,7 +1,7 @@
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
-import { AuthService } from '../../../core/services/auth.service';
+import { AuthStore } from '../../../core/stores/auth.store';
 
 @Component({
   selector: 'app-login',
@@ -13,7 +13,7 @@ import { AuthService } from '../../../core/services/auth.service';
 export class Login {
   private readonly fb = inject(FormBuilder);
   private readonly router = inject(Router);
-  private readonly authService = inject(AuthService);
+  private readonly auth = inject(AuthStore);
 
   protected readonly showPassword = signal(false);
   protected readonly submitting = signal(false);
@@ -25,7 +25,9 @@ export class Login {
     remember: [false],
   });
 
-  protected readonly passwordInputType = computed(() => (this.showPassword() ? 'text' : 'password'));
+  protected readonly passwordInputType = computed(() =>
+    this.showPassword() ? 'text' : 'password',
+  );
 
   protected togglePassword(): void {
     this.showPassword.update((visible) => !visible);
@@ -41,7 +43,7 @@ export class Login {
     this.submitting.set(true);
     this.submitError.set(null);
 
-    this.authService.login(email, password).subscribe({
+    this.auth.login({ email, password }).subscribe({
       next: () => {
         this.submitting.set(false);
         this.router.navigateByUrl('/dashboard');

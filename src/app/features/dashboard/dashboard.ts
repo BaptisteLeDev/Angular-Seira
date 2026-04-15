@@ -23,13 +23,13 @@ export class Dashboard {
       label: 'Parcourir les matières',
       description: '3 modules actifs dans votre parcours.',
       icon: 'icon-[heroicons--book-open]',
-      routerLink: '/courses',
+      routerLink: '/formations',
     },
     {
       label: 'Mes objectifs',
       description: 'Suivez votre progression hebdomadaire.',
       icon: 'icon-[heroicons--flag]',
-      routerLink: '/courses',
+      routerLink: '/formations',
     },
     {
       label: 'Session mentor',

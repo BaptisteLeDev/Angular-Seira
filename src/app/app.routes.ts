@@ -2,7 +2,7 @@ import { Routes } from '@angular/router';
 import { authGuard } from './core/guards/auth.guard';
 
 export const routes: Routes = [
-  { path: '', redirectTo: 'dashboard', pathMatch: 'full' },
+  { path: '', redirectTo: 'home', pathMatch: 'full' },
   {
     path: 'home',
     loadComponent: () => import('./features/home/home').then((m) => m.Home),
@@ -17,17 +17,25 @@ export const routes: Routes = [
     loadComponent: () => import('./features/dashboard/dashboard').then((m) => m.Dashboard),
   },
   {
-    path: 'courses',
+    path: 'formations',
     canActivate: [authGuard],
     loadComponent: () =>
       import('./features/courses/course-list/course-list').then((m) => m.CourseList),
   },
   {
-    path: 'courses/:id',
+    path: 'formations/:formationSlug',
     canActivate: [authGuard],
     loadComponent: () =>
       import('./features/courses/course-detail/course-detail').then((m) => m.CourseDetail),
   },
+  {
+    path: 'formations/:formationSlug/:articleSlug',
+    canActivate: [authGuard],
+    loadComponent: () =>
+      import('./features/courses/course-detail/course-detail').then((m) => m.CourseDetail),
+  },
+  { path: 'courses', redirectTo: 'formations', pathMatch: 'full' },
+  { path: 'courses/:id', redirectTo: 'formations', pathMatch: 'full' },
   {
     path: '**',
     loadComponent: () =>

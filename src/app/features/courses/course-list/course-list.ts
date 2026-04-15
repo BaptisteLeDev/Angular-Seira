@@ -1,68 +1,57 @@
-import { ChangeDetectionStrategy, Component, OnInit, computed, inject, signal } from '@angular/core';
-import { RouterLink } from '@angular/router';
-import { PercentPipe } from '@angular/common';
-import { Course } from '../../../core/models/course.model';
 import {
-  CATEGORY_META,
-  CategoryMeta,
-  CourseCategory,
-} from '../../../core/models/course-category.model';
-import { CourseService } from '../../../core/services/course.service';
+  ChangeDetectionStrategy,
+  Component,
+  OnInit,
+  computed,
+  inject,
+  signal,
+} from '@angular/core';
+import { RouterLink } from '@angular/router';
+import { FormationStore } from '../../../core/stores/formation.store';
+import type { Formation } from '../../../core/schemas/formation.schema';
+import { variantFor, type FormationVariant } from '../../../shared/ui/formation-visual';
+import { slugify } from '../../../shared/utils/slug';
 
-interface CourseView extends Course {
-  readonly category: CourseCategory;
+interface FormationView {
+  readonly formation: Formation;
+  readonly variant: FormationVariant;
+  readonly slug: string;
 }
 
 @Component({
   selector: 'app-course-list',
-  imports: [RouterLink, PercentPipe],
+  imports: [RouterLink],
   templateUrl: './course-list.html',
   styleUrl: './course-list.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class CourseList implements OnInit {
-  private readonly courseService = inject(CourseService);
+  private readonly store = inject(FormationStore);
 
-  protected courses: CourseView[] = [];
-  protected isLoading = true;
-  protected errorMessage: string | null = null;
+  protected readonly isLoading = this.store.isLoading;
+  protected readonly errorMessage = this.store.error;
 
-  protected readonly selectedCourseId = signal<number | null>(null);
+  protected readonly formations = computed<readonly FormationView[]>(() =>
+    this.store.items().map((formation) => ({
+      formation,
+      variant: variantFor(formation.id),
+      slug: slugify(formation.title),
+    })),
+  );
 
-  protected readonly selectedCourse = computed(() => {
-    const id = this.selectedCourseId();
-    return id === null ? null : this.courses.find((course) => course.id === id) ?? null;
+  protected readonly selectedFormationId = signal<number | null>(null);
+
+  protected readonly selectedFormation = computed<FormationView | null>(() => {
+    const id = this.selectedFormationId();
+    if (id === null) return null;
+    return this.formations().find((view) => view.formation.id === id) ?? null;
   });
 
-  protected meta(category: CourseCategory): CategoryMeta {
-    return CATEGORY_META[category];
-  }
-
   ngOnInit(): void {
-    this.courseService.getCourses().subscribe({
-      next: (courses) => {
-        this.courses = courses.map((course) => this.toCourseView(course));
-        this.isLoading = false;
-      },
-      error: (error: unknown) => {
-        this.errorMessage =
-          error instanceof Error
-            ? error.message
-            : 'Le chargement des matieres est indisponible pour le moment.';
-        this.isLoading = false;
-      },
-    });
+    this.store.load();
   }
 
-  private toCourseView(course: Course): CourseView {
-    return {
-      ...course,
-      // Squelette TP: categorisation statique en attendant un champ API dedie.
-      category: 'dev',
-    };
-  }
-
-  selectCourse(id: number): void {
-    this.selectedCourseId.update((current) => (current === id ? null : id));
+  protected selectFormation(id: number): void {
+    this.selectedFormationId.update((current) => (current === id ? null : id));
   }
 }
