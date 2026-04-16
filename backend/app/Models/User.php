@@ -13,6 +13,8 @@ use App\State\User\UserCreateProcessor;
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
@@ -64,7 +66,11 @@ class User extends Authenticatable
      * @var list<string>
      */
     protected $fillable = [
+        'school_id',
+        'classroom_id',
         'name',
+        'first_name',
+        'last_name',
         'email',
         'password',
         'role',
@@ -96,6 +102,36 @@ class User extends Authenticatable
     public function isAdmin(): bool
     {
         return self::ROLE_ADMIN === $this->role;
+    }
+
+    public function school(): BelongsTo
+    {
+        return $this->belongsTo(School::class);
+    }
+
+    public function classroom(): BelongsTo
+    {
+        return $this->belongsTo(Classroom::class);
+    }
+
+    public function taughtSubjects(): HasMany
+    {
+        return $this->hasMany(Subject::class, 'teacher_id');
+    }
+
+    public function uploadedVideos(): HasMany
+    {
+        return $this->hasMany(Video::class, 'created_by');
+    }
+
+    public function chapterContents(): HasMany
+    {
+        return $this->hasMany(ChapterContent::class, 'created_by');
+    }
+
+    public function videoProgresses(): HasMany
+    {
+        return $this->hasMany(VideoProgress::class);
     }
 
     public function getId(): ?int

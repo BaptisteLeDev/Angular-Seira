@@ -1,0 +1,123 @@
+<?php
+
+namespace App\Models;
+
+use ApiPlatform\Metadata\ApiResource;
+use ApiPlatform\Metadata\Delete;
+use ApiPlatform\Metadata\Get;
+use ApiPlatform\Metadata\GetCollection;
+use ApiPlatform\Metadata\Patch;
+use ApiPlatform\Metadata\Post;
+use App\ApiResource\ClassroomCreateInput;
+use App\State\Classroom\ClassroomCreateProcessor;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\SoftDeletes;
+
+#[ApiResource(
+    shortName: 'Classroom',
+    operations: [
+        new GetCollection(
+            uriTemplate: '/classrooms',
+            policy: 'classrooms.list',
+            middleware: ['auth:sanctum']
+        ),
+        new Get(
+            uriTemplate: '/classrooms/{id}',
+            policy: 'classrooms.view',
+            middleware: ['auth:sanctum']
+        ),
+        new Post(
+            uriTemplate: '/classrooms',
+            policy: 'classrooms.create',
+            middleware: ['auth:sanctum'],
+            input: ClassroomCreateInput::class,
+            processor: ClassroomCreateProcessor::class
+        ),
+        new Patch(
+            uriTemplate: '/classrooms/{id}',
+            policy: 'classrooms.update',
+            middleware: ['auth:sanctum']
+        ),
+        new Delete(
+            uriTemplate: '/classrooms/{id}',
+            policy: 'classrooms.delete',
+            middleware: ['auth:sanctum']
+        ),
+    ]
+)]
+class Classroom extends Model
+{
+    use HasFactory;
+    use SoftDeletes;
+
+    protected $fillable = [
+        'school_id',
+        'level',
+        'name',
+        'slug',
+    ];
+
+    public function getId(): ?int
+    {
+        return $this->attributes['id'] ?? null;
+    }
+
+    public function getSchoolId(): ?int
+    {
+        return $this->attributes['school_id'] ?? null;
+    }
+
+    public function setSchoolId(int $schoolId): void
+    {
+        $this->attributes['school_id'] = $schoolId;
+    }
+
+    public function getLevel(): ?string
+    {
+        return $this->attributes['level'] ?? null;
+    }
+
+    public function setLevel(string $level): void
+    {
+        $this->attributes['level'] = $level;
+    }
+
+    public function getName(): ?string
+    {
+        return $this->attributes['name'] ?? null;
+    }
+
+    public function setName(string $name): void
+    {
+        $this->attributes['name'] = $name;
+    }
+
+    public function getSlug(): ?string
+    {
+        return $this->attributes['slug'] ?? null;
+    }
+
+    public function setSlug(string $slug): void
+    {
+        $this->attributes['slug'] = $slug;
+    }
+
+    public function school(): BelongsTo
+    {
+        return $this->belongsTo(School::class);
+    }
+
+    public function students(): HasMany
+    {
+        return $this->hasMany(User::class);
+    }
+
+    public function subjects(): BelongsToMany
+    {
+        return $this->belongsToMany(Subject::class, 'classroom_subject');
+    }
+}
