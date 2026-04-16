@@ -1,5 +1,6 @@
-import { ChangeDetectionStrategy, Component } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core';
 import { RouterLink } from '@angular/router';
+import { AuthStore } from '../../core/stores/auth.store';
 
 interface QuickAction {
   readonly label: string;
@@ -16,11 +17,13 @@ interface QuickAction {
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class Dashboard {
-  protected readonly welcomeName = 'Alex';
+  private readonly auth = inject(AuthStore);
+
+  protected readonly welcomeName = computed(() => this.auth.user()?.name ?? '');
 
   protected readonly quickActions: readonly QuickAction[] = [
     {
-      label: 'Parcourir les matières',
+      label: 'Parcourir les matieres',
       description: '3 modules actifs dans votre parcours.',
       icon: 'icon-[heroicons--book-open]',
       routerLink: '/formations',
@@ -33,7 +36,7 @@ export class Dashboard {
     },
     {
       label: 'Session mentor',
-      description: 'Réservez un créneau avec un formateur.',
+      description: 'Reservez un creneau avec un formateur.',
       icon: 'icon-[heroicons--chat-bubble-left-right]',
       routerLink: '/dashboard',
     },

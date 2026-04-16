@@ -1,21 +1,12 @@
-import {
-  ChangeDetectionStrategy,
-  Component,
-  OnInit,
-  computed,
-  inject,
-  signal,
-} from '@angular/core';
+import { ChangeDetectionStrategy, Component, OnInit, computed, inject, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { FormationStore } from '../../../core/stores/formation.store';
 import type { Formation } from '../../../core/schemas/formation.schema';
 import { variantFor, type FormationVariant } from '../../../shared/ui/formation-visual';
-import { slugify } from '../../../shared/utils/slug';
 
 interface FormationView {
   readonly formation: Formation;
   readonly variant: FormationVariant;
-  readonly slug: string;
 }
 
 @Component({
@@ -35,7 +26,6 @@ export class CourseList implements OnInit {
     this.store.items().map((formation) => ({
       formation,
       variant: variantFor(formation.id),
-      slug: slugify(formation.title),
     })),
   );
 

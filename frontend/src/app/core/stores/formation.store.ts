@@ -52,10 +52,23 @@ export class FormationStore {
     });
   }
 
+  /**
+   * Charge les chapitres d'une formation via les IRIs incluses dans la reponse subject.
+   * Ne charge que les chapitres lies a cette formation.
+   */
   loadChapitres(formationId: number, force = false): void {
     const currentStatus = this._chapitresStatus()[formationId];
     const alreadyLoaded = this._chapitresByFormation()[formationId] !== undefined;
     if (!force && (currentStatus === 'loading' || alreadyLoaded)) {
+      return;
+    }
+
+    const formation = this._items().find((f) => f.id === formationId);
+    const chapterIris = formation?.chapters ?? [];
+
+    if (chapterIris.length === 0) {
+      this._chapitresByFormation.update((state) => ({ ...state, [formationId]: [] }));
+      this._chapitresStatus.update((state) => ({ ...state, [formationId]: 'idle' }));
       return;
     }
 
@@ -65,12 +78,10 @@ export class FormationStore {
       return rest;
     });
 
-    this.api.getChapitres(formationId).subscribe({
+    this.api.getChapitresByIris(chapterIris).subscribe({
       next: (chapitres) => {
-        const scoped = chapitres
-          .filter((chapitre) => chapitre.formation_id === formationId)
-          .sort((a, b) => a.order - b.order);
-        this._chapitresByFormation.update((state) => ({ ...state, [formationId]: scoped }));
+        const sorted = [...chapitres].sort((a, b) => a.sortOrder - b.sortOrder);
+        this._chapitresByFormation.update((state) => ({ ...state, [formationId]: sorted }));
         this._chapitresStatus.update((state) => ({ ...state, [formationId]: 'idle' }));
       },
       error: (error: unknown) => {

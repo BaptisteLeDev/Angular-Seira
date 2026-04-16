@@ -54,10 +54,10 @@
         <h1
           class="font-headline text-3xl font-extrabold leading-tight tracking-tight text-on-surface sm:text-4xl lg:text-5xl"
         >
-          {{ data.title }}
+          {{ data.name }}
         </h1>
         <p class="mt-4 max-w-2xl text-base leading-relaxed text-on-surface-variant sm:text-lg">
-          {{ data.description || 'Parcourez les chapitres pour démarrer votre apprentissage.' }}
+          {{ data.description || 'Parcourez les chapitres pour demarrer votre apprentissage.' }}
         </p>
 
         <!-- Stats -->
@@ -93,7 +93,7 @@
               <dt
                 class="font-headline text-[10px] uppercase tracking-widest text-on-surface-variant"
               >
-                Articles
+                Contenus
               </dt>
               <dd class="font-headline text-lg font-bold text-on-surface">
                 {{ totalArticles() }}
@@ -113,7 +113,7 @@
                 <dt
                   class="font-headline text-[10px] uppercase tracking-widest text-on-surface-variant"
                 >
-                  Durée totale
+                  Duree totale
                 </dt>
                 <dd class="font-headline text-lg font-bold text-on-surface">
                   {{ totalDurationMinutes() | number }} min
@@ -121,25 +121,27 @@
               </div>
             </div>
           }
-          <div
-            class="flex items-center gap-3 squircle-xl bg-surface-container-high px-4 py-3 ghost-border"
-          >
-            <span
-              class="flex size-9 shrink-0 items-center justify-center squircle-lg bg-primary/12 text-primary"
+          @if (data.expectedHours) {
+            <div
+              class="flex items-center gap-3 squircle-xl bg-surface-container-high px-4 py-3 ghost-border"
             >
-              <span class="icon-[heroicons--user] text-lg" aria-hidden="true"></span>
-            </span>
-            <div>
-              <dt
-                class="font-headline text-[10px] uppercase tracking-widest text-on-surface-variant"
+              <span
+                class="flex size-9 shrink-0 items-center justify-center squircle-lg bg-primary/12 text-primary"
               >
-                Professeur
-              </dt>
-              <dd class="font-headline text-sm font-bold text-on-surface">
-                {{ formationTeacher(data) }}
-              </dd>
+                <span class="icon-[heroicons--calendar-days] text-lg" aria-hidden="true"></span>
+              </span>
+              <div>
+                <dt
+                  class="font-headline text-[10px] uppercase tracking-widest text-on-surface-variant"
+                >
+                  Volume prevu
+                </dt>
+                <dd class="font-headline text-lg font-bold text-on-surface">
+                  {{ data.expectedHours }}h
+                </dd>
+              </div>
             </div>
-          </div>
+          }
         </dl>
 
         <!-- Progress -->
@@ -157,7 +159,7 @@
               [attr.aria-valuenow]="progressPercent()"
               aria-valuemin="0"
               aria-valuemax="100"
-              [attr.aria-label]="'Progression ' + data.title"
+              [attr.aria-label]="'Progression ' + data.name"
             >
               <div
                 class="h-full rounded-full bg-linear-to-r from-primary to-primary-dim transition-all duration-500"
@@ -170,7 +172,6 @@
     </header>
 
     @if (totalArticles() === 0) {
-      <!-- Empty programme -->
       <div
         class="flex flex-col items-center justify-center squircle-xl bg-surface-container p-12 text-center ghost-border"
         role="status"
@@ -179,9 +180,9 @@
           class="icon-[heroicons--sparkles] mb-4 text-5xl text-on-surface-variant"
           aria-hidden="true"
         ></span>
-        <p class="font-headline text-lg font-bold text-on-surface">Programme bientôt disponible</p>
+        <p class="font-headline text-lg font-bold text-on-surface">Programme bientot disponible</p>
         <p class="mt-2 max-w-md text-sm text-on-surface-variant">
-          Les chapitres et articles de cette formation seront publiés prochainement.
+          Les chapitres et contenus de cette formation seront publies prochainement.
         </p>
       </div>
     } @else {
@@ -205,35 +206,32 @@
                 <p
                   class="mb-2 font-headline text-xs font-bold uppercase tracking-[0.15em] text-on-surface"
                 >
-                  <span class="text-primary">{{ chapitre.order }}.</span> {{ chapitre.title }}
+                  <span class="text-primary">{{ chapitre.sortOrder }}.</span>
+                  {{ chapitre.title }}
                 </p>
                 @let entries = entriesForChapitre(chapitre.id);
                 @if (entries.length === 0) {
-                  <p class="pl-4 text-xs italic text-on-surface-variant">Articles à venir.</p>
+                  <p class="pl-4 text-xs italic text-on-surface-variant">Contenus a venir.</p>
                 } @else {
                   <ul role="list" class="space-y-1">
                     @for (entry of entries; track entry.article.id) {
                       <li>
                         <a
-                          [routerLink]="[
-                            '/formations',
-                            formationUrlSlug(data),
-                            articleUrlSlug(entry.article),
-                          ]"
+                          [routerLink]="['/formations', data.id, entry.article.id]"
                           class="group flex items-start gap-3 squircle-lg border-l-2 border-transparent px-3 py-2 text-sm transition-all hover:border-primary/50 hover:bg-surface-container-high focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
                           [class.border-primary]="isActive(entry)"
                           [class.bg-surface-container-high]="isActive(entry)"
                           [attr.aria-current]="isActive(entry) ? 'page' : null"
                         >
                           <span
-                            class="flex size-6 shrink-0 items-center justify-center squircle-md font-mono text-[10px] font-bold transition-colors"
+                            class="flex size-6 shrink-0 items-center justify-center squircle-md text-base transition-colors"
                             [class.bg-primary]="isActive(entry)"
                             [class.text-on-primary]="isActive(entry)"
                             [class.bg-surface-container-highest]="!isActive(entry)"
                             [class.text-on-surface-variant]="!isActive(entry)"
                             aria-hidden="true"
                           >
-                            {{ entry.index }}
+                            <span [class]="contentTypeIcon(entry.article.type)"></span>
                           </span>
                           <span class="min-w-0 flex-1">
                             <span
@@ -242,17 +240,20 @@
                             >
                               {{ entry.article.title }}
                             </span>
-                            @if (articleDurationMinutes(entry.article); as mins) {
-                              <span
-                                class="mt-0.5 inline-flex items-center gap-1 font-mono text-[10px] text-on-surface-variant"
-                              >
-                                <span
-                                  class="icon-[heroicons--clock] text-xs"
-                                  aria-hidden="true"
-                                ></span>
-                                {{ mins }} min
-                              </span>
-                            }
+                            <span
+                              class="mt-0.5 inline-flex items-center gap-2 font-mono text-[10px] text-on-surface-variant"
+                            >
+                              <span>{{ contentTypeLabel(entry.article.type) }}</span>
+                              @if (articleDurationMinutes(entry.article); as mins) {
+                                <span class="inline-flex items-center gap-0.5">
+                                  <span
+                                    class="icon-[heroicons--clock] text-xs"
+                                    aria-hidden="true"
+                                  ></span>
+                                  {{ mins }} min
+                                </span>
+                              }
+                            </span>
                           </span>
                         </a>
                       </li>
@@ -264,7 +265,7 @@
           </ol>
         </aside>
 
-        <!-- Article actif -->
+        <!-- Contenu actif -->
         <section aria-labelledby="article-heading" class="min-w-0">
           @if (activeArticle(); as entry) {
             <article class="squircle-2xl bg-surface-container p-6 ghost-border sm:p-8 lg:p-10">
@@ -276,7 +277,7 @@
                     class="flex size-5 items-center justify-center squircle-sm bg-primary/15 font-mono"
                     aria-hidden="true"
                   >
-                    {{ entry.chapitre.order }}
+                    {{ entry.chapitre.sortOrder }}
                   </span>
                   {{ entry.chapitre.title }}
                 </p>
@@ -288,55 +289,160 @@
                 </h2>
                 <div class="mt-4 flex flex-wrap items-center gap-4 text-xs text-on-surface-variant">
                   <span class="inline-flex items-center gap-1.5 font-mono">
+                    <span
+                      [class]="contentTypeIcon(entry.article.type)"
+                      class="text-sm"
+                      aria-hidden="true"
+                    ></span>
+                    {{ contentTypeLabel(entry.article.type) }}
+                  </span>
+                  <span class="inline-flex items-center gap-1.5 font-mono">
                     <span class="icon-[heroicons--hashtag] text-sm" aria-hidden="true"></span>
-                    Article {{ entry.index }} / {{ totalArticles() }}
+                    Contenu {{ entry.index }} / {{ totalArticles() }}
                   </span>
                   @if (articleDurationMinutes(entry.article); as mins) {
                     <span class="inline-flex items-center gap-1.5 font-mono">
                       <span class="icon-[heroicons--clock] text-sm" aria-hidden="true"></span>
-                      {{ mins }} min de lecture
+                      {{ mins }} min
                     </span>
                   }
                 </div>
               </header>
 
-              @if (entry.article.video_url; as videoUrl) {
-                <a
-                  [href]="videoUrl"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  class="mb-8 flex items-center gap-3 squircle-xl bg-surface-container-low p-4 ghost-border transition-colors hover:bg-surface-container-high focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
-                >
-                  <span
-                    class="flex size-10 shrink-0 items-center justify-center squircle-lg bg-primary/15 text-primary"
+              <!-- === CONTENT TYPE RENDERING === -->
+
+              <!-- VIDEO -->
+              @if (entry.article.type === 'video' && entry.article.sourceUrl) {
+                <div class="mb-8">
+                  <a
+                    [href]="entry.article.sourceUrl"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    class="flex items-center gap-3 squircle-xl bg-surface-container-low p-4 ghost-border transition-colors hover:bg-surface-container-high focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
                   >
                     <span
-                      class="icon-[heroicons--play-circle-solid] text-xl"
+                      class="flex size-12 shrink-0 items-center justify-center squircle-lg bg-primary/15 text-primary"
+                    >
+                      <span
+                        class="icon-[heroicons--play-circle-solid] text-2xl"
+                        aria-hidden="true"
+                      ></span>
+                    </span>
+                    <span class="min-w-0 flex-1">
+                      <span class="block font-headline text-sm font-bold text-on-surface">
+                        Regarder la video
+                      </span>
+                      <span class="mt-0.5 block truncate text-xs text-on-surface-variant">
+                        {{ entry.article.sourceUrl }}
+                      </span>
+                    </span>
+                    <span
+                      class="icon-[heroicons--arrow-top-right-on-square] text-lg text-on-surface-variant"
                       aria-hidden="true"
                     ></span>
-                  </span>
-                  <span class="min-w-0 flex-1">
-                    <span class="block font-headline text-sm font-bold text-on-surface">
-                      Regarder la vidéo
-                    </span>
-                    <span class="mt-0.5 block truncate text-xs text-on-surface-variant">
-                      {{ videoUrl }}
-                    </span>
-                  </span>
-                  <span
-                    class="icon-[heroicons--arrow-top-right-on-square] text-lg text-on-surface-variant"
-                    aria-hidden="true"
-                  ></span>
-                </a>
+                  </a>
+                </div>
               }
 
+              <!-- LINK -->
+              @if (entry.article.type === 'link' && entry.article.sourceUrl) {
+                <div class="mb-8">
+                  <a
+                    [href]="entry.article.sourceUrl"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    class="flex items-center gap-3 squircle-xl bg-surface-container-low p-4 ghost-border transition-colors hover:bg-surface-container-high focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+                  >
+                    <span
+                      class="flex size-12 shrink-0 items-center justify-center squircle-lg bg-primary/15 text-primary"
+                    >
+                      <span
+                        class="icon-[heroicons--link] text-2xl"
+                        aria-hidden="true"
+                      ></span>
+                    </span>
+                    <span class="min-w-0 flex-1">
+                      <span class="block font-headline text-sm font-bold text-on-surface">
+                        Ouvrir le lien
+                      </span>
+                      <span class="mt-0.5 block truncate text-xs text-on-surface-variant">
+                        {{ entry.article.sourceUrl }}
+                      </span>
+                    </span>
+                    <span
+                      class="icon-[heroicons--arrow-top-right-on-square] text-lg text-on-surface-variant"
+                      aria-hidden="true"
+                    ></span>
+                  </a>
+                </div>
+              }
+
+              <!-- PDF -->
+              @if (entry.article.type === 'pdf' && entry.article.filePath) {
+                <div class="mb-8">
+                  <div
+                    class="flex items-center gap-3 squircle-xl bg-surface-container-low p-4 ghost-border"
+                  >
+                    <span
+                      class="flex size-12 shrink-0 items-center justify-center squircle-lg bg-error/10 text-error"
+                    >
+                      <span
+                        class="icon-[heroicons--document-arrow-down] text-2xl"
+                        aria-hidden="true"
+                      ></span>
+                    </span>
+                    <span class="min-w-0 flex-1">
+                      <span class="block font-headline text-sm font-bold text-on-surface">
+                        Document PDF
+                      </span>
+                      <span class="mt-0.5 block truncate text-xs text-on-surface-variant">
+                        {{ entry.article.filePath }}
+                      </span>
+                    </span>
+                  </div>
+                </div>
+              }
+
+              <!-- FILE -->
+              @if (entry.article.type === 'file' && entry.article.filePath) {
+                <div class="mb-8">
+                  <div
+                    class="flex items-center gap-3 squircle-xl bg-surface-container-low p-4 ghost-border"
+                  >
+                    <span
+                      class="flex size-12 shrink-0 items-center justify-center squircle-lg bg-primary/10 text-primary"
+                    >
+                      <span
+                        class="icon-[heroicons--paper-clip] text-2xl"
+                        aria-hidden="true"
+                      ></span>
+                    </span>
+                    <span class="min-w-0 flex-1">
+                      <span class="block font-headline text-sm font-bold text-on-surface">
+                        Fichier joint
+                      </span>
+                      <span class="mt-0.5 block truncate text-xs text-on-surface-variant">
+                        {{ entry.article.filePath }}
+                      </span>
+                    </span>
+                  </div>
+                </div>
+              }
+
+              <!-- MARKDOWN / TEXT CONTENT -->
               @if (entry.article.content) {
                 <div
                   class="prose-article whitespace-pre-line text-base leading-relaxed text-on-surface sm:text-lg"
                 >
                   {{ entry.article.content }}
                 </div>
-              } @else {
+              } @else if (entry.article.description) {
+                <div
+                  class="prose-article whitespace-pre-line text-base leading-relaxed text-on-surface sm:text-lg"
+                >
+                  {{ entry.article.description }}
+                </div>
+              } @else if (entry.article.type === 'markdown') {
                 <div
                   class="flex flex-col items-center squircle-xl bg-surface-container-low p-8 text-center ghost-border"
                 >
@@ -345,7 +451,7 @@
                     aria-hidden="true"
                   ></span>
                   <p class="font-headline text-base font-bold text-on-surface">
-                    Contenu en préparation
+                    Contenu en preparation
                   </p>
                   <p class="mt-1 text-sm text-on-surface-variant">
                     Cet article sera enrichi prochainement.
@@ -355,23 +461,19 @@
 
               <!-- Prev / next -->
               <nav
-                aria-label="Navigation entre articles"
+                aria-label="Navigation entre contenus"
                 class="mt-10 grid gap-3 border-t border-outline-variant/40 pt-6 sm:grid-cols-2"
               >
                 @if (previousEntry(); as prev) {
                   <a
-                    [routerLink]="[
-                      '/formations',
-                      formationUrlSlug(data),
-                      articleUrlSlug(prev.article),
-                    ]"
+                    [routerLink]="['/formations', data.id, prev.article.id]"
                     class="group flex flex-col squircle-xl bg-surface-container-low p-4 ghost-border transition-all hover:-translate-y-0.5 hover:bg-surface-container-high focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
                   >
                     <span
                       class="flex items-center gap-1 font-headline text-[10px] font-bold uppercase tracking-widest text-on-surface-variant"
                     >
                       <span class="icon-[heroicons--arrow-left] text-sm" aria-hidden="true"></span>
-                      Précédent
+                      Precedent
                     </span>
                     <span
                       class="mt-1 truncate font-headline text-sm font-bold text-on-surface group-hover:text-primary"
@@ -384,11 +486,7 @@
                 }
                 @if (nextEntry(); as next) {
                   <a
-                    [routerLink]="[
-                      '/formations',
-                      formationUrlSlug(data),
-                      articleUrlSlug(next.article),
-                    ]"
+                    [routerLink]="['/formations', data.id, next.article.id]"
                     class="group flex flex-col items-end squircle-xl bg-primary/10 p-4 ghost-border transition-all hover:-translate-y-0.5 hover:bg-primary/20 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary sm:text-right"
                   >
                     <span
@@ -416,10 +514,10 @@
                 aria-hidden="true"
               ></span>
               <h2 id="article-heading" class="font-headline text-xl font-bold text-on-surface">
-                Prêt à commencer ?
+                Pret a commencer ?
               </h2>
               <p class="mt-2 max-w-md text-sm text-on-surface-variant">
-                Sélectionnez un article dans le programme pour démarrer la lecture.
+                Selectionnez un contenu dans le programme pour demarrer.
               </p>
             </div>
           }
@@ -438,7 +536,7 @@
       ></span>
       <h1 class="font-headline text-2xl font-bold text-on-surface">Formation introuvable</h1>
       <p class="mt-2 text-on-surface-variant">
-        La formation « {{ formationSlug() }} » n'existe pas dans le catalogue.
+        La formation #{{ formationId() }} n'existe pas dans le catalogue.
       </p>
       <a
         routerLink="/formations"

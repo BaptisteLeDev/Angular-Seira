@@ -6,12 +6,8 @@ import { UserSchema, type User } from '../schemas/user.schema';
 import {
   AuthResponseSchema,
   LoginRequestSchema,
-  RefreshResponseSchema,
-  RegisterRequestSchema,
   type AuthResponse,
   type LoginRequest,
-  type RefreshResponse,
-  type RegisterRequest,
 } from '../schemas/auth.schema';
 import { parseResponse } from './parse-response';
 
@@ -21,23 +17,14 @@ export class AuthApi {
   private readonly apiUrl = environment.apiUrl;
   private readonly endpoints = {
     login: '/auth/login',
-    register: '/auth/register',
     logout: '/auth/logout',
     me: '/auth/me',
-    refresh: '/auth/refresh',
   } as const;
 
   login(payload: LoginRequest): Observable<AuthResponse> {
     const body = LoginRequestSchema.parse(payload);
     return this.http
       .post<unknown>(`${this.apiUrl}${this.endpoints.login}`, body)
-      .pipe(parseResponse(AuthResponseSchema), catchError(this.toHttpError));
-  }
-
-  register(payload: RegisterRequest): Observable<AuthResponse> {
-    const body = RegisterRequestSchema.parse(payload);
-    return this.http
-      .post<unknown>(`${this.apiUrl}${this.endpoints.register}`, body)
       .pipe(parseResponse(AuthResponseSchema), catchError(this.toHttpError));
   }
 
@@ -51,12 +38,6 @@ export class AuthApi {
     return this.http
       .get<unknown>(`${this.apiUrl}${this.endpoints.me}`)
       .pipe(parseResponse(UserSchema), catchError(this.toHttpError));
-  }
-
-  refresh(): Observable<RefreshResponse> {
-    return this.http
-      .post<unknown>(`${this.apiUrl}${this.endpoints.refresh}`, {})
-      .pipe(parseResponse(RefreshResponseSchema), catchError(this.toHttpError));
   }
 
   private readonly toHttpError = (error: unknown): Observable<never> => {

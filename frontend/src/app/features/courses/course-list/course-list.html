@@ -16,8 +16,8 @@
       </span>
     </h1>
     <p class="mt-4 max-w-2xl text-base leading-relaxed text-on-surface-variant sm:text-lg">
-      Parcours complet à travers le développement, le design, la gestion de projet et la
-      communication — tous les savoir-faire pour construire un produit complet.
+      Parcours complet a travers le developpement, le design, la gestion de projet et la
+      communication.
     </p>
   </header>
 
@@ -50,16 +50,16 @@
         class="icon-[heroicons--archive-box-x-mark] mb-4 text-5xl text-on-surface-variant"
         aria-hidden="true"
       ></span>
-      <p class="font-headline text-lg font-bold text-on-surface">Aucune matière disponible</p>
+      <p class="font-headline text-lg font-bold text-on-surface">Aucune matiere disponible</p>
       <p class="mt-1 text-sm text-on-surface-variant">
-        Revenez plus tard, le catalogue sera bientôt en ligne.
+        Revenez plus tard, le catalogue sera bientot en ligne.
       </p>
     </div>
   } @else {
     <ul
       role="list"
       class="grid grid-cols-1 gap-5 sm:grid-cols-2 sm:gap-6 xl:grid-cols-3"
-      aria-label="Liste des matières"
+      aria-label="Liste des matieres"
     >
       @for (view of formations(); track view.formation.id) {
         @let formation = view.formation;
@@ -100,7 +100,7 @@
             <div class="flex flex-1 flex-col gap-4 p-5 sm:p-6">
               <div class="flex items-start justify-between gap-3">
                 <h2 class="font-headline text-lg font-bold text-on-surface sm:text-xl">
-                  {{ formation.title }}
+                  {{ formation.name }}
                 </h2>
                 <span
                   class="shrink-0 rounded-full px-2.5 py-1 font-headline text-[10px] font-bold uppercase tracking-widest"
@@ -115,14 +115,21 @@
                 {{ formation.description || 'Sans description.' }}
               </p>
 
+              @if (formation.expectedHours) {
+                <p class="inline-flex items-center gap-1.5 text-xs text-on-surface-variant">
+                  <span class="icon-[heroicons--clock] text-sm" aria-hidden="true"></span>
+                  {{ formation.expectedHours }}h de cours
+                </p>
+              }
+
               <!-- CTA -->
               <a
-                [routerLink]="['/formations', view.slug]"
+                [routerLink]="['/formations', formation.id]"
                 (click)="$event.stopPropagation()"
                 class="mt-auto inline-flex items-center gap-1 self-start pt-2 font-headline text-xs font-bold uppercase tracking-widest transition-colors hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary squircle-sm"
                 [style.color]="variant.color"
               >
-                Voir le détail
+                Voir le detail
                 <span class="icon-[heroicons--arrow-right] text-sm" aria-hidden="true"></span>
               </a>
             </div>
@@ -144,9 +151,9 @@
           [style.color]="current.variant.color"
         ></span>
         <p class="text-sm text-on-surface">
-          <span class="font-headline font-bold">{{ current.formation.title }}</span>
+          <span class="font-headline font-bold">{{ current.formation.name }}</span>
           <span class="text-on-surface-variant">
-            sélectionné — cliquez à nouveau pour désélectionner.</span
+            selectionne — cliquez a nouveau pour deselectionner.</span
           >
         </p>
       </div>

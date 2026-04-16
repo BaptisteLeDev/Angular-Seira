@@ -6,13 +6,12 @@ import type { Chapitre } from '../../../core/schemas/chapitre.schema';
 import type { Formation } from '../../../core/schemas/formation.schema';
 import { ArticleStore } from '../../../core/stores/article.store';
 import { FormationStore } from '../../../core/stores/formation.store';
-import { slugify } from '../../../shared/utils/slug';
 
 interface ArticleEntry {
   readonly article: Article;
   readonly chapitre: Chapitre;
   readonly index: number;
-  readonly order: number;
+  readonly sortOrder: number;
 }
 
 @Component({
@@ -27,13 +26,13 @@ export class CourseDetail {
   private readonly formationStore = inject(FormationStore);
   private readonly articleStore = inject(ArticleStore);
 
-  readonly formationSlug = input.required<string>();
-  readonly articleSlug = input<string>();
+  readonly formationId = input.required<string>();
+  readonly articleId = input<string>();
 
-  /** Formation derivee du slug + cache du store. */
   protected readonly formation = computed<Formation | null>(() => {
-    const slug = this.formationSlug();
-    return this.formationStore.items().find((item) => slugify(item.title) === slug) ?? null;
+    const id = Number(this.formationId());
+    if (isNaN(id)) return null;
+    return this.formationStore.byId(id)();
   });
 
   protected readonly chapitres = computed<readonly Chapitre[]>(() => {
@@ -68,7 +67,7 @@ export class CourseDetail {
           article,
           chapitre,
           index: ++globalIndex,
-          order: article.order,
+          sortOrder: article.sortOrder ?? 0,
         })),
     );
   });
@@ -78,18 +77,16 @@ export class CourseDetail {
   protected readonly totalDurationMinutes = computed(() =>
     Math.round(
       this.articleEntries().reduce(
-        (total, entry) => total + (entry.article.duration_seconds ?? 0),
+        (total, entry) => total + (entry.article.durationSeconds ?? 0),
         0,
       ) / 60,
     ),
   );
 
   protected readonly activeArticle = computed<ArticleEntry | null>(() => {
-    const targetSlug = this.articleSlug();
-    if (!targetSlug) return null;
-    return (
-      this.articleEntries().find((entry) => slugify(entry.article.title) === targetSlug) ?? null
-    );
+    const targetId = Number(this.articleId());
+    if (isNaN(targetId)) return null;
+    return this.articleEntries().find((entry) => entry.article.id === targetId) ?? null;
   });
 
   protected readonly progressPercent = computed(() => {
@@ -112,12 +109,10 @@ export class CourseDetail {
   });
 
   constructor() {
-    // Charge la liste des formations si pas deja en cache.
     effect(() => {
       this.formationStore.load();
     });
 
-    // Charge les chapitres une fois la formation resolue.
     effect(() => {
       const current = this.formation();
       if (current) {
@@ -125,33 +120,24 @@ export class CourseDetail {
       }
     });
 
-    // Charge les articles de chaque chapitre.
+    // Charge les contenus de chaque chapitre via ses IRIs
     effect(() => {
       for (const chapitre of this.chapitres()) {
-        this.articleStore.loadByChapitre(chapitre.id);
+        const contentIris = chapitre.contents ?? [];
+        this.articleStore.loadByChapitre(chapitre.id, contentIris);
       }
     });
 
-    // Redirige vers le premier article si aucun n'est selectionne.
     effect(() => {
       const formation = this.formation();
       const entries = this.articleEntries();
-      if (!formation || entries.length === 0 || this.articleSlug()) {
+      if (!formation || entries.length === 0 || this.articleId()) {
         return;
       }
-      const firstArticleSlug = slugify(entries[0].article.title);
-      this.router.navigate(['/formations', slugify(formation.title), firstArticleSlug], {
+      this.router.navigate(['/formations', formation.id, entries[0].article.id], {
         replaceUrl: true,
       });
     });
-  }
-
-  protected formationUrlSlug(formation: Formation): string {
-    return slugify(formation.title);
-  }
-
-  protected articleUrlSlug(article: Article): string {
-    return slugify(article.title);
   }
 
   protected entriesForChapitre(chapitreId: number): readonly ArticleEntry[] {
@@ -162,12 +148,42 @@ export class CourseDetail {
     return this.activeArticle()?.article.id === entry.article.id;
   }
 
-  protected formationTeacher(formation: Formation): string {
-    return formation.user_id ? `Prof #${formation.user_id}` : 'Professeur';
+  protected articleDurationMinutes(article: Article): number | null {
+    if (typeof article.durationSeconds !== 'number') return null;
+    return Math.max(1, Math.round(article.durationSeconds / 60));
   }
 
-  protected articleDurationMinutes(article: Article): number | null {
-    if (typeof article.duration_seconds !== 'number') return null;
-    return Math.max(1, Math.round(article.duration_seconds / 60));
+  protected contentTypeIcon(type: string): string {
+    switch (type) {
+      case 'video':
+        return 'icon-[heroicons--play-circle]';
+      case 'pdf':
+        return 'icon-[heroicons--document-arrow-down]';
+      case 'markdown':
+        return 'icon-[heroicons--document-text]';
+      case 'link':
+        return 'icon-[heroicons--link]';
+      case 'file':
+        return 'icon-[heroicons--paper-clip]';
+      default:
+        return 'icon-[heroicons--document]';
+    }
+  }
+
+  protected contentTypeLabel(type: string): string {
+    switch (type) {
+      case 'video':
+        return 'Video';
+      case 'pdf':
+        return 'PDF';
+      case 'markdown':
+        return 'Article';
+      case 'link':
+        return 'Lien';
+      case 'file':
+        return 'Fichier';
+      default:
+        return 'Contenu';
+    }
   }
 }

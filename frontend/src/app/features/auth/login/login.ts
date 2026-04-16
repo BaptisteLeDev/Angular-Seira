@@ -51,9 +51,7 @@ export class Login {
       error: (error: unknown) => {
         this.submitting.set(false);
         this.submitError.set(
-          error instanceof Error
-            ? error.message
-            : 'Connexion indisponible pour le moment (squelette en cours).',
+          error instanceof Error ? error.message : 'Erreur de connexion.',
         );
       },
     });

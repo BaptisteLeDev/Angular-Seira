@@ -16,7 +16,7 @@
     "module": "preserve",
     "paths": {
       "@environments/*": [
-        "frontend/src/environments/*"
+        "./src/environments/*"
       ]
     }
   },

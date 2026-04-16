@@ -23,13 +23,13 @@ export const routes: Routes = [
       import('./features/courses/course-list/course-list').then((m) => m.CourseList),
   },
   {
-    path: 'formations/:formationSlug',
+    path: 'formations/:formationId',
     canActivate: [authGuard],
     loadComponent: () =>
       import('./features/courses/course-detail/course-detail').then((m) => m.CourseDetail),
   },
   {
-    path: 'formations/:formationSlug/:articleSlug',
+    path: 'formations/:formationId/:articleId',
     canActivate: [authGuard],
     loadComponent: () =>
       import('./features/courses/course-detail/course-detail').then((m) => m.CourseDetail),

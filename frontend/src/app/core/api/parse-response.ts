@@ -1,6 +1,6 @@
-import { MonoTypeOperatorFunction, OperatorFunction, map } from 'rxjs';
+import { OperatorFunction, map } from 'rxjs';
 import { ZodType } from 'zod';
-import { unwrapEnvelope, withEnvelope } from '../schemas/api-envelope.schema';
+import { withEnvelope, withHydraCollection, unwrapEnvelope } from '../schemas/api-envelope.schema';
 
 /**
  * Operateur RxJS qui valide la reponse avec un schema Zod,
@@ -15,7 +15,14 @@ export function parseResponse<T>(schema: ZodType<T>): OperatorFunction<unknown, 
   });
 }
 
-/** Variante pour les reponses sans data (e.g. logout qui renvoie `{ message }`). */
-export function parseMessageOnly(): MonoTypeOperatorFunction<unknown> {
-  return map((response) => response);
+/**
+ * Operateur RxJS pour les collections JSON-LD (Hydra).
+ * Extrait le tableau `member` de la reponse.
+ */
+export function parseHydraCollection<T>(itemSchema: ZodType<T>): OperatorFunction<unknown, T[]> {
+  const collectionSchema = withHydraCollection(itemSchema);
+  return map((response) => {
+    const parsed = collectionSchema.parse(response);
+    return parsed.member;
+  });
 }
