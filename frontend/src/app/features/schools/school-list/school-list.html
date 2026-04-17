@@ -63,7 +63,7 @@
       @for (school of store.items(); track school.id) {
         <li class="flex">
           <a
-            [routerLink]="['/schools', school.id]"
+            [routerLink]="['/schools', school.slug ?? school.id]"
             [attr.data-testid]="'school-card-' + school.id"
             class="group flex w-full flex-col squircle-xl bg-surface-container p-6 ghost-border transition-all duration-300 hover:-translate-y-1 hover:bg-surface-container-high hover:border-primary/30 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
             [attr.aria-label]="'Voir l\'école ' + school.name"

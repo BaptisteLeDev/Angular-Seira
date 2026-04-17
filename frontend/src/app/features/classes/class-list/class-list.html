@@ -3,7 +3,7 @@
   <!-- Breadcrumb -->
   <nav aria-label="Fil d'Ariane" class="mb-8">
     <a
-      [routerLink]="['/schools', schoolId$()]"
+      [routerLink]="['/schools', schoolRef()]"
       data-testid="class-list-back-link"
       class="inline-flex items-center gap-1.5 font-headline text-sm font-bold text-on-surface-variant transition-colors hover:text-primary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
     >
@@ -21,7 +21,7 @@
       <h1 class="font-headline text-4xl font-extrabold leading-tight tracking-tight text-on-surface lg:text-5xl">
         Toutes les classes
       </h1>
-      @if (auth.isAdmin() || auth.isSchool()) {
+      @if (auth.isAdmin()) {
         <button
           type="button"
           data-testid="class-create-btn"

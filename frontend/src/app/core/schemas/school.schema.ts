@@ -10,6 +10,8 @@ export const SchoolSchema = z.object({
   classrooms: z.array(z.string()).optional(),
   /** IRIs des utilisateurs de cette école */
   users: z.array(z.string()).optional(),
+  /** IRIs des formations (subjects) liées à cette école */
+  subjects: z.array(z.string()).optional(),
   createdAt: z.string().optional(),
   updatedAt: z.string().optional(),
 });

@@ -46,6 +46,9 @@
               {{ s.name }}
             </h1>
             <div class="mt-3 flex flex-wrap gap-4">
+              <p class="rounded-full bg-surface-container-high px-4 py-2 text-sm font-medium text-on-surface-variant">
+                {{ s.slug }}
+              </p>
             </div>
           </div>
 
@@ -73,6 +76,32 @@
         </div>
       </header>
 
+      <!-- School summary -->
+      <section class="mb-10">
+        <div class="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+          <article class="squircle-xl bg-surface-container p-6 ghost-border">
+            <p class="text-xs font-bold uppercase tracking-[0.2em] text-on-surface-variant">Classes</p>
+            <p class="mt-4 text-4xl font-extrabold text-on-surface">{{ classrooms().length }}</p>
+            <p class="mt-2 text-sm text-on-surface-variant">Classes liées à cette école</p>
+          </article>
+          <article class="squircle-xl bg-surface-container p-6 ghost-border">
+            <p class="text-xs font-bold uppercase tracking-[0.2em] text-on-surface-variant">Formations</p>
+            <p class="mt-4 text-4xl font-extrabold text-on-surface">{{ s.subjects?.length ?? 0 }}</p>
+            <p class="mt-2 text-sm text-on-surface-variant">Formations liées à cette école</p>
+          </article>
+          <article class="squircle-xl bg-surface-container p-6 ghost-border">
+            <p class="text-xs font-bold uppercase tracking-[0.2em] text-on-surface-variant">Utilisateurs</p>
+            <p class="mt-4 text-4xl font-extrabold text-on-surface">{{ s.users?.length ?? 0 }}</p>
+            <p class="mt-2 text-sm text-on-surface-variant">Profils liés à cette école</p>
+          </article>
+          <article class="squircle-xl bg-surface-container p-6 ghost-border">
+            <p class="text-xs font-bold uppercase tracking-[0.2em] text-on-surface-variant">Enseignants</p>
+            <p class="mt-4 text-4xl font-extrabold text-on-surface">{{ teacherCount() }}</p>
+            <p class="mt-2 text-sm text-on-surface-variant">Enseignants identifiés par formation</p>
+          </article>
+        </div>
+      </section>
+
       <!-- Classes section -->
       <section aria-labelledby="classes-heading" class="mb-10">
         <div class="mb-5 flex items-center justify-between">
@@ -80,7 +109,7 @@
             Classes
           </h2>
           <a
-            [routerLink]="['/schools', s.id, 'classes']"
+            [routerLink]="['/schools', s.slug ?? s.id, 'classes']"
             data-testid="school-classes-link"
             class="inline-flex items-center gap-1 font-headline text-xs font-bold uppercase tracking-widest text-primary transition-colors hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
           >
@@ -134,13 +163,13 @@
       </section>
 
       <!-- Formations section -->
-      <section aria-labelledby="formations-heading">
+      <section aria-labelledby="formations-heading" class="mb-10">
         <div class="flex items-center justify-between">
           <h2 id="formations-heading" class="font-headline text-2xl font-bold text-on-surface">
             Formations
           </h2>
           <a
-            [routerLink]="['/schools', s.id, 'formations']"
+            [routerLink]="['/schools', s.slug ?? s.id, 'formations']"
             data-testid="school-formations-link"
             class="inline-flex items-center gap-1 font-headline text-xs font-bold uppercase tracking-widest text-primary transition-colors hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
           >
@@ -151,6 +180,35 @@
         <p class="mt-3 text-sm text-on-surface-variant">
           Consultez les formations allouées aux classes de cet établissement.
         </p>
+
+        @if (schoolFormations().length === 0) {
+          <div
+            class="mt-8 flex flex-col items-center justify-center rounded-3xl border border-outline-variant bg-surface-container p-8 text-center"
+          >
+            <span class="icon-[heroicons--book-open] mb-4 text-4xl text-on-surface-variant" aria-hidden="true"></span>
+            <p class="font-headline text-base font-bold text-on-surface">Aucune formation liée identifiée</p>
+            <p class="mt-2 text-sm text-on-surface-variant">
+              Cette école n’a pas encore de formations liées dans votre catalogue.
+            </p>
+          </div>
+        } @else {
+          <ul role="list" class="mt-8 grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+            @for (formation of schoolFormations(); track formation.id) {
+              <li class="squircle-xl border border-outline-variant bg-surface-container p-5">
+                <h3 class="font-headline text-base font-bold text-on-surface">{{ formation.name }}</h3>
+                @if (formation.description) {
+                  <p class="mt-2 text-sm text-on-surface-variant line-clamp-2">{{ formation.description }}</p>
+                }
+                <div class="mt-4 flex flex-wrap gap-2 text-xs font-bold uppercase tracking-[0.2em] text-primary">
+                  <span>{{ formation.expectedHours ?? 0 }}h</span>
+                  @if (formation.teacher) {
+                    <span>Professeur lié</span>
+                  }
+                </div>
+              </li>
+            }
+          </ul>
+        }
       </section>
 
     } @else {

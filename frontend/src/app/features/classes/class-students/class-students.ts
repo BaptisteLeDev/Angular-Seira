@@ -24,7 +24,7 @@ import { iriToId } from '../../../core/utils/iri';
 export class ClassStudents implements OnInit {
   protected readonly store = inject(ClassStore);
 
-  protected readonly classId$ = input.required<string>();
+  protected readonly classId = input.required<string>();
   protected readonly classroom = computed(() => this.store.selected());
 
   /**
@@ -38,7 +38,7 @@ export class ClassStudents implements OnInit {
   });
 
   ngOnInit(): void {
-    const id = Number(this.classId$());
+    const id = Number(this.classId());
     if (id > 0) {
       this.store.loadById(id).subscribe();
     }

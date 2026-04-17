@@ -33,7 +33,7 @@ export class ClassFormations implements OnInit {
   protected readonly classStore = inject(ClassStore);
   protected readonly formationStore = inject(FormationStore);
 
-  protected readonly classId$ = input.required<string>();
+  protected readonly classId = input.required<string>();
   protected readonly classroom = computed(() => this.classStore.selected());
 
   protected readonly isLoading = computed(
@@ -59,7 +59,7 @@ export class ClassFormations implements OnInit {
   });
 
   ngOnInit(): void {
-    const id = Number(this.classId$());
+    const id = Number(this.classId());
     if (id > 0) {
       this.classStore.loadById(id).subscribe();
       this.formationStore.load();
