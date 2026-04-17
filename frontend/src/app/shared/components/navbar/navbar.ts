@@ -19,7 +19,7 @@ export class Navbar {
   private readonly auth = inject(AuthStore);
   private readonly router = inject(Router);
 
-  readonly appTitle = 'SeirAngular';
+  readonly appTitle = 'MontoMaster';
   protected readonly currentUser = computed(() => this.auth.user());
   protected readonly isAuthenticated = computed(() => this.auth.isAuthenticated());
 
