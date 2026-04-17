@@ -12,7 +12,7 @@
   </a>
 
   <ul role="list" class="flex flex-1 flex-col items-center gap-y-2">
-    @for (item of primaryNav; track item.path) {
+    @for (item of navItems(); track item.path) {
       <li>
         <a
           [routerLink]="item.path"
