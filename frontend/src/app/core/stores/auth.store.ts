@@ -2,7 +2,7 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { Injectable, computed, inject, signal } from '@angular/core';
 import { Observable, catchError, switchMap, tap, throwError } from 'rxjs';
 import { AuthApi } from '../api/auth.api';
-import { UserSchema, type User } from '../schemas/user.schema';
+import { UserSchema, type User, type UserRole } from '../schemas/user.schema';
 import type { LoginRequest } from '../schemas/auth.schema';
 
 type Status = 'idle' | 'loading' | 'error';
@@ -24,6 +24,21 @@ export class AuthStore {
   readonly status = this._status.asReadonly();
   readonly error = this._error.asReadonly();
   readonly isAuthenticated = computed(() => this._token() !== null);
+
+  // ── Role helpers ────────────────────────────────────────────────────────────
+  readonly isAdmin   = computed(() => this._user()?.role === 'admin');
+  readonly isTeacher = computed(() => this._user()?.role === 'teacher');
+  readonly isStudent = computed(() => this._user()?.role === 'student');
+
+  /**
+   * Retourne `true` si l'utilisateur possède au moins un des rôles listés.
+   * Utilisé par `roleGuard`.
+   */
+  hasAnyRole(roles: UserRole[]): boolean {
+    const role = this._user()?.role;
+    if (!role) return false;
+    return roles.includes(role);
+  }
 
   constructor() {
     const persisted = readPersistedUser();
