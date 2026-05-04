@@ -1,30 +1,31 @@
 import { View, Text, Pressable, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Link } from 'expo-router';
+import { Link, type Href } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
 
 import { Icon, type IoniconName } from '@src/ui/Icon';
 import { useAuthStore } from '@src/stores/auth.store';
+import type { UserRole } from '@src/schemas/user.schema';
 
 type QuickAction = {
   label: string;
   description: string;
   icon: IoniconName;
-  href: '/formations' | '/dashboard';
+  href: Href;
 };
 
-const QUICK_ACTIONS: readonly QuickAction[] = [
+const STUDENT_ACTIONS: readonly QuickAction[] = [
   {
     label: 'Parcourir les matières',
-    description: '3 modules actifs dans votre parcours.',
+    description: 'Explorez les modules disponibles dans votre parcours.',
     icon: 'book-outline',
-    href: '/formations',
+    href: '/subjects',
   },
   {
     label: 'Mes objectifs',
     description: 'Suivez votre progression hebdomadaire.',
     icon: 'flag-outline',
-    href: '/formations',
+    href: '/subjects',
   },
   {
     label: 'Session mentor',
@@ -34,9 +35,35 @@ const QUICK_ACTIONS: readonly QuickAction[] = [
   },
 ];
 
+const TEACHER_ACTIONS: readonly QuickAction[] = STUDENT_ACTIONS;
+
+const ADMIN_ACTIONS: readonly QuickAction[] = [
+  {
+    label: 'Espace admin',
+    description: 'Écoles, utilisateurs, contenus.',
+    icon: 'shield-checkmark-outline',
+    href: '/admin',
+  },
+  ...STUDENT_ACTIONS,
+];
+
+function actionsForRole(role: UserRole | undefined): readonly QuickAction[] {
+  if (role === 'admin') return ADMIN_ACTIONS;
+  if (role === 'teacher') return TEACHER_ACTIONS;
+  return STUDENT_ACTIONS;
+}
+
+function subtitleForRole(role: UserRole | undefined): string {
+  if (role === 'admin') return 'espace administrateur';
+  if (role === 'teacher') return 'espace enseignant';
+  return 'prêt à apprendre ?';
+}
+
 export default function DashboardScreen() {
   const user = useAuthStore((s) => s.user);
   const welcomeName = user?.name ?? '';
+  const actions = actionsForRole(user?.role);
+  const subtitle = subtitleForRole(user?.role);
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: '#0b0b0c' }} edges={['top']}>
@@ -45,7 +72,6 @@ export default function DashboardScreen() {
         contentContainerStyle={{ paddingBottom: 40, backgroundColor: '#0b0b0c' }}
       >
         <View className="px-6 py-8">
-          {/* Hero */}
           <Text className="mb-3 font-headline text-xs font-bold uppercase tracking-[3px] text-primary">
             Tableau de bord
           </Text>
@@ -53,14 +79,13 @@ export default function DashboardScreen() {
             Bonjour {welcomeName},
           </Text>
           <Text className="font-headline text-4xl font-extrabold leading-tight tracking-tight text-primary">
-            prêt à apprendre ?
+            {subtitle}
           </Text>
           <Text className="mt-5 text-base leading-relaxed text-on-surface-variant">
-            Bienvenue sur MontoMaster, votre plateforme e-learning. Reprenez votre parcours là
-            où vous l'aviez laissé ou explorez une nouvelle matière.
+            Bienvenue sur MontoMaster. Reprenez votre parcours là où vous l'aviez laissé ou
+            explorez les ressources disponibles.
           </Text>
 
-          {/* Featured hero banner */}
           <View className="relative mt-10 overflow-hidden squircle-xl bg-surface-container p-6 ghost-border">
             <LinearGradient
               colors={['rgba(123,208,255,0.25)', 'rgba(14,58,77,0.15)', 'transparent']}
@@ -78,7 +103,7 @@ export default function DashboardScreen() {
               Composants standalone, signals, change detection fine — le nouveau socle pour
               construire des applications performantes.
             </Text>
-            <Link href="/formations" asChild>
+            <Link href="/subjects" asChild>
               <Pressable className="flex-row items-center gap-2 self-start squircle-lg bg-primary px-5 py-2.5">
                 <Text className="font-headline text-sm font-bold text-on-primary">
                   Commencer le parcours
@@ -88,12 +113,11 @@ export default function DashboardScreen() {
             </Link>
           </View>
 
-          {/* Quick actions */}
           <Text className="mb-5 mt-10 font-headline text-2xl font-bold text-on-surface">
             Accès rapide
           </Text>
           <View className="gap-5">
-            {QUICK_ACTIONS.map((action) => (
+            {actions.map((action) => (
               <Link key={action.label} href={action.href} asChild>
                 <Pressable className="squircle-xl bg-surface-container p-6 ghost-border">
                   <View className="mb-4 size-11 items-center justify-center squircle-lg bg-primary/10">

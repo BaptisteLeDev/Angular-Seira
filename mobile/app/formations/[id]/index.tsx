@@ -107,7 +107,7 @@ export default function FormationOverviewScreen() {
               <Text className="mt-2 text-on-surface-variant text-center">
                 La formation #{id} n&apos;existe pas dans le catalogue.
               </Text>
-              <Link href="/formations" asChild>
+              <Link href="/subjects" asChild>
                 <Pressable className="mt-6 flex-row items-center gap-2 squircle-lg bg-primary px-4 py-2">
                   <Text className="font-headline text-sm font-bold text-on-primary">
                     Retour au catalogue

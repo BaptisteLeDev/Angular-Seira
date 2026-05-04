@@ -35,7 +35,7 @@ export default function NotFoundScreen() {
               </Text>
             </Pressable>
           </Link>
-          <Link href="/formations" asChild>
+          <Link href="/subjects" asChild>
             <Pressable className="flex-row items-center gap-2 squircle-lg px-5 py-2.5 ghost-border">
               <Text className="font-headline text-sm font-bold text-on-surface">
                 Explorer les matières

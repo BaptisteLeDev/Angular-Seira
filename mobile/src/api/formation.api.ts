@@ -11,8 +11,11 @@ import {
 import { iriToId } from '@src/utils/iri';
 
 export const FormationApi = {
-  async list(): Promise<Formation[]> {
-    const raw = await apiRequest<unknown>('/subjects');
+  async list(params: { schoolId?: number | null } = {}): Promise<Formation[]> {
+    const search = new URLSearchParams();
+    if (params.schoolId != null) search.set('school', String(params.schoolId));
+    const qs = search.toString();
+    const raw = await apiRequest<unknown>(`/subjects${qs.length > 0 ? `?${qs}` : ''}`);
     return parseHydraCollection(FormationSchema, raw);
   },
 

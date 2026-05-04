@@ -8,6 +8,20 @@ export const UserSchema = z.object({
   name: z.string(),
   email: z.string(),
   role: UserRoleSchema,
+  schoolId: z.number().int().nullable().optional(),
+  classroomId: z.number().int().nullable().optional(),
 });
 
 export type User = z.infer<typeof UserSchema>;
+
+export const UserListItemSchema = z.object({
+  '@id': z.string().optional(),
+  '@type': z.string().optional(),
+  id: z.number().int(),
+  name: z.string(),
+  email: z.string(),
+  role: UserRoleSchema,
+  schoolId: z.number().int().nullable().optional(),
+  classroomId: z.number().int().nullable().optional(),
+});
+export type UserListItem = z.infer<typeof UserListItemSchema>;

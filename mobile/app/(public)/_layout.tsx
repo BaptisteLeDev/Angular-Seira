@@ -3,11 +3,7 @@ import { Platform } from 'react-native';
 
 import { Icon } from '@src/ui/Icon';
 
-/**
- * Remplacement mobile de l'ancienne navbar Angular.
- * On s'appuie sur les Tabs natifs d'expo-router (Expo-first).
- */
-export default function TabLayout() {
+export default function PublicTabLayout() {
   return (
     <Tabs
       screenOptions={{
@@ -35,20 +31,6 @@ export default function TabLayout() {
         options={{
           title: 'Accueil',
           tabBarIcon: ({ color, size }) => <Icon name="home" size={size} color={color} />,
-        }}
-      />
-      <Tabs.Screen
-        name="dashboard"
-        options={{
-          title: 'Tableau',
-          tabBarIcon: ({ color, size }) => <Icon name="grid" size={size} color={color} />,
-        }}
-      />
-      <Tabs.Screen
-        name="formations"
-        options={{
-          title: 'Matières',
-          tabBarIcon: ({ color, size }) => <Icon name="book" size={size} color={color} />,
         }}
       />
     </Tabs>
