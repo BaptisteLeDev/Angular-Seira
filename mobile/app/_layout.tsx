@@ -1,24 +1,41 @@
-import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
+import '../src/global.css';
+
+import { useEffect } from 'react';
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
+import * as SystemUI from 'expo-system-ui';
 import 'react-native-reanimated';
 
-import { useColorScheme } from '@/hooks/use-color-scheme';
+import { useAuthStore } from '@src/stores/auth.store';
+
+void SystemUI.setBackgroundColorAsync('#0b0b0c');
 
 export const unstable_settings = {
   anchor: '(tabs)',
 };
 
 export default function RootLayout() {
-  const colorScheme = useColorScheme();
+  const hydrate = useAuthStore((s) => s.hydrate);
+
+  useEffect(() => {
+    void hydrate();
+  }, [hydrate]);
 
   return (
-    <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-      <Stack>
-        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-        <Stack.Screen name="modal" options={{ presentation: 'modal', title: 'Modal' }} />
+    <SafeAreaProvider>
+      <Stack
+        screenOptions={{
+          headerShown: false,
+          contentStyle: { backgroundColor: '#0b0b0c' },
+        }}
+      >
+        <Stack.Screen name="(tabs)" />
+        <Stack.Screen name="(auth)/login" options={{ presentation: 'modal' }} />
+        <Stack.Screen name="formations/[id]" />
+        <Stack.Screen name="+not-found" />
       </Stack>
-      <StatusBar style="auto" />
-    </ThemeProvider>
+      <StatusBar style="light" />
+    </SafeAreaProvider>
   );
 }

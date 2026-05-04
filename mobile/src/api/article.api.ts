@@ -1,0 +1,21 @@
+import { apiRequest } from './client';
+import { parseResponse } from './parse-response';
+import { ArticleSchema, type Article } from '@src/schemas/article.schema';
+import { iriToId } from '@src/utils/iri';
+
+export const ArticleApi = {
+  async getById(id: number): Promise<Article> {
+    const raw = await apiRequest<unknown>(`/chapter-contents/${id}`);
+    return parseResponse(ArticleSchema, raw);
+  },
+
+  async listByIris(contentIris: string[]): Promise<Article[]> {
+    if (contentIris.length === 0) return [];
+    return Promise.all(
+      contentIris.map(async (iri) => {
+        const raw = await apiRequest<unknown>(`/chapter-contents/${iriToId(iri)}`);
+        return parseResponse(ArticleSchema, raw);
+      }),
+    );
+  },
+};
