@@ -8,6 +8,7 @@ import { Icon, type IoniconName } from '@src/ui/Icon';
 import { LoadingView } from '@src/ui/LoadingView';
 import { ErrorCard } from '@src/ui/ErrorCard';
 import { EmptyState } from '@src/ui/EmptyState';
+import { VideoPlayer } from '@src/ui/VideoPlayer';
 import { useArticleStore } from '@src/stores/article.store';
 import { useFormationStore } from '@src/stores/formation.store';
 import type { Article, ContentType } from '@src/schemas/article.schema';
@@ -467,15 +468,8 @@ function ArticleBody({ article }: { article: Article }) {
 
   return (
     <View className="gap-5">
-      {article.type === 'video' && article.sourceUrl ? (
-        <LinkCard
-          onPress={() => Linking.openURL(article.sourceUrl!)}
-          icon="play-circle"
-          iconBg="rgba(123,208,255,0.15)"
-          iconColor="#7bd0ff"
-          title="Regarder la vidéo"
-          subtitle={article.sourceUrl}
-        />
+      {article.type === 'video' ? (
+        <VideoPlayer url={article.sourceUrl} />
       ) : null}
 
       {article.type === 'link' && article.sourceUrl ? (
