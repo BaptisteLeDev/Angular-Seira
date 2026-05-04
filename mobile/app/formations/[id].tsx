@@ -9,6 +9,7 @@ import { LoadingView } from '@src/ui/LoadingView';
 import { ErrorCard } from '@src/ui/ErrorCard';
 import { EmptyState } from '@src/ui/EmptyState';
 import { VideoPlayer } from '@src/ui/VideoPlayer';
+import { MarkdownView } from '@src/ui/MarkdownView';
 import { useArticleStore } from '@src/stores/article.store';
 import { useFormationStore } from '@src/stores/formation.store';
 import type { Article, ContentType } from '@src/schemas/article.schema';
@@ -505,14 +506,18 @@ function ArticleBody({ article }: { article: Article }) {
         />
       ) : null}
 
-      {body ? (
+      {article.type === 'markdown' ? (
+        body ? (
+          <MarkdownView>{body}</MarkdownView>
+        ) : (
+          <EmptyState
+            icon="document-text-outline"
+            title="Contenu en préparation"
+            description="Cet article sera enrichi prochainement."
+          />
+        )
+      ) : body ? (
         <Text className="text-base leading-relaxed text-on-surface">{body}</Text>
-      ) : article.type === 'markdown' ? (
-        <EmptyState
-          icon="document-text-outline"
-          title="Contenu en préparation"
-          description="Cet article sera enrichi prochainement."
-        />
       ) : null}
     </View>
   );
