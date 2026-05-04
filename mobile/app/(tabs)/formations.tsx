@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import { View, Text, Pressable, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
@@ -19,8 +19,6 @@ export default function FormationsScreen() {
   const error = useFormationStore((s) => s.error);
   const load = useFormationStore((s) => s.load);
 
-  const [selectedId, setSelectedId] = useState<number | null>(null);
-
   useEffect(() => {
     void load();
   }, [load]);
@@ -29,10 +27,6 @@ export default function FormationsScreen() {
     formation,
     variant: variantFor(formation.id),
   }));
-
-  const selected = selectedId !== null
-    ? formations.find((v) => v.formation.id === selectedId) ?? null
-    : null;
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: '#0b0b0c' }} edges={['top']}>
@@ -69,45 +63,23 @@ export default function FormationsScreen() {
               />
             ) : (
               <View className="gap-5">
-                {formations.map(({ formation, variant }) => {
-                  const isSelected = selectedId === formation.id;
-                  return (
-                    <FormationCard
-                      key={formation.id}
-                      formation={formation}
-                      color={variant.color}
-                      label={variant.label}
-                      iconName={variant.icon}
-                      isSelected={isSelected}
-                      onToggle={() =>
-                        setSelectedId((curr) => (curr === formation.id ? null : formation.id))
-                      }
-                      onOpen={() =>
-                        router.push({
-                          pathname: '/formations/[id]',
-                          params: { id: String(formation.id) },
-                        })
-                      }
-                    />
-                  );
-                })}
+                {formations.map(({ formation, variant }) => (
+                  <FormationCard
+                    key={formation.id}
+                    formation={formation}
+                    color={variant.color}
+                    label={variant.label}
+                    iconName={variant.icon}
+                    onOpen={() =>
+                      router.push({
+                        pathname: '/formations/[id]',
+                        params: { id: String(formation.id) },
+                      })
+                    }
+                  />
+                ))}
               </View>
             )}
-
-            {selected ? (
-              <View
-                accessibilityLiveRegion="polite"
-                className="mt-6 flex-row items-center gap-3 squircle-xl bg-surface-container-low px-5 py-4 ghost-border"
-              >
-                <Icon name="checkmark-circle" size={22} color={selected.variant.color} />
-                <Text className="flex-1 text-sm text-on-surface">
-                  <Text className="font-headline font-bold">{selected.formation.name}</Text>
-                  <Text className="text-on-surface-variant">
-                    {' '}sélectionné — tapez à nouveau pour désélectionner.
-                  </Text>
-                </Text>
-              </View>
-            ) : null}
           </View>
         </View>
       </ScrollView>
@@ -120,31 +92,16 @@ type CardProps = {
   color: string;
   label: string;
   iconName: Parameters<typeof Icon>[0]['name'];
-  isSelected: boolean;
-  onToggle: () => void;
   onOpen: () => void;
 };
 
-function FormationCard({
-  formation,
-  color,
-  label,
-  iconName,
-  isSelected,
-  onToggle,
-  onOpen,
-}: CardProps) {
+function FormationCard({ formation, color, label, iconName, onOpen }: CardProps) {
   return (
     <Pressable
-      onPress={onToggle}
+      onPress={onOpen}
       accessibilityRole="button"
-      accessibilityState={{ selected: isSelected }}
       className="overflow-hidden squircle-xl bg-surface-container ghost-border"
-      style={{
-        borderLeftWidth: 4,
-        borderLeftColor: color,
-        ...(isSelected && { borderWidth: 2, borderColor: color }),
-      }}
+      style={{ borderLeftWidth: 4, borderLeftColor: color }}
     >
       {/* Visual tile */}
       <View
@@ -176,11 +133,7 @@ function FormationCard({
           </View>
         ) : null}
 
-        <Pressable
-          onPress={onOpen}
-          className="flex-row items-center gap-1 self-start"
-          accessibilityRole="link"
-        >
+        <View className="flex-row items-center gap-1 self-start">
           <Text
             className="font-headline text-xs font-bold uppercase tracking-widest"
             style={{ color }}
@@ -188,7 +141,7 @@ function FormationCard({
             Voir le détail
           </Text>
           <Icon name="arrow-forward" size={12} color={color} />
-        </Pressable>
+        </View>
       </View>
     </Pressable>
   );

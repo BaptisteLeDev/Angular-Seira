@@ -10,6 +10,7 @@ import { EmptyState } from '@src/ui/EmptyState';
 import { VideoPlayer } from '@src/ui/VideoPlayer';
 import { PdfViewer } from '@src/ui/PdfViewer';
 import { MarkdownView } from '@src/ui/MarkdownView';
+import { SpeakButton } from '@src/ui/SpeakButton';
 import { SommaireSheet, type SommaireEntry } from '@src/ui/SommaireSheet';
 import { Fab } from '@src/ui/Fab';
 import { useArticleStore } from '@src/stores/article.store';
@@ -226,7 +227,12 @@ function ArticleBody({ article }: { article: Article }) {
 
       {article.type === 'markdown' ? (
         body ? (
-          <MarkdownView>{body}</MarkdownView>
+          <View className="gap-4">
+            <View className="flex-row">
+              <SpeakButton text={body} isMarkdown compact />
+            </View>
+            <MarkdownView>{body}</MarkdownView>
+          </View>
         ) : (
           <EmptyState
             icon="document-text-outline"

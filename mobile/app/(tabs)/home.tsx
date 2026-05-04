@@ -1,12 +1,12 @@
-import { useState } from 'react';
-import { View, Text, Pressable, ScrollView } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { Link, useRouter } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
+import { Link, useRouter } from 'expo-router';
+import { useState } from 'react';
+import { Pressable, ScrollView, Text, View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { useAuthStore } from '@src/stores/auth.store';
 import { Icon, type IoniconName } from '@src/ui/Icon';
 import { FORMATION_VARIANTS } from '@src/ui/formation-visual';
-import { useAuthStore } from '@src/stores/auth.store';
 
 type Stat = {
   value: string;
@@ -109,13 +109,6 @@ export default function HomeScreen() {
 
           {/* Hero */}
           <View className="mt-8">
-            <View className="mb-4 flex-row items-center gap-2 self-start rounded-full bg-surface-container px-3 py-1.5 ghost-border">
-              <Icon name="sparkles" size={12} color="#7bd0ff" />
-              <Text className="font-headline text-[11px] font-bold uppercase tracking-widest text-primary">
-                MontoMaster 2026
-              </Text>
-            </View>
-
             <Text className="font-headline text-4xl font-extrabold leading-[46px] tracking-tight text-on-surface">
               Apprenez à construire
             </Text>
