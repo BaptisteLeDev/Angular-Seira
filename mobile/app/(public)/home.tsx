@@ -4,6 +4,7 @@ import { Pressable, ScrollView, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { Icon, type IoniconName } from '@src/ui/Icon';
+import { useThemeColors } from '@src/ui/useThemeColors';
 import { FORMATION_VARIANTS } from '@src/ui/formation-visual';
 
 type Stat = {
@@ -21,12 +22,13 @@ const STATS: readonly Stat[] = [
 
 export default function HomeScreen() {
   const categories = Object.values(FORMATION_VARIANTS);
+  const palette = useThemeColors();
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: '#0b0b0c' }} edges={['top']}>
+    <SafeAreaView style={{ flex: 1, backgroundColor: palette.background }} edges={['top']}>
       <ScrollView
-        style={{ backgroundColor: '#0b0b0c' }}
-        contentContainerStyle={{ paddingBottom: 40, backgroundColor: '#0b0b0c' }}
+        style={{ backgroundColor: palette.background }}
+        contentContainerStyle={{ paddingBottom: 40 }}
       >
         <View className="px-4 py-6">
           <View className="flex-row items-center justify-between squircle-xl bg-surface-container px-4 py-3 ghost-border">

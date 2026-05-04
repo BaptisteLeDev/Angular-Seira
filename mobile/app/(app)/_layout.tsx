@@ -3,20 +3,22 @@ import { Platform } from 'react-native';
 
 import { Icon } from '@src/ui/Icon';
 import { useAuthStore } from '@src/stores/auth.store';
+import { useThemeColors } from '@src/ui/useThemeColors';
 
 export default function AppTabLayout() {
   const role = useAuthStore((s) => s.user?.role);
   const isAdmin = role === 'admin';
+  const palette = useThemeColors();
 
   return (
     <Tabs
       screenOptions={{
         headerShown: false,
-        tabBarActiveTintColor: '#7bd0ff',
-        tabBarInactiveTintColor: '#a1a1aa',
+        tabBarActiveTintColor: palette.primary,
+        tabBarInactiveTintColor: palette.onSurfaceVariant,
         tabBarStyle: {
-          backgroundColor: '#121214',
-          borderTopColor: '#3f3f46',
+          backgroundColor: palette.surfaceContainerLow,
+          borderTopColor: palette.outlineVariant,
           borderTopWidth: 1,
           paddingTop: 6,
           paddingBottom: Platform.OS === 'ios' ? 24 : 8,

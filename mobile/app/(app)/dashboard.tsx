@@ -4,6 +4,7 @@ import { Link, type Href } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
 
 import { Icon, type IoniconName } from '@src/ui/Icon';
+import { useThemeColors } from '@src/ui/useThemeColors';
 import { useAuthStore } from '@src/stores/auth.store';
 import type { UserRole } from '@src/schemas/user.schema';
 
@@ -61,15 +62,16 @@ function subtitleForRole(role: UserRole | undefined): string {
 
 export default function DashboardScreen() {
   const user = useAuthStore((s) => s.user);
+  const palette = useThemeColors();
   const welcomeName = user?.name ?? '';
   const actions = actionsForRole(user?.role);
   const subtitle = subtitleForRole(user?.role);
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: '#0b0b0c' }} edges={['top']}>
+    <SafeAreaView style={{ flex: 1, backgroundColor: palette.background }} edges={['top']}>
       <ScrollView
-        style={{ backgroundColor: '#0b0b0c' }}
-        contentContainerStyle={{ paddingBottom: 40, backgroundColor: '#0b0b0c' }}
+        style={{ backgroundColor: palette.background }}
+        contentContainerStyle={{ paddingBottom: 40 }}
       >
         <View className="px-6 py-8">
           <Text className="mb-3 font-headline text-xs font-bold uppercase tracking-[3px] text-primary">

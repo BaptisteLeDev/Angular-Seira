@@ -4,6 +4,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 
 import { Icon } from '@src/ui/Icon';
+import { useThemeColors } from '@src/ui/useThemeColors';
 import { LoadingView } from '@src/ui/LoadingView';
 import { ErrorCard } from '@src/ui/ErrorCard';
 import { EmptyState } from '@src/ui/EmptyState';
@@ -28,11 +29,12 @@ export default function FormationsScreen() {
     variant: variantFor(formation.id),
   }));
 
+  const palette = useThemeColors();
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: '#0b0b0c' }} edges={['top']}>
+    <SafeAreaView style={{ flex: 1, backgroundColor: palette.background }} edges={['top']}>
       <ScrollView
-        style={{ backgroundColor: '#0b0b0c' }}
-        contentContainerStyle={{ paddingBottom: 40, backgroundColor: '#0b0b0c' }}
+        style={{ backgroundColor: palette.background }}
+        contentContainerStyle={{ paddingBottom: 40 }}
       >
         <View className="px-4 py-8">
           {/* Header */}

@@ -3,10 +3,12 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Link } from 'expo-router';
 
 import { Icon } from '@src/ui/Icon';
+import { useThemeColors } from '@src/ui/useThemeColors';
 
 export default function NotFoundScreen() {
+  const palette = useThemeColors();
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: '#0b0b0c' }}>
+    <SafeAreaView style={{ flex: 1, backgroundColor: palette.background }}>
       <View
         accessibilityRole="alert"
         className="flex-1 items-center justify-center px-6 py-12"

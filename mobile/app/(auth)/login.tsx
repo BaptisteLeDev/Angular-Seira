@@ -13,6 +13,7 @@ import { Link, useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { Icon } from '@src/ui/Icon';
+import { useThemeColors } from '@src/ui/useThemeColors';
 import { useAuthStore } from '@src/stores/auth.store';
 
 type FormErrors = {
@@ -23,6 +24,7 @@ type FormErrors = {
 export default function LoginScreen() {
   const router = useRouter();
   const login = useAuthStore((s) => s.login);
+  const palette = useThemeColors();
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -64,14 +66,14 @@ export default function LoginScreen() {
   }
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: '#0b0b0c' }}>
+    <SafeAreaView style={{ flex: 1, backgroundColor: palette.background }}>
       <KeyboardAvoidingView
-        style={{ flex: 1, backgroundColor: '#0b0b0c' }}
+        style={{ flex: 1, backgroundColor: palette.background }}
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       >
         <ScrollView
-          style={{ backgroundColor: '#0b0b0c' }}
-          contentContainerStyle={{ flexGrow: 1, justifyContent: 'center', backgroundColor: '#0b0b0c' }}
+          style={{ backgroundColor: palette.background }}
+          contentContainerStyle={{ flexGrow: 1, justifyContent: 'center' }}
           keyboardShouldPersistTaps="handled"
         >
           <View className="px-6 py-10">

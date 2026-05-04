@@ -3,6 +3,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import type { ReactNode } from 'react';
 
 import { BackHeader } from './BackHeader';
+import { useThemeColors } from './useThemeColors';
 
 type Props = {
   eyebrow: string;
@@ -21,12 +22,13 @@ export function ScreenShell({
   backFallback,
   children,
 }: Props) {
+  const palette = useThemeColors();
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: '#0b0b0c' }} edges={['top']}>
+    <SafeAreaView style={{ flex: 1, backgroundColor: palette.background }} edges={['top']}>
       {back ? <BackHeader fallbackHref={backFallback} /> : null}
       <ScrollView
-        style={{ backgroundColor: '#0b0b0c' }}
-        contentContainerStyle={{ paddingBottom: 40, backgroundColor: '#0b0b0c' }}
+        style={{ backgroundColor: palette.background }}
+        contentContainerStyle={{ paddingBottom: 40 }}
       >
         <View className="px-4 py-6">
           <Text className="mb-3 font-headline text-xs font-bold uppercase tracking-[3px] text-primary">
