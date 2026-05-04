@@ -8,6 +8,7 @@ import { LoadingView } from '@src/ui/LoadingView';
 import { ErrorCard } from '@src/ui/ErrorCard';
 import { EmptyState } from '@src/ui/EmptyState';
 import { VideoPlayer } from '@src/ui/VideoPlayer';
+import { PdfViewer } from '@src/ui/PdfViewer';
 import { MarkdownView } from '@src/ui/MarkdownView';
 import { SommaireSheet, type SommaireEntry } from '@src/ui/SommaireSheet';
 import { Fab } from '@src/ui/Fab';
@@ -208,15 +209,8 @@ function ArticleBody({ article }: { article: Article }) {
         />
       ) : null}
 
-      {article.type === 'pdf' && article.filePath ? (
-        <LinkCard
-          onPress={() => {}}
-          icon="document-outline"
-          iconBg="rgba(248,113,113,0.1)"
-          iconColor={colors.error}
-          title="Document PDF"
-          subtitle={article.filePath}
-        />
+      {article.type === 'pdf' ? (
+        <PdfViewer url={article.filePath ?? article.sourceUrl} fileName={article.title} />
       ) : null}
 
       {article.type === 'file' && article.filePath ? (

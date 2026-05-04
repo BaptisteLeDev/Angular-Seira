@@ -41,7 +41,9 @@
           }
         }
       ],
-      "expo-video"
+      "expo-video",
+      "@config-plugins/react-native-pdf",
+      "expo-asset"
     ],
     "experiments": {
       "typedRoutes": true,
