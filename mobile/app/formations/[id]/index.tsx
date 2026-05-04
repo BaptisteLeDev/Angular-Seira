@@ -13,6 +13,8 @@ import { useFormationStore } from '@src/stores/formation.store';
 import type { Article } from '@src/schemas/article.schema';
 import type { Chapitre } from '@src/schemas/chapitre.schema';
 import { colors } from '@src/constants/theme';
+import { variantFor } from '@src/ui/formation-visual';
+import { hexToRgba } from '@src/utils/color';
 import {
   articleDurationMin,
   contentTypeIcon,
@@ -59,6 +61,10 @@ export default function FormationOverviewScreen() {
     return result;
   }, [chapitres, articlesByChapitre]);
 
+  const variant = variantFor(formationId);
+  const accent = variant.color;
+  const accentTint = (alpha: number) => hexToRgba(accent, alpha);
+
   const totalArticles = entries.length;
   const totalDurationMin = Math.round(
     entries.reduce((s, e) => s + (e.article.durationSeconds ?? 0), 0) / 60,
@@ -99,7 +105,7 @@ export default function FormationOverviewScreen() {
                 Formation introuvable
               </Text>
               <Text className="mt-2 text-on-surface-variant text-center">
-                La formation #{id} n'existe pas dans le catalogue.
+                La formation #{id} n&apos;existe pas dans le catalogue.
               </Text>
               <Link href="/formations" asChild>
                 <Pressable className="mt-6 flex-row items-center gap-2 squircle-lg bg-primary px-4 py-2">
@@ -113,15 +119,18 @@ export default function FormationOverviewScreen() {
             <>
               <View className="relative mb-6 overflow-hidden squircle-2xl bg-surface-container p-6 ghost-border">
                 <LinearGradient
-                  colors={['rgba(123,208,255,0.15)', 'rgba(123,208,255,0.05)', 'transparent']}
+                  colors={[accentTint(0.15), accentTint(0.05), 'transparent']}
                   start={{ x: 1, y: 0 }}
                   end={{ x: 0, y: 0 }}
                   style={{ position: 'absolute', top: 0, right: 0, bottom: 0, left: '30%' }}
                 />
                 <View className="flex-row items-center gap-2">
-                  <Icon name="school-outline" size={14} color={colors.primary} />
-                  <Text className="font-headline text-[11px] font-bold uppercase tracking-[3px] text-primary">
-                    Formation
+                  <Icon name={variant.icon} size={14} color={accent} />
+                  <Text
+                    className="font-headline text-[11px] font-bold uppercase tracking-[3px]"
+                    style={{ color: accent }}
+                  >
+                    {variant.label}
                   </Text>
                 </View>
                 <Text className="mt-3 font-headline text-3xl font-extrabold leading-tight tracking-tight text-on-surface">
@@ -133,13 +142,13 @@ export default function FormationOverviewScreen() {
                 </Text>
 
                 <View className="mt-6 flex-row flex-wrap gap-3">
-                  <StatCard icon="list-outline" label="Chapitres" value={String(chapitres.length)} />
-                  <StatCard icon="document-text-outline" label="Contenus" value={String(totalArticles)} />
+                  <StatCard accent={accent} icon="list-outline" label="Chapitres" value={String(chapitres.length)} />
+                  <StatCard accent={accent} icon="document-text-outline" label="Contenus" value={String(totalArticles)} />
                   {totalDurationMin > 0 ? (
-                    <StatCard icon="time-outline" label="Durée totale" value={`${totalDurationMin} min`} />
+                    <StatCard accent={accent} icon="time-outline" label="Durée totale" value={`${totalDurationMin} min`} />
                   ) : null}
                   {formation.expectedHours ? (
-                    <StatCard icon="calendar-outline" label="Volume prévu" value={`${formation.expectedHours}h`} />
+                    <StatCard accent={accent} icon="calendar-outline" label="Volume prévu" value={`${formation.expectedHours}h`} />
                   ) : null}
                 </View>
               </View>
@@ -164,7 +173,10 @@ export default function FormationOverviewScreen() {
                       return (
                         <View key={chapitre.id}>
                           <View className="mb-2 flex-row items-center gap-2">
-                            <Text className="font-headline text-xs font-bold uppercase tracking-widest text-primary">
+                            <Text
+                              className="font-headline text-xs font-bold uppercase tracking-widest"
+                              style={{ color: accent }}
+                            >
                               {chapitre.sortOrder}.
                             </Text>
                             <Text className="font-headline text-xs font-bold uppercase tracking-widest text-on-surface">
@@ -205,11 +217,24 @@ export default function FormationOverviewScreen() {
   );
 }
 
-function StatCard({ icon, label, value }: { icon: IoniconName; label: string; value: string }) {
+function StatCard({
+  icon,
+  label,
+  value,
+  accent,
+}: {
+  icon: IoniconName;
+  label: string;
+  value: string;
+  accent: string;
+}) {
   return (
     <View className="flex-row items-center gap-3 squircle-xl bg-surface-container-high px-4 py-3 ghost-border">
-      <View className="size-9 items-center justify-center squircle-lg bg-primary/10">
-        <Icon name={icon} size={16} color={colors.primary} />
+      <View
+        className="size-9 items-center justify-center squircle-lg"
+        style={{ backgroundColor: hexToRgba(accent, 0.12) }}
+      >
+        <Icon name={icon} size={16} color={accent} />
       </View>
       <View>
         <Text className="font-headline text-[10px] uppercase tracking-widest text-on-surface-variant">
@@ -220,6 +245,7 @@ function StatCard({ icon, label, value }: { icon: IoniconName; label: string; va
     </View>
   );
 }
+
 
 function ProgrammeItem({ entry, onPress }: { entry: Entry; onPress: () => void }) {
   const mins = articleDurationMin(entry.article);

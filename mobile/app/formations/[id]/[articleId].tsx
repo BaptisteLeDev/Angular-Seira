@@ -18,6 +18,8 @@ import { useFormationStore } from '@src/stores/formation.store';
 import type { Article } from '@src/schemas/article.schema';
 import type { Chapitre } from '@src/schemas/chapitre.schema';
 import { colors } from '@src/constants/theme';
+import { variantFor } from '@src/ui/formation-visual';
+import { hexToRgba } from '@src/utils/color';
 import {
   articleDurationMin,
   contentTypeIcon,
@@ -65,6 +67,7 @@ export default function ArticleScreen() {
     return r;
   }, [chapitres, articlesByChapitre]);
 
+  const accent = variantFor(formationId).color;
   const active = entries.find((e) => e.article.id === currentArticleId) ?? null;
   const next = active ? entries.find((e) => e.index === active.index + 1) ?? null : null;
   const prev = active ? entries.find((e) => e.index === active.index - 1) ?? null : null;
@@ -108,7 +111,10 @@ export default function ArticleScreen() {
           ) : (
             <View className="squircle-2xl bg-surface-container p-6 ghost-border">
               <View className="mb-5 border-b border-outline-variant pb-5">
-                <Text className="font-headline text-[11px] font-bold uppercase tracking-[3px] text-primary">
+                <Text
+                  className="font-headline text-[11px] font-bold uppercase tracking-[3px]"
+                  style={{ color: accent }}
+                >
                   {active.chapitre.title}
                 </Text>
                 <Text className="mt-3 font-headline text-2xl font-extrabold leading-tight tracking-tight text-on-surface">
@@ -154,14 +160,15 @@ export default function ArticleScreen() {
                   {next ? (
                     <Pressable
                       onPress={() => goTo(next)}
-                      className="flex-1 flex-row items-center justify-end gap-2 squircle-xl bg-primary/10 px-5 py-4 ghost-border"
+                      className="flex-1 flex-row items-center justify-end gap-2 squircle-xl px-5 py-4 ghost-border"
+                      style={{ backgroundColor: hexToRgba(accent, 0.12) }}
                       accessibilityRole="button"
                       accessibilityLabel="Article suivant"
                     >
                       <Text className="font-headline text-sm font-bold text-on-surface">
                         Suivant
                       </Text>
-                      <Icon name="arrow-forward" size={16} color={colors.primary} />
+                      <Icon name="arrow-forward" size={16} color={accent} />
                     </Pressable>
                   ) : (
                     <View className="flex-1" />
