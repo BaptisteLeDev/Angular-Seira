@@ -32,7 +32,8 @@ export default function RootLayout() {
       >
         <Stack.Screen name="(tabs)" />
         <Stack.Screen name="(auth)/login" options={{ presentation: 'modal' }} />
-        <Stack.Screen name="formations/[id]" />
+        <Stack.Screen name="formations/[id]/index" />
+        <Stack.Screen name="formations/[id]/[articleId]" />
         <Stack.Screen name="+not-found" />
       </Stack>
       <StatusBar style="light" />

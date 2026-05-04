@@ -1,9 +1,10 @@
+import { useEvent } from 'expo';
+import { VideoView, useVideoPlayer } from 'expo-video';
 import { useEffect, useRef } from 'react';
 import { Pressable, Text, View } from 'react-native';
-import { VideoView, useVideoPlayer } from 'expo-video';
-import { useEvent } from 'expo';
 
 import { resolveVideoSource } from '@src/constants/video';
+import { colors } from '@src/constants/theme';
 import { Icon } from './Icon';
 
 type Props = {
@@ -14,6 +15,7 @@ const LOCKED_RATE = 1;
 
 export function VideoPlayer({ url }: Props) {
   const source = resolveVideoSource(url);
+  const videoRef = useRef<VideoView>(null);
 
   const player = useVideoPlayer(source, (p) => {
     p.loop = false;
@@ -31,8 +33,9 @@ export function VideoPlayer({ url }: Props) {
     bufferedPosition: 0,
   });
 
-  // Empêche tout changement de vitesse : force à 1x dès qu'une modif est détectée.
-  const lastTimeRef = useRef(0);
+  // Verrouillage vitesse à 1x (en mode inline ; les contrôles natifs en
+  // fullscreen permettent quand même de changer la vitesse, on ne peut pas
+  // l'empêcher avec l'API expo-video).
   useEffect(() => {
     const sub = player.addListener('playbackRateChange', ({ playbackRate }) => {
       if (playbackRate !== LOCKED_RATE) {
@@ -42,12 +45,13 @@ export function VideoPlayer({ url }: Props) {
     return () => sub.remove();
   }, [player]);
 
-  // Empêche l'avance manuelle (seek vers l'avant) : si currentTime saute,
-  // on revient à la dernière position connue. On tolère un petit delta.
+  // Anti-seek inline : si currentTime saute (l'utilisateur a quand même réussi
+  // à scrubber via les contrôles natifs en fullscreen), on revient à la
+  // dernière position connue. Tolère un delta normal d'update.
+  const lastTimeRef = useRef(0);
   useEffect(() => {
     const last = lastTimeRef.current;
     const delta = currentTime - last;
-    // Lecture normale : delta ~ intervalle d'update. On bloque les sauts > 1.5s.
     if (delta > 1.5) {
       player.currentTime = last;
       return;
@@ -58,7 +62,7 @@ export function VideoPlayer({ url }: Props) {
   if (!source) {
     return (
       <View className="items-center squircle-xl bg-surface-container-low p-6 ghost-border">
-        <Icon name="videocam-off-outline" size={28} color="#a1a1aa" />
+        <Icon name="videocam-off-outline" size={28} color={colors.onSurfaceVariant} />
         <Text className="mt-2 font-mono text-xs text-on-surface-variant">
           Vidéo indisponible
         </Text>
@@ -72,10 +76,17 @@ export function VideoPlayer({ url }: Props) {
   return (
     <View className="overflow-hidden squircle-xl bg-black ghost-border">
       <VideoView
+        ref={videoRef}
         style={{ width: '100%', aspectRatio: 16 / 9, backgroundColor: '#000' }}
         player={player}
         nativeControls={false}
-        allowsFullscreen={false}
+        // En fullscreen natif, expo-video gère lui-même la rotation paysage
+        // et le retour. C'est plus fiable qu'un Modal custom.
+        fullscreenOptions={{
+          enable: true,
+          orientation: 'landscape',
+          autoExitOnRotate: true,
+        }}
         allowsPictureInPicture={false}
         contentFit="contain"
       />
@@ -87,14 +98,9 @@ export function VideoPlayer({ url }: Props) {
           accessibilityLabel={isPlaying ? 'Mettre en pause' : 'Lire'}
           className="size-10 items-center justify-center squircle-lg bg-primary"
         >
-          <Icon
-            name={isPlaying ? 'pause' : 'play'}
-            size={18}
-            color="#041c27"
-          />
+          <Icon name={isPlaying ? 'pause' : 'play'} size={18} color={colors.onPrimary} />
         </Pressable>
 
-        {/* Barre de progression non interactive (pas de seek possible) */}
         <View className="flex-1">
           <View
             className="h-1.5 w-full overflow-hidden rounded-full bg-surface-container-highest"
@@ -111,6 +117,16 @@ export function VideoPlayer({ url }: Props) {
         <Text className="font-mono text-[11px] text-on-surface-variant">
           {formatTime(currentTime)} / {formatTime(duration)}
         </Text>
+
+        <Pressable
+          onPress={() => videoRef.current?.enterFullscreen()}
+          accessibilityRole="button"
+          accessibilityLabel="Plein écran"
+          className="size-9 items-center justify-center squircle-md bg-surface-container-high"
+          hitSlop={6}
+        >
+          <Icon name="expand-outline" size={16} color={colors.onSurface} />
+        </Pressable>
       </View>
     </View>
   );
