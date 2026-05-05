@@ -8,7 +8,9 @@ import { LoadingView } from '@src/ui/LoadingView';
 import { ErrorCard } from '@src/ui/ErrorCard';
 import { EmptyState } from '@src/ui/EmptyState';
 import { Icon } from '@src/ui/Icon';
+import { SearchableList } from '@src/ui/search';
 import { useSchoolStore } from '@src/stores/school.store';
+import type { School } from '@src/schemas/school.schema';
 
 export default function AdminSchoolsScreen() {
   return (
@@ -48,10 +50,14 @@ function Body() {
           description="Aucun établissement enregistré pour le moment."
         />
       ) : (
-        <View className="gap-4">
-          {items.map((school) => (
+        <SearchableList<School>
+          data={items}
+          searchKeys={['name']}
+          keyExtractor={(s) => String(s.id)}
+          placeholder="Rechercher une école…"
+          ItemSeparatorComponent={() => <View style={{ height: 12 }} />}
+          renderItem={({ item: school }) => (
             <Pressable
-              key={school.id}
               onPress={() =>
                 router.push({
                   pathname: '/admin/schools/[schoolId]',
@@ -75,8 +81,8 @@ function Body() {
               </View>
               <Icon name="chevron-forward" size={18} color="#a1a1aa" />
             </Pressable>
-          ))}
-        </View>
+          )}
+        />
       )}
     </ScreenShell>
   );

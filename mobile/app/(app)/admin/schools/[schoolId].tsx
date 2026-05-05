@@ -8,6 +8,7 @@ import { LoadingView } from '@src/ui/LoadingView';
 import { ErrorCard } from '@src/ui/ErrorCard';
 import { EmptyState } from '@src/ui/EmptyState';
 import { Icon } from '@src/ui/Icon';
+import { SearchBar, useFuzzySearch } from '@src/ui/search';
 import { SchoolApi } from '@src/api/school.api';
 import { ClassroomApi } from '@src/api/classroom.api';
 import type { School } from '@src/schemas/school.schema';
@@ -31,6 +32,9 @@ function Body() {
   const [classrooms, setClassrooms] = useState<readonly Classroom[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [status, setStatus] = useState<Status>('loading');
+  const [query, setQuery] = useState('');
+
+  const filteredClassrooms = useFuzzySearch(classrooms, ['name'], query);
 
   useEffect(() => {
     let alive = true;
@@ -90,24 +94,39 @@ function Body() {
               description="Cette école n'a pas encore de classes."
             />
           ) : (
-            <View className="gap-3">
-              {classrooms.map((c) => (
-                <View
-                  key={c.id}
-                  className="flex-row items-center gap-4 squircle-xl bg-surface-container p-4 ghost-border"
-                >
-                  <View className="size-10 items-center justify-center squircle-lg bg-primary/10">
-                    <Icon name="school-outline" size={20} color="#7bd0ff" />
-                  </View>
-                  <View className="flex-1">
-                    <Text className="font-headline text-base font-bold text-on-surface">
-                      {c.name}
-                    </Text>
-                    <Text className="text-xs text-on-surface-variant">Classe #{c.id}</Text>
-                  </View>
+            <>
+              <SearchBar
+                value={query}
+                onChangeText={setQuery}
+                placeholder="Rechercher une classe…"
+              />
+              {filteredClassrooms.length === 0 ? (
+                <EmptyState
+                  icon="search-outline"
+                  title="Aucun résultat"
+                  description="Essayez un autre terme."
+                />
+              ) : (
+                <View className="gap-3">
+                  {filteredClassrooms.map((c) => (
+                    <View
+                      key={c.id}
+                      className="flex-row items-center gap-4 squircle-xl bg-surface-container p-4 ghost-border"
+                    >
+                      <View className="size-10 items-center justify-center squircle-lg bg-primary/10">
+                        <Icon name="school-outline" size={20} color="#7bd0ff" />
+                      </View>
+                      <View className="flex-1">
+                        <Text className="font-headline text-base font-bold text-on-surface">
+                          {c.name}
+                        </Text>
+                        <Text className="text-xs text-on-surface-variant">Classe #{c.id}</Text>
+                      </View>
+                    </View>
+                  ))}
                 </View>
-              ))}
-            </View>
+              )}
+            </>
           )}
         </View>
       )}

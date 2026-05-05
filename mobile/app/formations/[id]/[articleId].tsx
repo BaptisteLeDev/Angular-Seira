@@ -1,21 +1,16 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Linking, Pressable, ScrollView, Text, View } from 'react-native';
+import { Pressable, ScrollView, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 
-import { Icon, type IoniconName } from '@src/ui/Icon';
+import { Icon } from '@src/ui/Icon';
 import { LoadingView } from '@src/ui/LoadingView';
 import { ErrorCard } from '@src/ui/ErrorCard';
-import { EmptyState } from '@src/ui/EmptyState';
-import { VideoPlayer } from '@src/ui/VideoPlayer';
-import { PdfViewer } from '@src/ui/PdfViewer';
-import { MarkdownView } from '@src/ui/MarkdownView';
-import { SpeakButton } from '@src/ui/SpeakButton';
+import { ArticleBody } from '@src/features/article/ArticleBody';
 import { SommaireSheet, type SommaireEntry } from '@src/ui/SommaireSheet';
 import { Fab } from '@src/ui/Fab';
 import { useArticleStore } from '@src/stores/article.store';
 import { useFormationStore } from '@src/stores/formation.store';
-import type { Article } from '@src/schemas/article.schema';
 import type { Chapitre } from '@src/schemas/chapitre.schema';
 import { colors } from '@src/constants/theme';
 import { variantFor } from '@src/ui/formation-visual';
@@ -199,91 +194,3 @@ export default function ArticleScreen() {
   );
 }
 
-function ArticleBody({ article }: { article: Article }) {
-  const body = article.content ?? article.description ?? null;
-
-  return (
-    <View className="gap-5">
-      {article.type === 'video' ? <VideoPlayer url={article.sourceUrl} /> : null}
-
-      {article.type === 'link' && article.sourceUrl ? (
-        <LinkCard
-          onPress={() => Linking.openURL(article.sourceUrl!)}
-          icon="link"
-          iconBg="rgba(123,208,255,0.15)"
-          iconColor={colors.primary}
-          title="Ouvrir le lien"
-          subtitle={article.sourceUrl}
-        />
-      ) : null}
-
-      {article.type === 'pdf' ? (
-        <PdfViewer url={article.filePath ?? article.sourceUrl} fileName={article.title} />
-      ) : null}
-
-      {article.type === 'file' && article.filePath ? (
-        <LinkCard
-          onPress={() => {}}
-          icon="attach-outline"
-          iconBg="rgba(123,208,255,0.1)"
-          iconColor={colors.primary}
-          title="Fichier joint"
-          subtitle={article.filePath}
-        />
-      ) : null}
-
-      {article.type === 'markdown' ? (
-        body ? (
-          <View className="gap-4">
-            <View className="flex-row">
-              <SpeakButton text={body} isMarkdown compact />
-            </View>
-            <MarkdownView>{body}</MarkdownView>
-          </View>
-        ) : (
-          <EmptyState
-            icon="document-text-outline"
-            title="Contenu en préparation"
-            description="Cet article sera enrichi prochainement."
-          />
-        )
-      ) : body ? (
-        <Text className="text-base leading-relaxed text-on-surface">{body}</Text>
-      ) : null}
-    </View>
-  );
-}
-
-function LinkCard({
-  onPress,
-  icon,
-  iconBg,
-  iconColor,
-  title,
-  subtitle,
-}: {
-  onPress: () => void;
-  icon: IoniconName;
-  iconBg: string;
-  iconColor: string;
-  title: string;
-  subtitle: string;
-}) {
-  return (
-    <Pressable
-      onPress={onPress}
-      className="flex-row items-center gap-3 squircle-xl bg-surface-container-low p-4 ghost-border"
-    >
-      <View className="size-12 items-center justify-center squircle-lg" style={{ backgroundColor: iconBg }}>
-        <Icon name={icon} size={22} color={iconColor} />
-      </View>
-      <View className="flex-1">
-        <Text className="font-headline text-sm font-bold text-on-surface">{title}</Text>
-        <Text className="mt-0.5 text-xs text-on-surface-variant" numberOfLines={1}>
-          {subtitle}
-        </Text>
-      </View>
-      <Icon name="open-outline" size={16} color={colors.onSurfaceVariant} />
-    </Pressable>
-  );
-}

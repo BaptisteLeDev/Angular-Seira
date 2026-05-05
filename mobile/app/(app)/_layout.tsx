@@ -1,8 +1,8 @@
 import { Tabs } from 'expo-router';
 import { Platform } from 'react-native';
 
-import { Icon } from '@src/ui/Icon';
 import { useAuthStore } from '@src/stores/auth.store';
+import { Icon } from '@src/ui/Icon';
 import { useThemeColors } from '@src/ui/useThemeColors';
 
 export default function AppTabLayout() {
@@ -43,6 +43,7 @@ export default function AppTabLayout() {
         name="subjects"
         options={{
           title: 'Matières',
+          href: isAdmin ? null : '/subjects',
           tabBarIcon: ({ color, size }) => <Icon name="book" size={size} color={color} />,
         }}
       />
@@ -69,6 +70,7 @@ export default function AppTabLayout() {
       <Tabs.Screen name="admin/schools/[schoolId]" options={{ href: null }} />
       <Tabs.Screen name="admin/users/index" options={{ href: null }} />
       <Tabs.Screen name="admin/articles/index" options={{ href: null }} />
+      <Tabs.Screen name="admin/articles/[formationId]" options={{ href: null }} />
     </Tabs>
   );
 }
