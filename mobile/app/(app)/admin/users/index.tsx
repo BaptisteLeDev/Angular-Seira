@@ -51,7 +51,6 @@ function Body() {
   return (
     <ScreenShell
       back
-      backFallback="/admin"
       eyebrow="Administration"
       title="Tous les utilisateurs"
       subtitle="Annuaire global, filtrable par rôle."

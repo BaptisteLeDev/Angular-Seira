@@ -34,7 +34,6 @@ function Body() {
   return (
     <ScreenShell
       back
-      backFallback="/admin"
       eyebrow="Administration"
       title="Toutes les écoles"
       subtitle="Liste globale des établissements de la plateforme."

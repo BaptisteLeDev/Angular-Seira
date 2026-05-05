@@ -10,22 +10,14 @@ type Props = {
   title: string;
   subtitle?: string;
   back?: boolean;
-  backFallback?: string;
   children: ReactNode;
 };
 
-export function ScreenShell({
-  eyebrow,
-  title,
-  subtitle,
-  back = false,
-  backFallback,
-  children,
-}: Props) {
+export function ScreenShell({ eyebrow, title, subtitle, back = false, children }: Props) {
   const palette = useThemeColors();
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: palette.background }} edges={['top']}>
-      {back ? <BackHeader fallbackHref={backFallback} /> : null}
+      {back ? <BackHeader /> : null}
       <ScrollView
         style={{ backgroundColor: palette.background }}
         contentContainerStyle={{ paddingBottom: 40 }}

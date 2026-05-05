@@ -62,7 +62,6 @@ function Body() {
   return (
     <ScreenShell
       back
-      backFallback="/admin/schools"
       eyebrow="École"
       title={school?.name ?? 'Détail école'}
       subtitle="Classes rattachées à cet établissement."

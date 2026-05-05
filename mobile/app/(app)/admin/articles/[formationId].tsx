@@ -97,7 +97,6 @@ function Body() {
   return (
     <ScreenShell
       back
-      backFallback="/admin/articles"
       eyebrow="Formation"
       title={formation?.name ?? 'Détail'}
       subtitle="Chapitres et articles de cette formation."

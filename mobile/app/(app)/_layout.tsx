@@ -48,7 +48,7 @@ export default function AppTabLayout() {
         }}
       />
       <Tabs.Screen
-        name="admin/index"
+        name="admin"
         options={{
           title: 'Admin',
           href: isAdmin ? '/admin' : null,
@@ -66,11 +66,6 @@ export default function AppTabLayout() {
           ),
         }}
       />
-      <Tabs.Screen name="admin/schools/index" options={{ href: null }} />
-      <Tabs.Screen name="admin/schools/[schoolId]" options={{ href: null }} />
-      <Tabs.Screen name="admin/users/index" options={{ href: null }} />
-      <Tabs.Screen name="admin/articles/index" options={{ href: null }} />
-      <Tabs.Screen name="admin/articles/[formationId]" options={{ href: null }} />
     </Tabs>
   );
 }

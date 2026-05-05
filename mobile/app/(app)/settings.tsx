@@ -34,7 +34,7 @@ export default function SettingsScreen() {
 
   async function onLogout() {
     await logout();
-    router.replace('/home');
+    router.replace({ pathname: '/home' });
   }
 
   const displayName = user?.name?.trim() || user?.email || 'Utilisateur';

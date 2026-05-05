@@ -57,7 +57,7 @@ export default function LoginScreen() {
     setSubmitError(null);
     try {
       await login({ email, password });
-      router.replace('/dashboard');
+      router.replace({ pathname: '/dashboard' });
     } catch (err) {
       setSubmitError(err instanceof Error ? err.message : 'Erreur de connexion.');
     } finally {

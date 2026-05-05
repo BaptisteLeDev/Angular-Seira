@@ -34,7 +34,6 @@ function Body() {
   return (
     <ScreenShell
       back
-      backFallback="/admin"
       eyebrow="Administration"
       title="Tous les contenus"
       subtitle="Choisissez une formation pour voir ses chapitres et articles."

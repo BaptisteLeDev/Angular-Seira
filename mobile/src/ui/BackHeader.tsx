@@ -4,25 +4,16 @@ import { useRouter } from 'expo-router';
 import { Icon } from './Icon';
 
 type Props = {
-  fallbackHref?: string;
   title?: string;
 };
 
-export function BackHeader({ fallbackHref = '/admin', title }: Props) {
+export function BackHeader({ title }: Props) {
   const router = useRouter();
-
-  function onBack() {
-    if (router.canGoBack()) {
-      router.back();
-    } else {
-      router.replace(fallbackHref as never);
-    }
-  }
 
   return (
     <View className="flex-row items-center gap-3 px-4 pb-2 pt-2">
       <Pressable
-        onPress={onBack}
+        onPress={() => router.back()}
         accessibilityRole="button"
         accessibilityLabel="Retour"
         className="size-10 items-center justify-center rounded-full bg-surface-container ghost-border"

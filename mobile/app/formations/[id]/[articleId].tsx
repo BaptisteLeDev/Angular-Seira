@@ -74,7 +74,7 @@ export default function ArticleScreen() {
 
   const goTo = (entry: SommaireEntry) => {
     setSheetOpen(false);
-    router.replace({
+    router.push({
       pathname: '/formations/[id]/[articleId]',
       params: { id: String(formationId), articleId: String(entry.article.id) },
     });
