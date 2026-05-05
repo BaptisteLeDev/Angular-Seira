@@ -1,4 +1,5 @@
 import { Injectable, computed, inject, signal } from '@angular/core';
+import { Observable, catchError, tap, throwError } from 'rxjs';
 import { ArticleApi } from '../api/article.api';
 import type { Article } from '../schemas/article.schema';
 
@@ -54,6 +55,54 @@ export class ArticleStore {
         this._error.update((state) => ({ ...state, [chapitreId]: message }));
       },
     });
+  }
+
+  // ── Mutations ────────────────────────────────────────────────────────────
+  create(
+    chapitreId: number,
+    payload: Parameters<ArticleApi['create']>[0],
+  ): Observable<Article> {
+    return this.api.create(payload).pipe(
+      tap((article) => {
+        this._byChapitre.update((state) => {
+          const list = state[chapitreId] ?? [];
+          const next = [...list, article].sort(
+            (a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0),
+          );
+          return { ...state, [chapitreId]: next };
+        });
+      }),
+      catchError((err: unknown) => throwError(() => err)),
+    );
+  }
+
+  update(
+    chapitreId: number,
+    id: number,
+    payload: Parameters<ArticleApi['update']>[1],
+  ): Observable<Article> {
+    return this.api.update(id, payload).pipe(
+      tap((article) => {
+        this._byChapitre.update((state) => {
+          const list = state[chapitreId] ?? [];
+          const next = list.map((a) => (a.id === id ? article : a));
+          return { ...state, [chapitreId]: next };
+        });
+      }),
+      catchError((err: unknown) => throwError(() => err)),
+    );
+  }
+
+  delete(chapitreId: number, id: number): Observable<void> {
+    return this.api.delete(id).pipe(
+      tap(() => {
+        this._byChapitre.update((state) => {
+          const list = state[chapitreId] ?? [];
+          return { ...state, [chapitreId]: list.filter((a) => a.id !== id) };
+        });
+      }),
+      catchError((err: unknown) => throwError(() => err)),
+    );
   }
 
   reset(chapitreId?: number): void {

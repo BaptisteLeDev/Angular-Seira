@@ -77,6 +77,31 @@ export const routes: Routes = [
       import('./features/courses/course-detail/course-detail').then((m) => m.CourseDetail),
   },
 
+  // ── Admin hub + pages ────────────────────────────────────────────────────
+  {
+    path: 'admin',
+    ...requireRoles('admin'),
+    loadComponent: () => import('./features/admin/admin-hub.page').then((m) => m.AdminHub),
+  },
+  {
+    path: 'admin/users',
+    ...requireRoles('admin'),
+    loadComponent: () =>
+      import('./features/admin/admin-users.page').then((m) => m.AdminUsers),
+  },
+  {
+    path: 'admin/articles',
+    ...requireRoles('admin'),
+    loadComponent: () =>
+      import('./features/admin/admin-articles.page').then((m) => m.AdminArticles),
+  },
+  {
+    path: 'admin/articles/:formationId',
+    ...requireRoles('admin'),
+    loadComponent: () =>
+      import('./features/admin/admin-articles.page').then((m) => m.AdminArticles),
+  },
+
   // ── Schools — admin only ─────────────────────────────────────────────────
   {
     path: 'schools',
