@@ -1,3 +1,4 @@
+import { z } from 'zod';
 import { apiRequest } from './client';
 import { parseHydraCollection, parseResponse } from './parse-response';
 import {
@@ -10,6 +11,12 @@ import {
 } from '@src/schemas/formation.schema';
 import { iriToId } from '@src/utils/iri';
 
+const MySubjectsSchema = z.object({
+  available: z.array(FormationSchema),
+  locked: z.array(FormationSchema),
+});
+export type MySubjects = z.infer<typeof MySubjectsSchema>;
+
 export const FormationApi = {
   async list(params: { schoolId?: number | null } = {}): Promise<Formation[]> {
     const search = new URLSearchParams();
@@ -17,6 +24,11 @@ export const FormationApi = {
     const qs = search.toString();
     const raw = await apiRequest<unknown>(`/subjects${qs.length > 0 ? `?${qs}` : ''}`);
     return parseHydraCollection(FormationSchema, raw);
+  },
+
+  async listForMe(): Promise<MySubjects> {
+    const raw = await apiRequest<unknown>('/me/subjects');
+    return MySubjectsSchema.parse(raw);
   },
 
   async getById(id: number): Promise<Formation> {

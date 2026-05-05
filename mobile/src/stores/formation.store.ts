@@ -7,6 +7,8 @@ type Status = 'idle' | 'loading' | 'error';
 
 type FormationState = {
   items: readonly Formation[];
+  available: readonly Formation[];
+  locked: readonly Formation[];
   status: Status;
   error: string | null;
   chapitresByFormation: Record<number, readonly Chapitre[]>;
@@ -14,6 +16,7 @@ type FormationState = {
   chapitresError: Record<number, string>;
 
   load: (force?: boolean) => Promise<void>;
+  loadMine: (force?: boolean) => Promise<void>;
   loadChapitres: (formationId: number, force?: boolean) => Promise<void>;
   byId: (id: number) => Formation | null;
   chapitresOf: (formationId: number) => readonly Chapitre[];
@@ -23,6 +26,8 @@ type FormationState = {
 
 export const useFormationStore = create<FormationState>((set, get) => ({
   items: [],
+  available: [],
+  locked: [],
   status: 'idle',
   error: null,
   chapitresByFormation: {},
@@ -55,6 +60,25 @@ export const useFormationStore = create<FormationState>((set, get) => ({
       set({ items: result, status: 'idle' });
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Impossible de charger les formations.';
+      set({ status: 'error', error: message });
+    }
+  },
+
+  async loadMine(force = false) {
+    const { status, available, locked } = get();
+    if (!force && (status === 'loading' || available.length > 0 || locked.length > 0)) return;
+
+    set({ status: 'loading', error: null });
+    try {
+      const { available: av, locked: lk } = await FormationApi.listForMe();
+      set({
+        available: av,
+        locked: lk,
+        items: [...av, ...lk],
+        status: 'idle',
+      });
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Impossible de charger vos formations.';
       set({ status: 'error', error: message });
     }
   },

@@ -58,6 +58,12 @@ export default function AppTabLayout() {
         }}
       />
       <Tabs.Screen
+        name="teacher"
+        options={{
+          href: null,
+        }}
+      />
+      <Tabs.Screen
         name="settings"
         options={{
           title: 'Paramètres',

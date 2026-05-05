@@ -35,7 +35,7 @@ export default function ArticleScreen() {
   const chapitres =
     useFormationStore((s) => s.chapitresByFormation[formationId]) ?? EMPTY;
   const chapitresStatus = useFormationStore((s) => s.chapitresStatusOf(formationId));
-  const loadFormations = useFormationStore((s) => s.load);
+  const loadFormations = useFormationStore((s) => s.loadMine);
   const loadChapitres = useFormationStore((s) => s.loadChapitres);
 
   const articlesByChapitre = useArticleStore((s) => s.byChapitre);
