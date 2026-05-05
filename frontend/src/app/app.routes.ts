@@ -1,6 +1,6 @@
 import { Routes } from '@angular/router';
 import { authGuard } from './core/guards/auth.guard';
-import { roleGuard } from './core/guards/role.guard';
+import { roleGuard, requireRoles } from './core/guards/role.guard';
 import type { UserRole } from './core/schemas/user.schema';
 
 /** Helper pour typer `data.roles` sans augmentation de module. */
@@ -30,6 +30,31 @@ export const routes: Routes = [
     path: 'dashboard',
     canActivate: [authGuard],
     loadComponent: () => import('./features/dashboard/dashboard').then((m) => m.Dashboard),
+  },
+  {
+    path: 'settings',
+    canActivate: [authGuard],
+    loadComponent: () => import('./features/settings/settings.page').then((m) => m.Settings),
+  },
+
+  // ── Teacher hub ──────────────────────────────────────────────────────────
+  {
+    path: 'teacher',
+    ...requireRoles('teacher', 'admin'),
+    loadComponent: () =>
+      import('./features/teacher/teacher-hub.page').then((m) => m.TeacherHub),
+  },
+  {
+    path: 'teacher/classes',
+    ...requireRoles('teacher', 'admin'),
+    loadComponent: () =>
+      import('./features/teacher/teacher-classes.page').then((m) => m.TeacherClasses),
+  },
+  {
+    path: 'teacher/students',
+    ...requireRoles('teacher', 'admin'),
+    loadComponent: () =>
+      import('./features/teacher/teacher-students.page').then((m) => m.TeacherStudents),
   },
 
   // ── Formations ───────────────────────────────────────────────────────────

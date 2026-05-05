@@ -31,21 +31,35 @@ export class Navbar {
 
   /**
    * Navigation adaptée au rôle :
-   * - admin   → + "Écoles" (/schools)
-   * - teacher/student → base uniquement
+   * - admin   → + Espace prof + Admin (Écoles + Utilisateurs + Articles via /admin)
+   * - teacher → + Espace prof
+   * - student → base uniquement
+   * Settings ajouté pour tous les rôles authentifiés.
    */
   protected readonly navItems = computed<readonly NavItem[]>(() => {
-    if (this.auth.isAdmin()) {
-      return [
-        ...BASE_NAV,
-        {
-          path: '/schools',
-          label: 'Écoles',
-          icon: 'icon-[heroicons--building-office-2]',
-        },
-      ];
+    const items: NavItem[] = [...BASE_NAV];
+    if (this.auth.isTeacher() || this.auth.isAdmin()) {
+      items.push({
+        path: '/teacher',
+        label: 'Espace prof',
+        icon: 'icon-[heroicons--user-group]',
+      });
     }
-    return BASE_NAV;
+    if (this.auth.isAdmin()) {
+      items.push({
+        path: '/admin',
+        label: 'Admin',
+        icon: 'icon-[heroicons--shield-check]',
+      });
+    }
+    if (this.auth.isAuthenticated()) {
+      items.push({
+        path: '/settings',
+        label: 'Paramètres',
+        icon: 'icon-[heroicons--cog-6-tooth]',
+      });
+    }
+    return items;
   });
 
   protected logout(): void {
