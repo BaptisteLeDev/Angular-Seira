@@ -65,18 +65,15 @@
         @let formation = view.formation;
         @let variant = view.variant;
         <li class="flex">
-          <article
+          <a
+            [routerLink]="['/formations', formation.id]"
             class="group relative flex w-full cursor-pointer flex-col overflow-hidden squircle-xl border-l-4 bg-surface-container ghost-border transition-all duration-300 hover:-translate-y-1 hover:bg-surface-container-high focus-within:-translate-y-1"
-            [class.ring-2]="selectedFormationId() === formation.id"
             [class.ring-offset-2]="selectedFormationId() === formation.id"
             [class.ring-offset-background]="selectedFormationId() === formation.id"
             [style.border-left-color]="variant.color"
             [style.--tw-ring-color]="selectedFormationId() === formation.id ? variant.color : null"
-            [attr.aria-pressed]="selectedFormationId() === formation.id"
+            [attr.aria-current]="selectedFormationId() === formation.id ? 'true' : null"
             (click)="selectFormation(formation.id)"
-            (keyup.enter)="selectFormation(formation.id)"
-            (keyup.space)="selectFormation(formation.id)"
-            tabindex="0"
           >
             <!-- Visual tile -->
             <div
@@ -123,17 +120,15 @@
               }
 
               <!-- CTA -->
-              <a
-                [routerLink]="['/formations', formation.id]"
-                (click)="$event.stopPropagation()"
-                class="mt-auto inline-flex items-center gap-1 self-start pt-2 font-headline text-xs font-bold uppercase tracking-widest transition-colors hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary squircle-sm"
+              <div
+                class="mt-auto inline-flex items-center gap-1 self-start pt-2 font-headline text-xs font-bold uppercase tracking-widest transition-colors hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary squircle-sm link"
                 [style.color]="variant.color"
               >
                 Voir le detail
                 <span class="icon-[heroicons--arrow-right] text-sm" aria-hidden="true"></span>
-              </a>
+              </div>
             </div>
-          </article>
+          </a>
         </li>
       }
     </ul>

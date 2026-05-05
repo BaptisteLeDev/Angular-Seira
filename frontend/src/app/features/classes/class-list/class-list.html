@@ -1,0 +1,135 @@
+<div class="mx-auto max-w-7xl px-6 py-10 lg:px-12 lg:py-14">
+
+  <!-- Breadcrumb -->
+  <nav aria-label="Fil d'Ariane" class="mb-8">
+    <a
+      [routerLink]="['/schools', schoolRef()]"
+      data-testid="class-list-back-link"
+      class="inline-flex items-center gap-1.5 font-headline text-sm font-bold text-on-surface-variant transition-colors hover:text-primary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+    >
+      <span class="icon-[heroicons--arrow-left] text-base" aria-hidden="true"></span>
+      Retour à l'école
+    </a>
+  </nav>
+
+  <!-- Header -->
+  <header class="mb-10">
+    <p class="mb-3 font-headline text-xs font-bold uppercase tracking-[0.2em] text-primary">
+      Classes
+    </p>
+    <div class="flex flex-wrap items-end justify-between gap-4">
+      <h1 class="font-headline text-4xl font-extrabold leading-tight tracking-tight text-on-surface lg:text-5xl">
+        Toutes les classes
+      </h1>
+      @if (auth.isAdmin()) {
+        <button
+          type="button"
+          data-testid="class-create-btn"
+          class="inline-flex items-center gap-2 squircle-lg bg-primary px-5 py-2.5 font-headline text-sm font-bold text-on-primary transition-opacity hover:opacity-90 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+        >
+          <span class="icon-[heroicons--plus] text-base" aria-hidden="true"></span>
+          Nouvelle classe
+        </button>
+      }
+    </div>
+  </header>
+
+  <!-- Loading -->
+  @if (store.isLoading()) {
+    <div
+      class="flex flex-col items-center justify-center squircle-xl bg-surface-container p-12 text-center ghost-border"
+      role="status"
+      aria-live="polite"
+    >
+      <span class="icon-[heroicons--arrow-path] mb-4 animate-spin text-4xl text-primary" aria-hidden="true"></span>
+      <p class="font-headline text-lg font-bold text-on-surface">Chargement des classes…</p>
+    </div>
+
+  <!-- Error -->
+  } @else if (store.hasError()) {
+    <div class="squircle-xl border border-error/50 bg-error-container p-6" role="alert">
+      <p class="font-headline text-lg font-bold text-on-error-container">Erreur de chargement</p>
+      <p class="mt-2 text-sm text-on-error-container">{{ store.error() }}</p>
+    </div>
+
+  <!-- Empty -->
+  } @else if (classrooms().length === 0) {
+    <div
+      class="flex flex-col items-center justify-center squircle-xl bg-surface-container p-12 text-center ghost-border"
+      role="status"
+    >
+      <span class="icon-[heroicons--academic-cap] mb-4 text-5xl text-on-surface-variant" aria-hidden="true"></span>
+      <p class="font-headline text-lg font-bold text-on-surface">Aucune classe dans cette école</p>
+      <p class="mt-1 text-sm text-on-surface-variant">Créez la première classe pour démarrer.</p>
+    </div>
+
+  <!-- Classes grid -->
+  } @else {
+    <ul
+      role="list"
+      class="grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-3"
+      aria-label="Liste des classes"
+    >
+      @for (cls of classrooms(); track cls.id) {
+        <li class="flex">
+          <div
+            class="flex w-full flex-col squircle-xl bg-surface-container p-6 ghost-border"
+            [attr.data-testid]="'class-card-' + cls.id"
+          >
+            <!-- Icon + Name -->
+            <div class="mb-4 flex items-start justify-between">
+              <div class="flex size-11 items-center justify-center squircle-lg bg-primary/10 text-primary">
+                <span class="icon-[heroicons--academic-cap] text-2xl" aria-hidden="true"></span>
+              </div>
+              @if (cls.level) {
+                <span class="squircle-sm bg-surface-container-high px-2.5 py-1 font-headline text-[10px] font-bold uppercase tracking-widest text-on-surface-variant">
+                  {{ cls.level }}
+                </span>
+              }
+            </div>
+
+            <h2 class="mb-4 font-headline text-xl font-bold text-on-surface">{{ cls.name }}</h2>
+
+            <!-- Stats -->
+            @if ((cls.students ?? []).length > 0) {
+              <p class="mb-4 flex items-center gap-1.5 text-sm text-on-surface-variant">
+                <span class="icon-[heroicons--users] text-base" aria-hidden="true"></span>
+                {{ (cls.students ?? []).length }} élève(s)
+              </p>
+            }
+
+            <!-- Actions -->
+            <div class="mt-auto flex flex-wrap items-center gap-4 border-t border-outline-variant pt-4">
+              <a
+                [routerLink]="['/classes', cls.id, 'students']"
+                [attr.data-testid]="'class-students-link-' + cls.id"
+                class="inline-flex items-center gap-1.5 font-headline text-xs font-bold uppercase tracking-widest text-primary transition-colors hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+              >
+                <span class="icon-[heroicons--users] text-sm" aria-hidden="true"></span>
+                Élèves
+              </a>
+              <a
+                [routerLink]="['/classes', cls.id, 'formations']"
+                [attr.data-testid]="'class-formations-link-' + cls.id"
+                class="inline-flex items-center gap-1.5 font-headline text-xs font-bold uppercase tracking-widest text-primary transition-colors hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+              >
+                <span class="icon-[heroicons--book-open] text-sm" aria-hidden="true"></span>
+                Formations
+              </a>
+              @if (auth.isAdmin()) {
+                <button
+                  type="button"
+                  [attr.data-testid]="'class-delete-btn-' + cls.id"
+                  class="ml-auto font-headline text-xs font-bold uppercase tracking-widest text-error/70 transition-colors hover:text-error focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+                >
+                  Supprimer
+                </button>
+              }
+            </div>
+          </div>
+        </li>
+      }
+    </ul>
+  }
+
+</div>
