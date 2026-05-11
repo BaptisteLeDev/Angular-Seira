@@ -9,6 +9,7 @@ use ApiPlatform\Metadata\GetCollection;
 use ApiPlatform\Metadata\Patch;
 use ApiPlatform\Metadata\Post;
 use App\ApiResource\VideoProgressCreateInput;
+use App\State\VideoProgress\VideoProgressCollectionProvider;
 use App\State\VideoProgress\VideoProgressCreateProcessor;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -20,7 +21,8 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
         new GetCollection(
             uriTemplate: '/video-progress',
             policy: 'video_progress.list',
-            middleware: ['auth:sanctum']
+            middleware: ['auth:sanctum'],
+            provider: VideoProgressCollectionProvider::class
         ),
         new Get(
             uriTemplate: '/video-progress/{id}',
