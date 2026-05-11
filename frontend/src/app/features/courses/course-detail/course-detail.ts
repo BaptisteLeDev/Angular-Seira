@@ -6,6 +6,7 @@ import type { Chapitre } from '../../../core/schemas/chapitre.schema';
 import type { Formation } from '../../../core/schemas/formation.schema';
 import { ArticleStore } from '../../../core/stores/article.store';
 import { FormationStore } from '../../../core/stores/formation.store';
+import { ArticleBody } from '../../../shared/article/article-body';
 
 interface ArticleEntry {
   readonly article: Article;
@@ -16,7 +17,7 @@ interface ArticleEntry {
 
 @Component({
   selector: 'app-course-detail',
-  imports: [RouterLink, DecimalPipe],
+  imports: [RouterLink, DecimalPipe, ArticleBody],
   templateUrl: './course-detail.html',
   styleUrl: './course-detail.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
