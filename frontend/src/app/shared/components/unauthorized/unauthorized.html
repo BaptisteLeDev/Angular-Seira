@@ -1,0 +1,26 @@
+<div class="flex min-h-screen flex-col items-center justify-center px-6 text-center">
+  <span
+    class="icon-[heroicons--no-symbol] mb-6 text-8xl text-error/60"
+    aria-hidden="true"
+  ></span>
+
+  <p class="mb-2 font-headline text-xs font-bold uppercase tracking-[0.2em] text-error">
+    Erreur 403
+  </p>
+  <h1 class="mb-4 font-headline text-4xl font-extrabold leading-tight tracking-tight text-on-surface">
+    Accès refusé
+  </h1>
+  <p class="mb-8 max-w-md text-base leading-relaxed text-on-surface-variant">
+    Votre rôle ne vous permet pas d'accéder à cette section. Contactez un administrateur
+    si vous pensez qu'il s'agit d'une erreur.
+  </p>
+
+  <a
+    routerLink="/dashboard"
+    data-testid="unauthorized-back-link"
+    class="inline-flex items-center gap-2 squircle-lg bg-primary px-5 py-2.5 font-headline text-sm font-bold text-on-primary transition-opacity hover:opacity-90 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+  >
+    <span class="icon-[heroicons--arrow-left] text-base" aria-hidden="true"></span>
+    Retour au tableau de bord
+  </a>
+</div>

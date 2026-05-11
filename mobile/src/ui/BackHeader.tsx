@@ -1,0 +1,30 @@
+import { Pressable, Text, View } from 'react-native';
+import { useRouter } from 'expo-router';
+
+import { Icon } from './Icon';
+
+type Props = {
+  title?: string;
+};
+
+export function BackHeader({ title }: Props) {
+  const router = useRouter();
+
+  return (
+    <View className="flex-row items-center gap-3 px-4 pb-2 pt-2">
+      <Pressable
+        onPress={() => router.back()}
+        accessibilityRole="button"
+        accessibilityLabel="Retour"
+        className="size-10 items-center justify-center rounded-full bg-surface-container ghost-border"
+      >
+        <Icon name="chevron-back" size={20} color="#fafafa" />
+      </Pressable>
+      {title ? (
+        <Text className="font-headline text-base font-bold text-on-surface" numberOfLines={1}>
+          {title}
+        </Text>
+      ) : null}
+    </View>
+  );
+}
