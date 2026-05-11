@@ -65,6 +65,105 @@
   --font-headline: 'Manrope', system-ui, sans-serif;
   --font-body: 'Inter', system-ui, sans-serif;
   --font-sans: 'Inter', system-ui, sans-serif;
+
+  /* Motion */
+  --motion-duration-quick: 120ms;
+  --motion-duration-base: 200ms;
+  --motion-ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+
+  /* Elevation (subtle, dark-first) */
+  --shadow-elev-1: 0 1px 2px rgb(0 0 0 / 0.4);
+  --shadow-elev-2: 0 6px 24px -8px rgb(0 0 0 / 0.55);
+
+  /* Focus ring */
+  --color-focus-ring: var(--color-primary);
+
+  /* Gradients d'accent discrets — signature visuelle (badges/borders/cards actives).
+     Lighten ~12% via color-mix vers la teinte locale du thème. */
+  --gradient-cat-dev: linear-gradient(
+    135deg,
+    var(--color-cat-dev),
+    color-mix(in oklab, var(--color-cat-dev) 70%, white)
+  );
+  --gradient-cat-design: linear-gradient(
+    135deg,
+    var(--color-cat-design),
+    color-mix(in oklab, var(--color-cat-design) 70%, white)
+  );
+  --gradient-cat-project: linear-gradient(
+    135deg,
+    var(--color-cat-project),
+    color-mix(in oklab, var(--color-cat-project) 70%, white)
+  );
+  --gradient-cat-comm: linear-gradient(
+    135deg,
+    var(--color-cat-comm),
+    color-mix(in oklab, var(--color-cat-comm) 70%, white)
+  );
+  --gradient-cat-security: linear-gradient(
+    135deg,
+    var(--color-cat-security),
+    color-mix(in oklab, var(--color-cat-security) 70%, white)
+  );
+  --gradient-cat-data: linear-gradient(
+    135deg,
+    var(--color-cat-data),
+    color-mix(in oklab, var(--color-cat-data) 70%, white)
+  );
+  --gradient-primary: linear-gradient(
+    135deg,
+    var(--color-primary),
+    color-mix(in oklab, var(--color-primary) 70%, white)
+  );
+}
+
+/* ---------------------------------------------------------------------------
+ * Light theme override — valeurs portées depuis mobile/src/global.css.
+ * Activation via class `.light` sur <html> (positionnée par ThemeStore selon
+ * la préférence utilisateur ou prefers-color-scheme: light).
+ * Le thème par défaut (sans classe) reste dark pour cohérence avec l'existant.
+ * ------------------------------------------------------------------------- */
+:root.light {
+  --color-background: #fafafa;
+  --color-surface: #ffffff;
+  --color-surface-bright: #ffffff;
+  --color-surface-dim: #f4f4f5;
+  --color-surface-container-lowest: #ffffff;
+  --color-surface-container-low: #f7f7f9;
+  --color-surface-container: #f1f1f3;
+  --color-surface-container-high: #e8e8ec;
+  --color-surface-container-highest: #dfdfe4;
+  --color-surface-variant: #e8e8ec;
+
+  --color-on-surface: #0b0b0c;
+  --color-on-surface-variant: #52525b;
+  --color-inverse-surface: #18181b;
+  --color-inverse-on-surface: #fafafa;
+
+  --color-primary: #0a7ea4;
+  --color-primary-dim: #086a8a;
+  --color-primary-container: #cdeaf5;
+  --color-on-primary: #ffffff;
+  --color-on-primary-container: #04323f;
+
+  --color-outline: #a1a1aa;
+  --color-outline-variant: #d4d4d8;
+
+  --color-error: #dc2626;
+  --color-error-container: #fee2e2;
+  --color-on-error-container: #7f1d1d;
+  --color-secondary: #52525b;
+  --color-tertiary: #27272a;
+
+  --color-cat-dev: #0a7ea4;
+  --color-cat-design: #9333ea;
+  --color-cat-project: #d97706;
+  --color-cat-comm: #059669;
+  --color-cat-security: #dc2626;
+  --color-cat-data: #4f46e5;
+
+  --shadow-elev-1: 0 1px 2px rgb(15 15 20 / 0.06);
+  --shadow-elev-2: 0 8px 24px -10px rgb(15 15 20 / 0.18);
 }
 
 /* ---------------------------------------------------------------------------
@@ -72,6 +171,10 @@
  * ------------------------------------------------------------------------- */
 html {
   color-scheme: dark;
+}
+
+html.light {
+  color-scheme: light;
 }
 
 body {
@@ -100,4 +203,28 @@ body {
 
 @utility ghost-border {
   border: 1px solid color-mix(in srgb, var(--color-outline-variant) 60%, transparent);
+}
+
+/* Gradients d'accent — appliqués en background-image, transparents au mode clair/sombre
+ * via les vars --color-cat-* qui sont surchargées par .light. */
+@utility cat-dev-gradient {
+  background-image: var(--gradient-cat-dev);
+}
+@utility cat-design-gradient {
+  background-image: var(--gradient-cat-design);
+}
+@utility cat-project-gradient {
+  background-image: var(--gradient-cat-project);
+}
+@utility cat-comm-gradient {
+  background-image: var(--gradient-cat-comm);
+}
+@utility cat-security-gradient {
+  background-image: var(--gradient-cat-security);
+}
+@utility cat-data-gradient {
+  background-image: var(--gradient-cat-data);
+}
+@utility primary-gradient {
+  background-image: var(--gradient-primary);
 }

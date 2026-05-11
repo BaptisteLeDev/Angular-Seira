@@ -1,6 +1,6 @@
 import { Routes } from '@angular/router';
 import { authGuard } from './core/guards/auth.guard';
-import { roleGuard } from './core/guards/role.guard';
+import { roleGuard, requireRoles } from './core/guards/role.guard';
 import type { UserRole } from './core/schemas/user.schema';
 
 /** Helper pour typer `data.roles` sans augmentation de module. */
@@ -31,6 +31,31 @@ export const routes: Routes = [
     canActivate: [authGuard],
     loadComponent: () => import('./features/dashboard/dashboard').then((m) => m.Dashboard),
   },
+  {
+    path: 'settings',
+    canActivate: [authGuard],
+    loadComponent: () => import('./features/settings/settings.page').then((m) => m.Settings),
+  },
+
+  // ── Teacher hub (teacher only — l'admin a son propre hub /admin) ─────────
+  {
+    path: 'teacher',
+    ...requireRoles('teacher'),
+    loadComponent: () =>
+      import('./features/teacher/teacher-hub.page').then((m) => m.TeacherHub),
+  },
+  {
+    path: 'teacher/classes',
+    ...requireRoles('teacher'),
+    loadComponent: () =>
+      import('./features/teacher/teacher-classes.page').then((m) => m.TeacherClasses),
+  },
+  {
+    path: 'teacher/students',
+    ...requireRoles('teacher'),
+    loadComponent: () =>
+      import('./features/teacher/teacher-students.page').then((m) => m.TeacherStudents),
+  },
 
   // ── Formations ───────────────────────────────────────────────────────────
   {
@@ -50,6 +75,31 @@ export const routes: Routes = [
     canActivate: [authGuard],
     loadComponent: () =>
       import('./features/courses/course-detail/course-detail').then((m) => m.CourseDetail),
+  },
+
+  // ── Admin hub + pages ────────────────────────────────────────────────────
+  {
+    path: 'admin',
+    ...requireRoles('admin'),
+    loadComponent: () => import('./features/admin/admin-hub.page').then((m) => m.AdminHub),
+  },
+  {
+    path: 'admin/users',
+    ...requireRoles('admin'),
+    loadComponent: () =>
+      import('./features/admin/admin-users.page').then((m) => m.AdminUsers),
+  },
+  {
+    path: 'admin/articles',
+    ...requireRoles('admin'),
+    loadComponent: () =>
+      import('./features/admin/admin-articles.page').then((m) => m.AdminArticles),
+  },
+  {
+    path: 'admin/articles/:formationId',
+    ...requireRoles('admin'),
+    loadComponent: () =>
+      import('./features/admin/admin-articles.page').then((m) => m.AdminArticles),
   },
 
   // ── Schools — admin only ─────────────────────────────────────────────────

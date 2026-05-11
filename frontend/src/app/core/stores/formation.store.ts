@@ -1,4 +1,5 @@
 import { Injectable, computed, inject, signal } from '@angular/core';
+import { Observable, catchError, tap, throwError } from 'rxjs';
 import { FormationApi } from '../api/formation.api';
 import type { Chapitre } from '../schemas/chapitre.schema';
 import type { Formation } from '../schemas/formation.schema';
@@ -50,6 +51,80 @@ export class FormationStore {
         );
       },
     });
+  }
+
+  // ── Mutations ────────────────────────────────────────────────────────────
+  create(payload: Parameters<FormationApi['create']>[0]): Observable<Formation> {
+    return this.api.create(payload).pipe(
+      tap((formation) => this._items.update((items) => [formation, ...items])),
+      catchError((err: unknown) => throwError(() => err)),
+    );
+  }
+
+  update(
+    id: number,
+    payload: Parameters<FormationApi['update']>[1],
+  ): Observable<Formation> {
+    return this.api.update(id, payload).pipe(
+      tap((formation) =>
+        this._items.update((items) =>
+          items.map((f) => (f.id === id ? formation : f)),
+        ),
+      ),
+      catchError((err: unknown) => throwError(() => err)),
+    );
+  }
+
+  delete(id: number): Observable<void> {
+    return this.api.delete(id).pipe(
+      tap(() => this._items.update((items) => items.filter((f) => f.id !== id))),
+      catchError((err: unknown) => throwError(() => err)),
+    );
+  }
+
+  createChapitre(
+    formationId: number,
+    payload: Parameters<FormationApi['createChapitre']>[0],
+  ): Observable<Chapitre> {
+    return this.api.createChapitre(payload).pipe(
+      tap((chapitre) => {
+        this._chapitresByFormation.update((state) => {
+          const list = state[formationId] ?? [];
+          const next = [...list, chapitre].sort((a, b) => a.sortOrder - b.sortOrder);
+          return { ...state, [formationId]: next };
+        });
+      }),
+      catchError((err: unknown) => throwError(() => err)),
+    );
+  }
+
+  updateChapitre(
+    formationId: number,
+    id: number,
+    payload: Parameters<FormationApi['updateChapitre']>[1],
+  ): Observable<Chapitre> {
+    return this.api.updateChapitre(id, payload).pipe(
+      tap((chapitre) => {
+        this._chapitresByFormation.update((state) => {
+          const list = state[formationId] ?? [];
+          const next = list.map((c) => (c.id === id ? chapitre : c));
+          return { ...state, [formationId]: next };
+        });
+      }),
+      catchError((err: unknown) => throwError(() => err)),
+    );
+  }
+
+  deleteChapitre(formationId: number, id: number): Observable<void> {
+    return this.api.deleteChapitre(id).pipe(
+      tap(() => {
+        this._chapitresByFormation.update((state) => {
+          const list = state[formationId] ?? [];
+          return { ...state, [formationId]: list.filter((c) => c.id !== id) };
+        });
+      }),
+      catchError((err: unknown) => throwError(() => err)),
+    );
   }
 
   /**
