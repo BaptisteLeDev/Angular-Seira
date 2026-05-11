@@ -19,8 +19,7 @@ class VideoProgressApiTest extends TestCase
         VideoProgress::factory()->count(2)->create();
         Sanctum::actingAs($admin);
 
-        $this->getJson('/api/video-progress')
-            ->assertOk();
+        $this->getJson('/api/video-progress')->assertOk();
     }
 
     public function test_student_can_list_video_progress_entries(): void
@@ -29,6 +28,27 @@ class VideoProgressApiTest extends TestCase
         Sanctum::actingAs($student);
 
         $this->getJson('/api/video-progress')->assertOk();
+    }
+
+    public function test_student_can_view_own_video_progress(): void
+    {
+        $student = User::factory()->create(['role' => User::ROLE_STUDENT]);
+        $video = Video::factory()->create();
+        $progress = VideoProgress::factory()->create(['user_id' => $student->id, 'video_id' => $video->id]);
+        Sanctum::actingAs($student);
+
+        $this->getJson("/api/video-progress/{$progress->id}")->assertOk();
+    }
+
+    public function test_student_cannot_view_other_student_video_progress(): void
+    {
+        $student = User::factory()->create(['role' => User::ROLE_STUDENT]);
+        $other = User::factory()->create(['role' => User::ROLE_STUDENT]);
+        $video = Video::factory()->create();
+        $progress = VideoProgress::factory()->create(['user_id' => $other->id, 'video_id' => $video->id]);
+        Sanctum::actingAs($student);
+
+        $this->getJson("/api/video-progress/{$progress->id}")->assertForbidden();
     }
 
     public function test_student_can_create_own_video_progress(): void

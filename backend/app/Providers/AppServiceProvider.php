@@ -2,23 +2,20 @@
 
 namespace App\Providers;
 
+use App\Models\Chapter;
+use App\Models\ChapterContent;
+use App\Models\Classroom;
+use App\Models\Subject;
 use App\Models\User;
+use App\Models\Video;
+use App\Models\VideoProgress;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
 {
-    /**
-     * Register any application services.
-     */
-    public function register(): void
-    {
-        //
-    }
+    public function register(): void {}
 
-    /**
-     * Bootstrap any application services.
-     */
     public function boot(): void
     {
         Gate::define('users.list', fn (User $user): bool => $user->isAdmin());
@@ -38,7 +35,20 @@ class AppServiceProvider extends ServiceProvider
         Gate::define('schools.delete', fn (User $user): bool => $user->isAdmin());
 
         Gate::define('classrooms.list', fn (User $user): bool => $user->isAdmin());
-        Gate::define('classrooms.view', fn (User $user): bool => $user->isAdmin());
+        Gate::define('classrooms.view', function (User $user, mixed $subject): bool {
+            if ($user->isAdmin()) return true;
+            if (!$subject instanceof Classroom) return false;
+
+            if ($user->role === User::ROLE_STUDENT) {
+                return $user->classroom_id === $subject->id;
+            }
+
+            if ($user->role === User::ROLE_TEACHER) {
+                return $subject->subjects()->where('teacher_id', $user->id)->exists();
+            }
+
+            return false;
+        });
         Gate::define('classrooms.create', fn (User $user): bool => $user->isAdmin());
         Gate::define('classrooms.update', fn (User $user): bool => $user->isAdmin());
         Gate::define('classrooms.delete', fn (User $user): bool => $user->isAdmin());
@@ -50,27 +60,97 @@ class AppServiceProvider extends ServiceProvider
         Gate::define('subjects.delete', fn (User $user): bool => $user->isAdmin());
 
         Gate::define('chapters.list', fn (User $user): bool => $user->isAdmin());
-        Gate::define('chapters.view', fn (User $user): bool => $user->isAdmin());
+        Gate::define('chapters.view', function (User $user, mixed $subject): bool {
+            if ($user->isAdmin()) return true;
+            if (!$subject instanceof Chapter) return false;
+
+            if ($user->role === User::ROLE_TEACHER) {
+                return Subject::query()
+                    ->where('id', $subject->subject_id)
+                    ->where('teacher_id', $user->id)
+                    ->exists();
+            }
+
+            if ($user->role === User::ROLE_STUDENT) {
+                if ($user->classroom_id === null) return false;
+                return Subject::query()
+                    ->where('id', $subject->subject_id)
+                    ->whereHas('classrooms', fn ($q) => $q->where('classrooms.id', $user->classroom_id))
+                    ->exists();
+            }
+
+            return false;
+        });
         Gate::define('chapters.create', fn (User $user): bool => $user->isAdmin());
         Gate::define('chapters.update', fn (User $user): bool => $user->isAdmin());
         Gate::define('chapters.delete', fn (User $user): bool => $user->isAdmin());
 
-        Gate::define('chapter_contents.list', fn (User $user, mixed $subject = null): bool => $user->exists);
-        Gate::define('chapter_contents.view', fn (User $user, mixed $subject = null): bool => $user->exists);
-        Gate::define('chapter_contents.create', fn (User $user, mixed $subject = null): bool => $user->isAdmin());
-        Gate::define('chapter_contents.update', fn (User $user, mixed $subject = null): bool => $user->isAdmin());
-        Gate::define('chapter_contents.delete', fn (User $user, mixed $subject = null): bool => $user->isAdmin());
+        Gate::define('chapter_contents.list', fn (User $user): bool => $user->exists);
+        Gate::define('chapter_contents.view', function (User $user, mixed $subject = null): bool {
+            if ($user->isAdmin()) return true;
+            if (!$subject instanceof ChapterContent) return false;
 
-        Gate::define('videos.list', fn (User $user, mixed $subject = null): bool => $user->exists);
-        Gate::define('videos.view', fn (User $user, mixed $subject = null): bool => $user->exists);
-        Gate::define('videos.create', fn (User $user, mixed $subject = null): bool => $user->isAdmin());
-        Gate::define('videos.update', fn (User $user, mixed $subject = null): bool => $user->isAdmin());
-        Gate::define('videos.delete', fn (User $user, mixed $subject = null): bool => $user->isAdmin());
+            $chapter = Chapter::find($subject->chapter_id);
+            if ($chapter === null) return false;
 
-        Gate::define('video_progress.list', fn (User $user, mixed $subject = null): bool => $user->exists);
-        Gate::define('video_progress.view', fn (User $user, mixed $subject = null): bool => $user->exists);
-        Gate::define('video_progress.create', fn (User $user, mixed $subject = null): bool => $user->exists);
-        Gate::define('video_progress.update', fn (User $user, mixed $subject = null): bool => $user->exists);
-        Gate::define('video_progress.delete', fn (User $user, mixed $subject = null): bool => $user->exists);
+            if ($user->role === User::ROLE_TEACHER) {
+                return Subject::query()
+                    ->where('id', $chapter->subject_id)
+                    ->where('teacher_id', $user->id)
+                    ->exists();
+            }
+
+            if ($user->role === User::ROLE_STUDENT) {
+                if ($user->classroom_id === null) return false;
+                return Subject::query()
+                    ->where('id', $chapter->subject_id)
+                    ->whereHas('classrooms', fn ($q) => $q->where('classrooms.id', $user->classroom_id))
+                    ->exists();
+            }
+
+            return false;
+        });
+        Gate::define('chapter_contents.create', fn (User $user): bool => $user->isAdmin());
+        Gate::define('chapter_contents.update', fn (User $user): bool => $user->isAdmin());
+        Gate::define('chapter_contents.delete', fn (User $user): bool => $user->isAdmin());
+
+        Gate::define('videos.list', fn (User $user): bool => $user->exists);
+        Gate::define('videos.view', function (User $user, mixed $subject = null): bool {
+            if ($user->isAdmin()) return true;
+            if (!$subject instanceof Video) return false;
+
+            $chapter = Chapter::find($subject->chapter_id);
+            if ($chapter === null) return false;
+
+            if ($user->role === User::ROLE_TEACHER) {
+                return Subject::query()
+                    ->where('id', $chapter->subject_id)
+                    ->where('teacher_id', $user->id)
+                    ->exists();
+            }
+
+            if ($user->role === User::ROLE_STUDENT) {
+                if ($user->classroom_id === null) return false;
+                return Subject::query()
+                    ->where('id', $chapter->subject_id)
+                    ->whereHas('classrooms', fn ($q) => $q->where('classrooms.id', $user->classroom_id))
+                    ->exists();
+            }
+
+            return false;
+        });
+        Gate::define('videos.create', fn (User $user): bool => $user->isAdmin());
+        Gate::define('videos.update', fn (User $user): bool => $user->isAdmin());
+        Gate::define('videos.delete', fn (User $user): bool => $user->isAdmin());
+
+        Gate::define('video_progress.list', fn (User $user): bool => $user->exists);
+        Gate::define('video_progress.view', function (User $user, mixed $subject = null): bool {
+            if ($user->isAdmin()) return true;
+            if (!$subject instanceof VideoProgress) return false;
+            return $subject->user_id === $user->id;
+        });
+        Gate::define('video_progress.create', fn (User $user): bool => $user->exists);
+        Gate::define('video_progress.update', fn (User $user): bool => $user->exists);
+        Gate::define('video_progress.delete', fn (User $user): bool => $user->exists);
     }
 }
