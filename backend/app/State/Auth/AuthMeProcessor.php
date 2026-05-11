@@ -26,6 +26,8 @@ class AuthMeProcessor implements ProcessorInterface
             'name' => (string) $user->name,
             'email' => (string) $user->email,
             'role' => (string) $user->role,
+            'schoolId' => $user->school_id !== null ? (int) $user->school_id : null,
+            'classroomId' => $user->classroom_id !== null ? (int) $user->classroom_id : null,
         ]);
     }
 }

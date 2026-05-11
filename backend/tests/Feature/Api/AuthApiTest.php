@@ -61,7 +61,34 @@ class AuthApiTest extends TestCase
 
         $this->getJson('/api/auth/me')
             ->assertOk()
+            ->assertJsonStructure(['id', 'name', 'email', 'role', 'schoolId', 'classroomId'])
             ->assertJsonFragment(['email' => $user->email]);
+    }
+
+    public function test_me_returns_null_school_and_classroom_when_not_assigned(): void
+    {
+        $user = User::factory()->create([
+            'role' => User::ROLE_STUDENT,
+            'school_id' => null,
+            'classroom_id' => null,
+        ]);
+        Sanctum::actingAs($user);
+
+        $this->getJson('/api/auth/me')
+            ->assertOk()
+            ->assertJsonPath('schoolId', null)
+            ->assertJsonPath('classroomId', null);
+    }
+
+    public function test_me_returns_school_and_classroom_ids_when_assigned(): void
+    {
+        $user = User::factory()->create(['role' => User::ROLE_STUDENT]);
+        Sanctum::actingAs($user);
+
+        $response = $this->getJson('/api/auth/me')->assertOk();
+
+        $this->assertEquals($user->school_id, $response->json('schoolId'));
+        $this->assertEquals($user->classroom_id, $response->json('classroomId'));
     }
 
     public function test_logout_revokes_current_token(): void
