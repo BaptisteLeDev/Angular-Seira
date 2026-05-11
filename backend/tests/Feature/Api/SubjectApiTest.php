@@ -23,6 +23,15 @@ class SubjectApiTest extends TestCase
             ->assertOk();
     }
 
+    public function test_teacher_can_list_subjects(): void
+    {
+        $teacher = User::factory()->create(['role' => User::ROLE_TEACHER]);
+        Subject::factory()->count(2)->create();
+        Sanctum::actingAs($teacher);
+
+        $this->getJson('/api/subjects')->assertOk();
+    }
+
     public function test_student_cannot_list_subjects(): void
     {
         $student = User::factory()->create(['role' => User::ROLE_STUDENT]);

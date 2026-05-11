@@ -43,7 +43,7 @@ class AppServiceProvider extends ServiceProvider
         Gate::define('classrooms.update', fn (User $user): bool => $user->isAdmin());
         Gate::define('classrooms.delete', fn (User $user): bool => $user->isAdmin());
 
-        Gate::define('subjects.list', fn (User $user): bool => $user->isAdmin());
+        Gate::define('subjects.list', fn (User $user): bool => $user->isAdmin() || $user->role === User::ROLE_TEACHER);
         Gate::define('subjects.view', fn (User $user): bool => $user->isAdmin());
         Gate::define('subjects.create', fn (User $user): bool => $user->isAdmin());
         Gate::define('subjects.update', fn (User $user): bool => $user->isAdmin());
