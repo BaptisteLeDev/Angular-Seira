@@ -150,7 +150,15 @@ class AppServiceProvider extends ServiceProvider
             return $subject->user_id === $user->id;
         });
         Gate::define('video_progress.create', fn (User $user): bool => $user->exists);
-        Gate::define('video_progress.update', fn (User $user): bool => $user->exists);
-        Gate::define('video_progress.delete', fn (User $user): bool => $user->exists);
+        Gate::define('video_progress.update', function (User $user, mixed $subject = null): bool {
+            if ($user->isAdmin()) return true;
+            if (!$subject instanceof VideoProgress) return false;
+            return $subject->user_id === $user->id;
+        });
+        Gate::define('video_progress.delete', function (User $user, mixed $subject = null): bool {
+            if ($user->isAdmin()) return true;
+            if (!$subject instanceof VideoProgress) return false;
+            return $subject->user_id === $user->id;
+        });
     }
 }

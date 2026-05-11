@@ -64,4 +64,28 @@ class VideoProgressApiTest extends TestCase
             'status' => 'in_progress',
         ])->assertCreated();
     }
+
+    public function test_student_cannot_update_other_student_video_progress(): void
+    {
+        $student = User::factory()->create(['role' => User::ROLE_STUDENT]);
+        $other = User::factory()->create(['role' => User::ROLE_STUDENT]);
+        $video = Video::factory()->create();
+        $progress = VideoProgress::factory()->create(['user_id' => $other->id, 'video_id' => $video->id]);
+        Sanctum::actingAs($student);
+
+        $this->patchJson("/api/video-progress/{$progress->id}", [
+            'watched_seconds_validated' => 200,
+        ])->assertForbidden();
+    }
+
+    public function test_student_cannot_delete_other_student_video_progress(): void
+    {
+        $student = User::factory()->create(['role' => User::ROLE_STUDENT]);
+        $other = User::factory()->create(['role' => User::ROLE_STUDENT]);
+        $video = Video::factory()->create();
+        $progress = VideoProgress::factory()->create(['user_id' => $other->id, 'video_id' => $video->id]);
+        Sanctum::actingAs($student);
+
+        $this->deleteJson("/api/video-progress/{$progress->id}")->assertForbidden();
+    }
 }
