@@ -9,11 +9,12 @@ import {
 import { environment } from '../../../environments/environment';
 
 /**
- * Vidéo de test publique utilisée en dev quand aucune URL n'est fournie
- * (équivalent web du toggle USE_DEV_VIDEO côté mobile).
+ * Vidéo locale utilisée comme placeholder en dev quand aucune URL n'est fournie
+ * OU quand l'URL backend retourne une 404. Servie depuis frontend/public/dev-assets.
+ * Équivalent web du toggle USE_DEV_VIDEO côté mobile.
  */
-const DEV_FALLBACK_VIDEO =
-  'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4';
+const DEV_FALLBACK_VIDEO = '/dev-assets/sample-video.mp4';
+const USE_DEV_FALLBACK_ALWAYS = true;
 
 @Component({
   selector: 'app-video-player',
@@ -50,6 +51,10 @@ export class VideoPlayer {
   protected readonly video = viewChild<ElementRef<HTMLVideoElement>>('video');
 
   protected readonly resolvedUrl = computed<string | null>(() => {
+    // En dev, on force le placeholder local pour éviter les 404 backend tant que
+    // les vidéos seedées ne sont pas servies. Mettre USE_DEV_FALLBACK_ALWAYS à
+    // false pour utiliser les URLs réelles.
+    if (!environment.production && USE_DEV_FALLBACK_ALWAYS) return DEV_FALLBACK_VIDEO;
     const u = this.url();
     if (u && u.length > 0) return u;
     if (!environment.production) return DEV_FALLBACK_VIDEO;

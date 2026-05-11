@@ -10,10 +10,11 @@ import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { environment } from '../../../environments/environment';
 
 /**
- * PDF public stable utilisé comme fallback dev (canonical pdf.js sample).
+ * PDF local utilisé comme placeholder en dev (Lorem ipsum), évite les 404
+ * backend tant que les fichiers seedés ne sont pas servis.
  */
-const DEV_FALLBACK_PDF =
-  'https://mozilla.github.io/pdf.js/web/compressed.tracemonkey-pldi-09.pdf';
+const DEV_FALLBACK_PDF = '/dev-assets/sample.pdf';
+const USE_DEV_FALLBACK_ALWAYS = true;
 
 @Component({
   selector: 'app-pdf-viewer',
@@ -74,6 +75,7 @@ export class PdfViewer {
   protected readonly fullscreen = signal(false);
 
   protected readonly resolvedUrl = computed<string | null>(() => {
+    if (!environment.production && USE_DEV_FALLBACK_ALWAYS) return DEV_FALLBACK_PDF;
     const u = this.url();
     if (u && u.length > 0) return u;
     if (!environment.production) return DEV_FALLBACK_PDF;

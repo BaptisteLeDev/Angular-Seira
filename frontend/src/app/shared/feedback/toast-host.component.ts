@@ -7,7 +7,7 @@ import { ToastService, type ToastTone } from './toast.service';
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <div
-      class="pointer-events-none fixed inset-x-0 bottom-4 z-[60] flex flex-col items-center gap-2 px-4 sm:bottom-6"
+      class="pointer-events-none fixed bottom-4 right-4 z-[100] flex flex-col items-end gap-2 sm:bottom-6 sm:right-6"
       aria-live="polite"
       aria-atomic="false"
     >

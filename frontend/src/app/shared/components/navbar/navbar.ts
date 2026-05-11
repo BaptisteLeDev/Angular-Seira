@@ -8,8 +8,12 @@ interface NavItem {
   readonly icon: string;
 }
 
-const BASE_NAV: readonly NavItem[] = [
-  { path: '/home', label: 'Accueil', icon: 'icon-[heroicons--home]' },
+const HOME_ITEM: NavItem = {
+  path: '/home',
+  label: 'Accueil',
+  icon: 'icon-[heroicons--home]',
+};
+const AUTH_BASE_NAV: readonly NavItem[] = [
   { path: '/dashboard', label: 'Tableau de bord', icon: 'icon-[heroicons--squares-2x2]' },
   { path: '/formations', label: 'Matières', icon: 'icon-[heroicons--book-open]' },
 ];
@@ -31,14 +35,18 @@ export class Navbar {
 
   /**
    * Navigation adaptée au rôle :
-   * - admin   → + Espace prof + Admin (Écoles + Utilisateurs + Articles via /admin)
-   * - teacher → + Espace prof
-   * - student → base uniquement
+   * - student → base uniquement (dashboard, accueil, formations)
+   * - teacher → + Espace prof (mes classes / mes élèves)
+   * - admin   → + Admin (CRUD écoles/utilisateurs/articles).
+   *             L'admin voit la même base "élève" que tout le monde + l'édition
+   *             en plus, mais PAS Espace prof (vue prof réservée aux teachers).
    * Settings ajouté pour tous les rôles authentifiés.
    */
   protected readonly navItems = computed<readonly NavItem[]>(() => {
-    const items: NavItem[] = [...BASE_NAV];
-    if (this.auth.isTeacher() || this.auth.isAdmin()) {
+    const items: NavItem[] = this.auth.isAuthenticated()
+      ? [...AUTH_BASE_NAV]
+      : [HOME_ITEM];
+    if (this.auth.isTeacher()) {
       items.push({
         path: '/teacher',
         label: 'Espace prof',

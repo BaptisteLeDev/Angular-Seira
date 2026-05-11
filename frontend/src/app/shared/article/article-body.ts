@@ -3,13 +3,12 @@ import type { Article } from '../../core/schemas/article.schema';
 import { EmptyState } from '../ui/empty-state';
 import { MarkdownView } from '../ui/markdown-view';
 import { PdfViewer } from '../ui/pdf-viewer';
-import { SpeakButton } from '../ui/speak-button';
 import { VideoPlayer } from '../ui/video-player';
 
 @Component({
   selector: 'app-article-body',
   standalone: true,
-  imports: [EmptyState, MarkdownView, PdfViewer, SpeakButton, VideoPlayer],
+  imports: [EmptyState, MarkdownView, PdfViewer, VideoPlayer],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <div class="flex flex-col gap-5">
@@ -83,12 +82,7 @@ import { VideoPlayer } from '../ui/video-player';
 
         @case ('markdown') {
           @if (body(); as content) {
-            <div class="flex flex-col gap-4">
-              <div class="flex">
-                <app-speak-button [text]="content" [isMarkdown]="true" [compact]="true" />
-              </div>
-              <app-markdown-view [source]="content" />
-            </div>
+            <app-markdown-view [source]="content" />
           } @else {
             <app-empty-state
               icon="icon-[heroicons--document-text]"

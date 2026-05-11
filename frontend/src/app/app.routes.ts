@@ -37,22 +37,22 @@ export const routes: Routes = [
     loadComponent: () => import('./features/settings/settings.page').then((m) => m.Settings),
   },
 
-  // ── Teacher hub ──────────────────────────────────────────────────────────
+  // ── Teacher hub (teacher only — l'admin a son propre hub /admin) ─────────
   {
     path: 'teacher',
-    ...requireRoles('teacher', 'admin'),
+    ...requireRoles('teacher'),
     loadComponent: () =>
       import('./features/teacher/teacher-hub.page').then((m) => m.TeacherHub),
   },
   {
     path: 'teacher/classes',
-    ...requireRoles('teacher', 'admin'),
+    ...requireRoles('teacher'),
     loadComponent: () =>
       import('./features/teacher/teacher-classes.page').then((m) => m.TeacherClasses),
   },
   {
     path: 'teacher/students',
-    ...requireRoles('teacher', 'admin'),
+    ...requireRoles('teacher'),
     loadComponent: () =>
       import('./features/teacher/teacher-students.page').then((m) => m.TeacherStudents),
   },

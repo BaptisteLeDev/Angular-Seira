@@ -59,10 +59,13 @@ export class FormationApi {
   }
 
   // ── Chapitres CRUD ───────────────────────────────────────────────────────
+  /**
+   * Le backend Laravel/API Platform attend `subject_id` (numérique), pas l'IRI.
+   */
   createChapitre(payload: {
     title: string;
     sortOrder: number;
-    subject?: string;
+    subject_id: number;
   }): Observable<Chapitre> {
     return this.http
       .post<unknown>(`${this.apiUrl}/chapters`, payload)

@@ -1,6 +1,6 @@
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
-import { Observable, catchError, forkJoin, of, throwError } from 'rxjs';
+import { Observable, catchError, forkJoin, map, of, throwError } from 'rxjs';
 import { environment } from '@environments/environment';
 import { ClassroomSchema, type Classroom } from '../schemas/class.schema';
 import { parseResponse, parseHydraCollection } from './parse-response';
@@ -13,13 +13,28 @@ export class ClassApi {
 
   /**
    * Liste toutes les classes d'une école.
+   *
+   * Le backend API Platform peut accepter le filtre `school=` sur différents
+   * formats (id numérique, IRI ou pas du tout). Pour être robuste on envoie le
+   * filtre puis on re-filtre côté client à partir de l'IRI `/api/schools/{id}`
+   * embarquée dans chaque classroom — comme ça la liste est toujours correcte
+   * même si le backend ignore le query param.
    */
   listBySchool(schoolId: number): Observable<Classroom[]> {
     return this.http
       .get<unknown>(`${this.apiUrl}/classrooms`, {
         params: { school: String(schoolId) },
       })
-      .pipe(parseHydraCollection(ClassroomSchema), catchError(this.toError));
+      .pipe(
+        parseHydraCollection(ClassroomSchema),
+        map((items) =>
+          items.filter((c) => {
+            if (!c.school) return true;
+            return iriToId(c.school) === schoolId;
+          }),
+        ),
+        catchError(this.toError),
+      );
   }
 
   /**

@@ -23,13 +23,16 @@
         {{ subtitle() }}
       </span>
     </h1>
-    <p class="mt-5 max-w-2xl text-lg leading-relaxed text-on-surface-variant">
-      Bienvenue sur MontoMaster, votre plateforme e-learning. Reprenez votre parcours là où vous
-      l'aviez laissé ou explorez une nouvelle matière.
-    </p>
+    @if (!isAdmin()) {
+      <p class="mt-5 max-w-2xl text-lg leading-relaxed text-on-surface-variant">
+        Bienvenue sur MontoMaster, votre plateforme e-learning. Reprenez votre parcours là où vous
+        l'aviez laissé ou explorez une nouvelle matière.
+      </p>
+    }
   </header>
 
-  <!-- Featured hero banner -->
+  @if (!isAdmin()) {
+  <!-- Featured hero banner — masqué en admin (l'admin a son propre hub) -->
   <section
     aria-labelledby="featured-heading"
     class="relative mb-12 overflow-hidden squircle-xl bg-surface-container p-8 ghost-border lg:p-12"
@@ -66,6 +69,20 @@
       </a>
     </div>
   </section>
+  }
+
+  <!-- Health (admin only) -->
+  @if (isAdmin()) {
+    <section class="mb-10" aria-labelledby="health-heading">
+      <h2
+        id="health-heading"
+        class="mb-3 font-headline text-xs font-bold uppercase tracking-[0.2em] text-primary"
+      >
+        État de la plateforme
+      </h2>
+      <app-health-card />
+    </section>
+  }
 
   <!-- Quick actions grid -->
   <section aria-labelledby="quick-actions-heading">

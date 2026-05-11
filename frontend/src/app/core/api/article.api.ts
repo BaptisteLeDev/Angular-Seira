@@ -17,6 +17,9 @@ export class ArticleApi {
       .pipe(parseResponse(ArticleSchema), catchError(this.toError));
   }
 
+  /**
+   * Le backend Laravel attend `chapter_id` (numérique), pas l'IRI.
+   */
   create(payload: {
     type: Article['type'];
     title: string;
@@ -26,7 +29,7 @@ export class ArticleApi {
     filePath?: string | null;
     durationSeconds?: number | null;
     sortOrder?: number;
-    chapter?: string;
+    chapter_id: number;
     isPublished?: boolean;
   }): Observable<Article> {
     return this.http

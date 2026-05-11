@@ -14,6 +14,7 @@ import { ScreenShell } from '../../shared/layout/screen-shell.component';
 import { LoadingView } from '../../shared/ui/loading-view';
 import { ErrorCard } from '../../shared/ui/error-card';
 import { EmptyState } from '../../shared/ui/empty-state';
+import { Dropdown, type DropdownOption } from '../../shared/ui/dropdown';
 import { ArticlePreviewModal } from '../../shared/article/article-preview-modal';
 import { ToastService } from '../../shared/feedback/toast.service';
 import { ConfirmDialogService } from '../../shared/feedback/confirm-dialog.service';
@@ -40,6 +41,7 @@ import type { Chapitre } from '../../core/schemas/chapitre.schema';
     LoadingView,
     ErrorCard,
     EmptyState,
+    Dropdown,
     ArticlePreviewModal,
     ChapterFormDialog,
     ArticleFormDialog,
@@ -69,16 +71,12 @@ import type { Chapitre } from '../../core/schemas/chapitre.schema';
             description="Créez d'abord une formation depuis l'écran école."
           />
         } @else {
-          <select
-            class="squircle-md bg-surface-container px-4 py-2.5 text-sm text-on-surface ghost-border focus:outline-2 focus:outline-primary"
-            [value]="selectedFormationId() ?? ''"
-            (change)="selectFormation($any($event.target).value)"
-          >
-            <option value="">— Choisir —</option>
-            @for (f of formationStore.items(); track f.id) {
-              <option [value]="f.id">{{ f.name }}</option>
-            }
-          </select>
+          <app-dropdown
+            [options]="formationOptions()"
+            [value]="selectedFormationId()"
+            placeholder="Sélectionner une formation"
+            (valueChange)="onFormationChange($event)"
+          />
         }
       </div>
 
@@ -250,6 +248,14 @@ export class AdminArticles implements OnInit {
   protected readonly articleDialogTarget = signal<Article | null>(null);
   private readonly articleDialogChapter = signal<Chapitre | null>(null);
 
+  protected readonly formationOptions = computed<DropdownOption<number>[]>(() =>
+    this.formationStore.items().map((f) => ({
+      value: f.id,
+      label: f.name,
+      hint: f.description ?? undefined,
+    })),
+  );
+
   protected readonly selectedFormation = computed(() => {
     const id = this.selectedFormationId();
     if (id == null) return null;
@@ -300,9 +306,8 @@ export class AdminArticles implements OnInit {
     });
   }
 
-  protected selectFormation(value: string): void {
-    const id = Number(value);
-    if (id > 0) {
+  protected onFormationChange(id: number | null): void {
+    if (id != null && id > 0) {
       this.selectedFormationId.set(id);
       void this.router.navigate(['/admin/articles', id]);
     } else {
@@ -337,7 +342,7 @@ export class AdminArticles implements OnInit {
       : this.formationStore.createChapitre(fid, {
           title: payload.title,
           sortOrder: payload.sortOrder,
-          subject: `/api/subjects/${fid}`,
+          subject_id: fid,
         });
     op.subscribe({
       next: () => {
@@ -387,7 +392,7 @@ export class AdminArticles implements OnInit {
       ? this.articleStore.update(chap.id, editing.id, payload)
       : this.articleStore.create(chap.id, {
           ...payload,
-          chapter: `/api/chapters/${chap.id}`,
+          chapter_id: chap.id,
         });
     op.subscribe({
       next: () => {
