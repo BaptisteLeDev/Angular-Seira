@@ -1,6 +1,7 @@
 import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { AuthStore } from '../../core/stores/auth.store';
+import { HealthCard } from '../../shared/ui/health-card';
 
 interface QuickAction {
   readonly label: string;
@@ -17,7 +18,7 @@ const ROLE_LABELS: Record<string, string> = {
 
 @Component({
   selector: 'app-dashboard',
-  imports: [RouterLink],
+  imports: [RouterLink, HealthCard],
   templateUrl: './dashboard.html',
   styleUrl: './dashboard.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -25,6 +26,7 @@ const ROLE_LABELS: Record<string, string> = {
 export class Dashboard {
   private readonly auth = inject(AuthStore);
 
+  protected readonly isAdmin = computed(() => this.auth.isAdmin());
   protected readonly welcomeName = computed(() => this.auth.user()?.name ?? '');
 
   protected readonly roleLabel = computed(
@@ -63,18 +65,41 @@ export class Dashboard {
 
     if (this.auth.isAdmin()) {
       return [
-        base,
         {
-          label: 'Gérer les écoles',
-          description: 'Consultez et administrez tous les établissements.',
+          label: 'Écoles',
+          description: 'Établissements et classes.',
           icon: 'icon-[heroicons--building-office-2]',
           routerLink: '/schools',
         },
         {
-          label: 'Administration',
-          description: 'Accédez aux outils de gestion globale.',
-          icon: 'icon-[heroicons--cog-6-tooth]',
-          routerLink: '/schools',
+          label: 'Utilisateurs',
+          description: 'Admins, professeurs et élèves.',
+          icon: 'icon-[heroicons--users]',
+          routerLink: '/admin/users',
+        },
+        {
+          label: 'Articles',
+          description: 'Tous les contenus.',
+          icon: 'icon-[heroicons--document-text]',
+          routerLink: '/admin/articles',
+        },
+      ];
+    }
+
+    if (this.auth.isTeacher()) {
+      return [
+        base,
+        {
+          label: 'Mes classes',
+          description: 'Classes liées à vos formations.',
+          icon: 'icon-[heroicons--academic-cap]',
+          routerLink: '/teacher/classes',
+        },
+        {
+          label: 'Mes élèves',
+          description: 'Vue agrégée des élèves de vos classes.',
+          icon: 'icon-[heroicons--user-group]',
+          routerLink: '/teacher/students',
         },
       ];
     }
@@ -82,16 +107,10 @@ export class Dashboard {
     return [
       base,
       {
-        label: 'Mes objectifs',
-        description: 'Suivez votre progression hebdomadaire.',
-        icon: 'icon-[heroicons--flag]',
-        routerLink: '/formations',
-      },
-      {
-        label: 'Session mentor',
-        description: 'Réservez un créneau avec un formateur.',
-        icon: 'icon-[heroicons--chat-bubble-left-right]',
-        routerLink: '/dashboard',
+        label: 'Mes paramètres',
+        description: 'Gérez votre thème et votre session.',
+        icon: 'icon-[heroicons--cog-6-tooth]',
+        routerLink: '/settings',
       },
     ];
   });

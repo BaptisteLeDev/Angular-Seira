@@ -3,6 +3,7 @@
 namespace Tests\Feature\Api;
 
 use App\Models\Chapter;
+use App\Models\Classroom;
 use App\Models\School;
 use App\Models\Subject;
 use App\Models\User;
@@ -20,8 +21,7 @@ class ChapterApiTest extends TestCase
         Chapter::factory()->count(2)->create();
         Sanctum::actingAs($admin);
 
-        $this->getJson('/api/chapters')
-            ->assertOk();
+        $this->getJson('/api/chapters')->assertOk();
     }
 
     public function test_student_cannot_list_chapters(): void
@@ -30,6 +30,63 @@ class ChapterApiTest extends TestCase
         Sanctum::actingAs($student);
 
         $this->getJson('/api/chapters')->assertForbidden();
+    }
+
+    public function test_student_can_view_chapter_of_their_classroom(): void
+    {
+        $school = School::factory()->create();
+        $classroom = Classroom::factory()->create(['school_id' => $school->id]);
+        $subject = Subject::factory()->create(['school_id' => $school->id]);
+        $classroom->subjects()->attach($subject->id);
+        $chapter = Chapter::factory()->create(['subject_id' => $subject->id]);
+
+        $student = User::factory()->create([
+            'role' => User::ROLE_STUDENT,
+            'school_id' => $school->id,
+            'classroom_id' => $classroom->id,
+        ]);
+        Sanctum::actingAs($student);
+
+        $this->getJson("/api/chapters/{$chapter->id}")->assertOk();
+    }
+
+    public function test_student_cannot_view_chapter_outside_their_classroom(): void
+    {
+        $school = School::factory()->create();
+        $classroom = Classroom::factory()->create(['school_id' => $school->id]);
+        $otherSubject = Subject::factory()->create(['school_id' => $school->id]);
+        $chapter = Chapter::factory()->create(['subject_id' => $otherSubject->id]);
+
+        $student = User::factory()->create([
+            'role' => User::ROLE_STUDENT,
+            'school_id' => $school->id,
+            'classroom_id' => $classroom->id,
+        ]);
+        Sanctum::actingAs($student);
+
+        $this->getJson("/api/chapters/{$chapter->id}")->assertForbidden();
+    }
+
+    public function test_teacher_can_view_chapter_of_taught_subject(): void
+    {
+        $school = School::factory()->create();
+        $teacher = User::factory()->create(['role' => User::ROLE_TEACHER, 'school_id' => $school->id]);
+        $subject = Subject::factory()->create(['school_id' => $school->id, 'teacher_id' => $teacher->id]);
+        $chapter = Chapter::factory()->create(['subject_id' => $subject->id]);
+        Sanctum::actingAs($teacher);
+
+        $this->getJson("/api/chapters/{$chapter->id}")->assertOk();
+    }
+
+    public function test_teacher_cannot_view_chapter_of_other_subject(): void
+    {
+        $school = School::factory()->create();
+        $teacher = User::factory()->create(['role' => User::ROLE_TEACHER, 'school_id' => $school->id]);
+        $otherSubject = Subject::factory()->create(['school_id' => $school->id]);
+        $chapter = Chapter::factory()->create(['subject_id' => $otherSubject->id]);
+        Sanctum::actingAs($teacher);
+
+        $this->getJson("/api/chapters/{$chapter->id}")->assertForbidden();
     }
 
     public function test_admin_can_create_chapter(): void

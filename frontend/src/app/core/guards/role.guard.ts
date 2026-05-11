@@ -1,7 +1,29 @@
 import { inject } from '@angular/core';
 import { CanActivateFn, Router } from '@angular/router';
+import { authGuard } from './auth.guard';
 import { AuthStore } from '../stores/auth.store';
 import type { UserRole } from '../schemas/user.schema';
+
+/**
+ * Sucre syntaxique pour déclarer une route protégée par rôle :
+ *
+ * ```ts
+ * {
+ *   path: 'admin',
+ *   ...requireRoles('admin'),
+ *   loadComponent: () => import('...').then(m => m.AdminHub),
+ * }
+ * ```
+ *
+ * Combine `authGuard` (auth) + `roleGuard` (rôle) et expose la liste de rôles
+ * via `data.roles` comme attendu par `roleGuard`.
+ */
+export function requireRoles(...roles: UserRole[]) {
+  return {
+    canActivate: [authGuard, roleGuard],
+    data: { roles },
+  };
+}
 
 /**
  * Garde fonctionnelle de contrôle d'accès par rôle.
