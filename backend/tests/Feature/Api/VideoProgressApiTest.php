@@ -22,12 +22,18 @@ class VideoProgressApiTest extends TestCase
         $this->getJson('/api/video-progress')->assertOk();
     }
 
-    public function test_student_can_list_video_progress_entries(): void
+    public function test_student_only_sees_own_video_progress_in_list(): void
     {
         $student = User::factory()->create(['role' => User::ROLE_STUDENT]);
+        $other = User::factory()->create(['role' => User::ROLE_STUDENT]);
+        $video = Video::factory()->create();
+        VideoProgress::factory()->create(['user_id' => $student->id, 'video_id' => $video->id]);
+        VideoProgress::factory()->create(['user_id' => $other->id, 'video_id' => $video->id]);
         Sanctum::actingAs($student);
 
-        $this->getJson('/api/video-progress')->assertOk();
+        $response = $this->getJson('/api/video-progress')->assertOk();
+        $this->assertCount(1, $response->json());
+        $this->assertStringContainsString((string) $student->id, $response->json('0.user'));
     }
 
     public function test_student_can_view_own_video_progress(): void
@@ -73,9 +79,9 @@ class VideoProgressApiTest extends TestCase
         $progress = VideoProgress::factory()->create(['user_id' => $other->id, 'video_id' => $video->id]);
         Sanctum::actingAs($student);
 
-        $this->patchJson("/api/video-progress/{$progress->id}", [
+        $this->json('PATCH', "/api/video-progress/{$progress->id}", [
             'watched_seconds_validated' => 200,
-        ])->assertForbidden();
+        ], ['Content-Type' => 'application/merge-patch+json'])->assertForbidden();
     }
 
     public function test_student_cannot_delete_other_student_video_progress(): void
