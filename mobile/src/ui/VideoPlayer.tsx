@@ -1,9 +1,9 @@
 import { useEvent } from 'expo';
 import { VideoView, useVideoPlayer } from 'expo-video';
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Pressable, Text, View } from 'react-native';
 
-import { resolveVideoSource } from '@src/constants/video';
+import { FALLBACK_VIDEO_SOURCE, resolveVideoSource } from '@src/constants/video';
 import { colors } from '@src/constants/theme';
 import { Icon } from './Icon';
 
@@ -14,14 +14,28 @@ type Props = {
 const LOCKED_RATE = 1;
 
 export function VideoPlayer({ url }: Props) {
-  const source = resolveVideoSource(url);
   const videoRef = useRef<VideoView>(null);
+
+  // Si la vraie source échoue, on bascule sur la vidéo de démonstration locale.
+  const [useFallback, setUseFallback] = useState(false);
+  useEffect(() => {
+    setUseFallback(false);
+  }, [url]);
+
+  const source = useFallback ? FALLBACK_VIDEO_SOURCE : resolveVideoSource(url);
 
   const player = useVideoPlayer(source, (p) => {
     p.loop = false;
     p.playbackRate = LOCKED_RATE;
     p.timeUpdateEventInterval = 0.5;
   });
+
+  const { status } = useEvent(player, 'statusChange', { status: player.status });
+  useEffect(() => {
+    if (status === 'error' && !useFallback) {
+      setUseFallback(true);
+    }
+  }, [status, useFallback]);
 
   const { isPlaying } = useEvent(player, 'playingChange', {
     isPlaying: player.playing,
@@ -58,17 +72,6 @@ export function VideoPlayer({ url }: Props) {
     }
     lastTimeRef.current = currentTime;
   }, [currentTime, player]);
-
-  if (!source) {
-    return (
-      <View className="items-center squircle-xl bg-surface-container-low p-6 ghost-border">
-        <Icon name="videocam-off-outline" size={28} color={colors.onSurfaceVariant} />
-        <Text className="mt-2 font-mono text-xs text-on-surface-variant">
-          Vidéo indisponible
-        </Text>
-      </View>
-    );
-  }
 
   const duration = player.duration || 0;
   const progress = duration > 0 ? Math.min(1, currentTime / duration) : 0;

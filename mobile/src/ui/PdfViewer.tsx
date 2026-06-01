@@ -2,7 +2,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { ActivityIndicator, Modal, Pressable, StatusBar, Text, View } from 'react-native';
 import { WebView } from 'react-native-webview';
 
-import { resolvePdfUri } from '@src/constants/pdf';
+import { FALLBACK_PDF_URL, resolvePdfUri } from '@src/constants/pdf';
 import { colors } from '@src/constants/theme';
 import { Icon } from './Icon';
 
@@ -62,6 +62,12 @@ export function PdfViewer({ url, fileName }: Props) {
           domStorageEnabled
           onLoadEnd={() => setLoading(false)}
           onError={() => {
+            // Si la vraie source échoue, on bascule sur le PDF de démonstration.
+            if (uri !== FALLBACK_PDF_URL) {
+              setUri(FALLBACK_PDF_URL);
+              setLoading(true);
+              return;
+            }
             setError('Impossible de charger le document.');
             setLoading(false);
           }}

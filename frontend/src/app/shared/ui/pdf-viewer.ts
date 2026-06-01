@@ -2,19 +2,19 @@ import {
   ChangeDetectionStrategy,
   Component,
   computed,
+  effect,
   inject,
   input,
   signal,
 } from '@angular/core';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
-import { environment } from '../../../environments/environment';
 
 /**
- * PDF local utilisé comme placeholder en dev (Lorem ipsum), évite les 404
- * backend tant que les fichiers seedés ne sont pas servis.
+ * PDF de démonstration (Lorem ipsum) affiché en fallback dès qu'aucune URL n'est
+ * fournie OU que le fichier backend est injoignable (404), quel que soit
+ * l'environnement. Servi depuis frontend/public/dev-assets.
  */
-const DEV_FALLBACK_PDF = '/dev-assets/sample.pdf';
-const USE_DEV_FALLBACK_ALWAYS = true;
+const FALLBACK_PDF = '/dev-assets/sample.pdf';
 
 @Component({
   selector: 'app-pdf-viewer',
@@ -74,12 +74,36 @@ export class PdfViewer {
   private readonly sanitizer = inject(DomSanitizer);
   protected readonly fullscreen = signal(false);
 
-  protected readonly resolvedUrl = computed<string | null>(() => {
-    if (!environment.production && USE_DEV_FALLBACK_ALWAYS) return DEV_FALLBACK_PDF;
+  /** Passe à true quand la vraie URL est injoignable, pour basculer sur le placeholder (dev). */
+  private readonly failed = signal(false);
+
+  constructor() {
+    // On sonde l'URL réelle : un 404 bascule sur le placeholder. Une erreur
+    // réseau/CORS ne déclenche pas le fallback (on garde l'URL telle quelle, car
+    // indéterminée — l'iframe affichera le PDF si l'URL est en réalité valide).
+    effect((onCleanup) => {
+      const u = this.url();
+      this.failed.set(false);
+      if (!u || u.length === 0) return;
+      let cancelled = false;
+      onCleanup(() => {
+        cancelled = true;
+      });
+      fetch(u, { method: 'HEAD' })
+        .then((res) => {
+          if (!cancelled && !res.ok) this.failed.set(true);
+        })
+        .catch(() => {
+          /* CORS / réseau : indéterminé, on n'active pas le fallback. */
+        });
+    });
+  }
+
+  protected readonly resolvedUrl = computed<string>(() => {
+    if (this.failed()) return FALLBACK_PDF;
     const u = this.url();
-    if (u && u.length > 0) return u;
-    if (!environment.production) return DEV_FALLBACK_PDF;
-    return null;
+    // Pas de vraie source → PDF de démonstration.
+    return u && u.length > 0 ? u : FALLBACK_PDF;
   });
 
   protected readonly safeUrl = computed<SafeResourceUrl | null>(() => {
