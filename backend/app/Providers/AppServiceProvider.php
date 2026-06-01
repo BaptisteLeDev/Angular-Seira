@@ -4,6 +4,7 @@ namespace App\Providers;
 
 use App\Models\Chapter;
 use App\Models\ChapterContent;
+use App\Models\ChapterProgress;
 use App\Models\Classroom;
 use App\Models\Subject;
 use App\Models\User;
@@ -174,6 +175,24 @@ class AppServiceProvider extends ServiceProvider
         Gate::define('video_progress.delete', function (User $user, mixed $subject = null): bool {
             if ($user->isAdmin()) return true;
             if (!$subject instanceof VideoProgress) return false;
+            return $subject->user_id === $user->id;
+        });
+
+        Gate::define('chapter_progress.list', fn (User $user): bool => $user->exists);
+        Gate::define('chapter_progress.view', function (User $user, mixed $subject = null): bool {
+            if ($user->isAdmin()) return true;
+            if (!$subject instanceof ChapterProgress) return false;
+            return $subject->user_id === $user->id;
+        });
+        Gate::define('chapter_progress.create', fn (User $user): bool => $user->exists);
+        Gate::define('chapter_progress.update', function (User $user, mixed $subject = null): bool {
+            if ($user->isAdmin()) return true;
+            if (!$subject instanceof ChapterProgress) return false;
+            return $subject->user_id === $user->id;
+        });
+        Gate::define('chapter_progress.delete', function (User $user, mixed $subject = null): bool {
+            if ($user->isAdmin()) return true;
+            if (!$subject instanceof ChapterProgress) return false;
             return $subject->user_id === $user->id;
         });
     }
