@@ -12,7 +12,7 @@ import { Fab } from '@src/ui/Fab';
 import { useArticleStore } from '@src/stores/article.store';
 import { useFormationStore } from '@src/stores/formation.store';
 import type { Chapitre } from '@src/schemas/chapitre.schema';
-import { colors } from '@src/constants/theme';
+import { useThemeColors } from '@src/ui/useThemeColors';
 import { variantFor } from '@src/ui/formation-visual';
 import { hexToRgba } from '@src/utils/color';
 import {
@@ -26,6 +26,7 @@ const EMPTY: readonly Chapitre[] = [];
 
 export default function ArticleScreen() {
   const router = useRouter();
+  const palette = useThemeColors();
   const { id, articleId } = useLocalSearchParams<{ id: string; articleId: string }>();
   const formationId = Number(id);
   const currentArticleId = Number(articleId);
@@ -81,10 +82,10 @@ export default function ArticleScreen() {
   };
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: colors.background }} edges={['top']}>
+    <SafeAreaView style={{ flex: 1, backgroundColor: palette.background }} edges={['top']}>
       <ScrollView
-        style={{ backgroundColor: colors.background }}
-        contentContainerStyle={{ paddingBottom: 120, backgroundColor: colors.background }}
+        style={{ backgroundColor: palette.background }}
+        contentContainerStyle={{ paddingBottom: 120, backgroundColor: palette.background }}
         onScroll={onScroll}
         scrollEventThrottle={16}
       >
@@ -95,7 +96,7 @@ export default function ArticleScreen() {
             accessibilityRole="link"
             accessibilityLabel="Retour"
           >
-            <Icon name="arrow-back" size={16} color={colors.onSurfaceVariant} />
+            <Icon name="arrow-back" size={16} color={palette.onSurfaceVariant} />
             <Text className="text-sm text-on-surface-variant">Retour</Text>
           </Pressable>
 
@@ -117,14 +118,14 @@ export default function ArticleScreen() {
                 </Text>
                 <View className="mt-4 flex-row flex-wrap items-center gap-4">
                   <View className="flex-row items-center gap-1.5">
-                    <Icon name={contentTypeIcon(active.article.type)} size={14} color={colors.onSurfaceVariant} />
+                    <Icon name={contentTypeIcon(active.article.type)} size={14} color={palette.onSurfaceVariant} />
                     <Text className="font-mono text-xs text-on-surface-variant">
                       {contentTypeLabel(active.article.type)}
                     </Text>
                   </View>
                   {articleDurationMin(active.article) ? (
                     <View className="flex-row items-center gap-1.5">
-                      <Icon name="time-outline" size={14} color={colors.onSurfaceVariant} />
+                      <Icon name="time-outline" size={14} color={palette.onSurfaceVariant} />
                       <Text className="font-mono text-xs text-on-surface-variant">
                         {articleDurationMin(active.article)} min
                       </Text>
@@ -144,7 +145,7 @@ export default function ArticleScreen() {
                       accessibilityRole="button"
                       accessibilityLabel="Article précédent"
                     >
-                      <Icon name="arrow-back" size={16} color={colors.onSurfaceVariant} />
+                      <Icon name="arrow-back" size={16} color={palette.onSurfaceVariant} />
                       <Text className="font-headline text-sm font-bold text-on-surface">
                         Retour
                       </Text>

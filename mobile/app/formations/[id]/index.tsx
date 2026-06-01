@@ -12,7 +12,7 @@ import { useArticleStore } from '@src/stores/article.store';
 import { useFormationStore } from '@src/stores/formation.store';
 import type { Article } from '@src/schemas/article.schema';
 import type { Chapitre } from '@src/schemas/chapitre.schema';
-import { colors } from '@src/constants/theme';
+import { useThemeColors } from '@src/ui/useThemeColors';
 import { variantFor } from '@src/ui/formation-visual';
 import { hexToRgba } from '@src/utils/color';
 import {
@@ -27,6 +27,7 @@ type Entry = { article: Article; chapitre: Chapitre; index: number };
 
 export default function FormationOverviewScreen() {
   const router = useRouter();
+  const palette = useThemeColors();
   const { id } = useLocalSearchParams<{ id: string }>();
   const formationId = Number(id);
 
@@ -79,10 +80,10 @@ export default function FormationOverviewScreen() {
     formationError ?? (!formation && items.length > 0 ? 'Formation introuvable.' : null);
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: colors.background }} edges={['top']}>
+    <SafeAreaView style={{ flex: 1, backgroundColor: palette.background }} edges={['top']}>
       <ScrollView
-        style={{ backgroundColor: colors.background }}
-        contentContainerStyle={{ paddingBottom: 48, backgroundColor: colors.background }}
+        style={{ backgroundColor: palette.background }}
+        contentContainerStyle={{ paddingBottom: 48, backgroundColor: palette.background }}
       >
         <View className="px-4 py-6">
           <Pressable
@@ -90,7 +91,7 @@ export default function FormationOverviewScreen() {
             className="mb-6 flex-row items-center gap-1.5 self-start"
             accessibilityRole="link"
           >
-            <Icon name="arrow-back" size={16} color={colors.onSurfaceVariant} />
+            <Icon name="arrow-back" size={16} color={palette.onSurfaceVariant} />
             <Text className="text-sm text-on-surface-variant">Retour au catalogue</Text>
           </Pressable>
 
@@ -100,7 +101,7 @@ export default function FormationOverviewScreen() {
             <ErrorCard message={errorMessage} />
           ) : !formation ? (
             <View className="items-center squircle-xl bg-surface-container p-10 ghost-border">
-              <Icon name="warning-outline" size={48} color={colors.error} />
+              <Icon name="warning-outline" size={48} color={palette.error} />
               <Text className="mt-4 font-headline text-2xl font-bold text-on-surface text-center">
                 Formation introuvable
               </Text>
@@ -162,7 +163,7 @@ export default function FormationOverviewScreen() {
               ) : (
                 <View className="mb-6 squircle-xl bg-surface-container p-5 ghost-border">
                   <View className="mb-4 flex-row items-center gap-2">
-                    <Icon name="list" size={14} color={colors.onSurfaceVariant} />
+                    <Icon name="list" size={14} color={palette.onSurfaceVariant} />
                     <Text className="font-headline text-xs font-bold uppercase tracking-widest text-on-surface-variant">
                       Programme
                     </Text>
@@ -248,6 +249,7 @@ function StatCard({
 
 
 function ProgrammeItem({ entry, onPress }: { entry: Entry; onPress: () => void }) {
+  const palette = useThemeColors();
   const mins = articleDurationMin(entry.article);
   return (
     <Pressable
@@ -256,7 +258,7 @@ function ProgrammeItem({ entry, onPress }: { entry: Entry; onPress: () => void }
       className="flex-row items-start gap-3 squircle-lg px-3 py-2"
     >
       <View className="size-6 items-center justify-center squircle-md bg-surface-container-highest">
-        <Icon name={contentTypeIcon(entry.article.type)} size={12} color={colors.onSurfaceVariant} />
+        <Icon name={contentTypeIcon(entry.article.type)} size={12} color={palette.onSurfaceVariant} />
       </View>
       <View className="flex-1">
         <Text className="text-sm font-medium text-on-surface" numberOfLines={2}>
@@ -268,13 +270,13 @@ function ProgrammeItem({ entry, onPress }: { entry: Entry; onPress: () => void }
           </Text>
           {mins ? (
             <View className="flex-row items-center gap-0.5">
-              <Icon name="time-outline" size={10} color={colors.onSurfaceVariant} />
+              <Icon name="time-outline" size={10} color={palette.onSurfaceVariant} />
               <Text className="font-mono text-[10px] text-on-surface-variant">{mins} min</Text>
             </View>
           ) : null}
         </View>
       </View>
-      <Icon name="chevron-forward" size={16} color={colors.onSurfaceVariant} />
+      <Icon name="chevron-forward" size={16} color={palette.onSurfaceVariant} />
     </Pressable>
   );
 }
