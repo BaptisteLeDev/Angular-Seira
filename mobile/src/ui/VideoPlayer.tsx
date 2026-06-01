@@ -2,11 +2,13 @@ import { useEvent } from 'expo';
 import { VideoView, useVideoPlayer } from 'expo-video';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Pressable, Text, View } from 'react-native';
+import { WebView } from 'react-native-webview';
 
 import { FALLBACK_VIDEO_SOURCE, resolveVideoSource } from '@src/constants/video';
 import { colors } from '@src/constants/theme';
 import { useProgressStore } from '@src/stores/progress.store';
 import { clampPercent, computeCap, deriveStatus } from '@src/utils/video-progress';
+import { youtubeEmbedUrl } from '@src/utils/video-url';
 import { Icon } from './Icon';
 
 type Props = {
@@ -16,7 +18,35 @@ type Props = {
 
 const LOCKED_RATE = 1;
 
+/**
+ * Aiguillage : un lien YouTube ne se lit pas avec expo-video → WebView d'embed.
+ * Toute autre source (mp4 direct, fallback) passe par le lecteur natif.
+ */
 export function VideoPlayer({ url, videoId }: Props) {
+  const embedUrl = youtubeEmbedUrl(url);
+  if (embedUrl) {
+    return <YoutubeEmbed embedUrl={embedUrl} />;
+  }
+  return <NativeVideoPlayer url={url} videoId={videoId} />;
+}
+
+function YoutubeEmbed({ embedUrl }: { embedUrl: string }) {
+  return (
+    <View className="overflow-hidden squircle-xl bg-black ghost-border">
+      <WebView
+        source={{ uri: embedUrl }}
+        style={{ width: '100%', aspectRatio: 16 / 9, backgroundColor: '#000' }}
+        javaScriptEnabled
+        domStorageEnabled
+        allowsInlineMediaPlayback
+        allowsFullscreenVideo
+        mediaPlaybackRequiresUserAction
+      />
+    </View>
+  );
+}
+
+function NativeVideoPlayer({ url, videoId }: Props) {
   const videoRef = useRef<VideoView>(null);
 
   // Si la vraie source échoue, on bascule sur la vidéo de démonstration locale.
