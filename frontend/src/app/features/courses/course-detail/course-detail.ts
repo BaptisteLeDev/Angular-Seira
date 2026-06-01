@@ -112,6 +112,12 @@ export class CourseDetail {
   constructor() {
     effect(() => {
       this.formationStore.load();
+      // Récupère le subject complet (avec IRIs de chapitres) : pour les élèves,
+      // le catalogue /me/subjects ne les inclut pas. Idempotent côté store.
+      const id = Number(this.formationId());
+      if (!isNaN(id)) {
+        this.formationStore.loadOne(id);
+      }
     });
 
     effect(() => {

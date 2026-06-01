@@ -1,11 +1,18 @@
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
-import { Observable, catchError, forkJoin, of, throwError } from 'rxjs';
+import { Observable, catchError, forkJoin, map, of, throwError } from 'rxjs';
+import { z } from 'zod';
 import { environment } from '@environments/environment';
 import { ChapitreSchema, type Chapitre } from '../schemas/chapitre.schema';
 import { FormationSchema, type Formation } from '../schemas/formation.schema';
 import { parseResponse, parseHydraCollection } from './parse-response';
 import { iriToId } from '../utils/iri';
+
+/** Réponse de /me/subjects : matières accessibles + verrouillées (role-scopé). */
+const MySubjectsSchema = z.object({
+  available: z.array(FormationSchema),
+  locked: z.array(FormationSchema),
+});
 
 @Injectable({ providedIn: 'root' })
 export class FormationApi {
@@ -16,6 +23,19 @@ export class FormationApi {
     return this.http
       .get<unknown>(`${this.apiUrl}/subjects`)
       .pipe(parseHydraCollection(FormationSchema), catchError(this.toError));
+  }
+
+  /**
+   * Catalogue role-scopé via /me/subjects (utilisé pour les élèves, qui n'ont
+   * pas accès à la collection /subjects). Renvoie les matières accessibles.
+   */
+  listForMe(): Observable<Formation[]> {
+    return this.http
+      .get<unknown>(`${this.apiUrl}/me/subjects`)
+      .pipe(
+        map((raw) => MySubjectsSchema.parse(raw).available),
+        catchError(this.toError),
+      );
   }
 
   getById(id: number): Observable<Formation> {
