@@ -1,59 +1,78 @@
-# AngularSeira
+# MontoMaster
 
-This project was generated using [Angular CLI](https://github.com/angular/angular-cli) version 21.2.7.
+Plateforme pédagogique (Monto V2) permettant aux écoles de gérer leurs classes, matières, chapitres et vidéos de formation, avec suivi de progression des élèves. Le monorepo regroupe trois applications : un backend Laravel, un front web Angular et une application mobile Expo.
 
-## Development server
+## Architecture
 
-To start a local development server, run:
-
-```bash
-ng serve
+```
+MontoMaster/
+├── backend/    # API Laravel 12 + API Platform + Sanctum
+├── frontend/   # App web Angular 21
+├── mobile/     # App mobile Expo (React Native)
+├── docker/     # Dockerfile PHP + conf nginx/opcache
+├── docs/       # Documentation projet
+└── docker-compose.yml
 ```
 
-Once the server is running, open your browser and navigate to `http://localhost:4200/`. The application will automatically reload whenever you modify any of the source files.
+Stack haut niveau :
+- **Backend** : PHP 8 / Laravel 12, API Platform (OpenAPI auto), Sanctum (auth token), MariaDB 11, Redis 7.
+- **Frontend** : Angular 21 (CLI, Vitest), déploiement Vercel.
+- **Mobile** : Expo / React Native, file-based routing, builds Android & iOS.
+- **Infra dev** : Docker Compose (nginx, php-fpm, MariaDB, Redis, phpMyAdmin).
 
-## Code scaffolding
+## Backend — `backend/`
 
-Angular CLI includes powerful code scaffolding tools. To generate a new component, run:
+API REST Laravel exposée via API Platform à `http://localhost:8080/api`, documentée à `/api/docs`.
 
-```bash
-ng generate component component-name
-```
+Domaine métier (voir [`SCHEMA_BDD.md`](./SCHEMA_BDD.md)) :
+- `School` → `Classroom` → `User` (rôles `admin` / `teacher` / `student`).
+- `Subject` (1 formateur principal) ↔ `Classroom` via `ClassroomSubject` (partage multi-classes).
+- `Chapter` regroupe des `Video`, suivies par `VideoProgress` (statut, secondes validées, %).
+- Soft deletes sur les entités métier principales.
 
-For a complete list of available schematics (such as `components`, `directives`, or `pipes`), run:
-
-```bash
-ng generate --help
-```
-
-## Building
-
-To build the project run:
+Lancement (depuis la racine) :
 
 ```bash
-ng build
+docker compose up -d --build
+docker compose exec php composer install
+docker compose exec php php artisan key:generate
+docker compose exec php php artisan migrate --force
+docker compose exec php php artisan db:seed --force
 ```
 
-This will compile your project and store the build artifacts in the `dist/` directory. By default, the production build optimizes your application for performance and speed.
+Comptes seed : `admin@monto.test / Admin123!`, `prof@monto.test / Prof123!`, `eleve@monto.test / Eleve123!`.
+phpMyAdmin disponible sur `http://localhost:8081`.
 
-## Running unit tests
+Détails complets : [`backend/README.md`](./backend/README.md).
 
-To execute unit tests with the [Vitest](https://vitest.dev/) test runner, use the following command:
+## Frontend Angular — `frontend/`
+
+App web Angular 21 (pnpm). Fournit les espaces admin, formateur et élève : gestion des écoles, classes, étudiants, matières, articles, lecture de vidéos avec suivi de progression et lecteur PDF intégré.
 
 ```bash
-ng test
+cd frontend
+pnpm install
+pnpm start            # ng serve → http://localhost:4200
+pnpm test             # Vitest
+pnpm build
 ```
 
-## Running end-to-end tests
+Déploiement : `vercel.json` configuré (preview/prod via Vercel). Voir [`frontend/README.md`](./frontend/README.md).
 
-For end-to-end (e2e) testing, run:
+## Mobile Expo — `mobile/`
+
+App mobile React Native via Expo, avec file-based routing (`app/`). Cible Android, iOS et web. Consomme la même API Laravel que le front web.
 
 ```bash
-ng e2e
+cd mobile
+pnpm install
+npx expo start        # ouvre Expo Dev Tools
 ```
 
-Angular CLI does not come with an end-to-end testing framework by default. You can choose one that suits your needs.
+Builds natifs disponibles dans `android/` et `ios/`. Détails : [`mobile/README.md`](./mobile/README.md).
 
-## Additional Resources
+## Documentation
 
-For more information on using the Angular CLI, including detailed command references, visit the [Angular CLI Overview and Command Reference](https://angular.dev/tools/cli) page.
+- [`SCHEMA_BDD.md`](./SCHEMA_BDD.md) — schéma de classes BDD (source de vérité des migrations).
+- [`Migration.drawio.png`](./Migration.drawio.png) — brouillon d'architecture.
+- [`docs/`](./docs) — documentation projet additionnelle.

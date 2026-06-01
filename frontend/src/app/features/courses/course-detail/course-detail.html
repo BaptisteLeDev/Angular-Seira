@@ -1,0 +1,396 @@
+<div class="mx-auto max-w-6xl px-4 py-8 sm:px-6 sm:py-10 lg:px-12 lg:py-14">
+  <!-- Breadcrumb -->
+  <nav aria-label="Fil d'Ariane" class="mb-8">
+    <a
+      routerLink="/formations"
+      class="inline-flex items-center gap-1.5 squircle-sm text-sm text-on-surface-variant transition-colors hover:text-primary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+    >
+      <span class="icon-[heroicons--arrow-left] text-base" aria-hidden="true"></span>
+      Retour au catalogue
+    </a>
+  </nav>
+
+  @if (isLoading()) {
+    <div
+      class="flex flex-col items-center justify-center squircle-xl bg-surface-container p-12 text-center ghost-border"
+      role="status"
+      aria-live="polite"
+    >
+      <span
+        class="icon-[heroicons--arrow-path] mb-4 animate-spin text-4xl text-primary"
+        aria-hidden="true"
+      ></span>
+      <p class="font-headline text-lg font-bold text-on-surface">Chargement de la formation...</p>
+    </div>
+  } @else if (errorMessage(); as message) {
+    <div
+      class="squircle-xl border border-error/50 bg-error-container p-6 ghost-border"
+      role="alert"
+    >
+      <p class="font-headline text-lg font-bold text-on-error-container">Erreur de chargement</p>
+      <p class="mt-2 text-sm text-on-error-container">{{ message }}</p>
+    </div>
+  } @else if (formation(); as data) {
+    <!-- Hero -->
+    <header
+      class="relative mb-10 overflow-hidden squircle-2xl bg-surface-container p-8 ghost-border sm:p-10 lg:p-12"
+    >
+      <div
+        aria-hidden="true"
+        class="absolute -right-24 -top-24 size-72 rounded-full bg-primary/15 blur-3xl"
+      ></div>
+      <div
+        aria-hidden="true"
+        class="absolute inset-y-0 right-0 w-1/2 bg-linear-to-l from-primary/10 via-primary/5 to-transparent"
+      ></div>
+
+      <div class="relative">
+        <p
+          class="mb-3 inline-flex items-center gap-2 font-headline text-[11px] font-bold uppercase tracking-[0.2em] text-primary"
+        >
+          <span class="icon-[heroicons--academic-cap] text-sm" aria-hidden="true"></span>
+          Formation
+        </p>
+        <h1
+          class="font-headline text-3xl font-extrabold leading-tight tracking-tight text-on-surface sm:text-4xl lg:text-5xl"
+        >
+          {{ data.name }}
+        </h1>
+        <p class="mt-4 max-w-2xl text-base leading-relaxed text-on-surface-variant sm:text-lg">
+          {{ data.description || 'Parcourez les chapitres pour demarrer votre apprentissage.' }}
+        </p>
+
+        <!-- Stats -->
+        <dl class="mt-8 flex flex-wrap gap-3 sm:gap-4">
+          <div
+            class="flex items-center gap-3 squircle-xl bg-surface-container-high px-4 py-3 ghost-border"
+          >
+            <span
+              class="flex size-9 shrink-0 items-center justify-center squircle-lg bg-primary/12 text-primary"
+            >
+              <span class="icon-[heroicons--queue-list] text-lg" aria-hidden="true"></span>
+            </span>
+            <div>
+              <dt
+                class="font-headline text-[10px] uppercase tracking-widest text-on-surface-variant"
+              >
+                Chapitres
+              </dt>
+              <dd class="font-headline text-lg font-bold text-on-surface">
+                {{ chapitres().length }}
+              </dd>
+            </div>
+          </div>
+          <div
+            class="flex items-center gap-3 squircle-xl bg-surface-container-high px-4 py-3 ghost-border"
+          >
+            <span
+              class="flex size-9 shrink-0 items-center justify-center squircle-lg bg-primary/12 text-primary"
+            >
+              <span class="icon-[heroicons--document-text] text-lg" aria-hidden="true"></span>
+            </span>
+            <div>
+              <dt
+                class="font-headline text-[10px] uppercase tracking-widest text-on-surface-variant"
+              >
+                Contenus
+              </dt>
+              <dd class="font-headline text-lg font-bold text-on-surface">
+                {{ totalArticles() }}
+              </dd>
+            </div>
+          </div>
+          @if (totalDurationMinutes() > 0) {
+            <div
+              class="flex items-center gap-3 squircle-xl bg-surface-container-high px-4 py-3 ghost-border"
+            >
+              <span
+                class="flex size-9 shrink-0 items-center justify-center squircle-lg bg-primary/12 text-primary"
+              >
+                <span class="icon-[heroicons--clock] text-lg" aria-hidden="true"></span>
+              </span>
+              <div>
+                <dt
+                  class="font-headline text-[10px] uppercase tracking-widest text-on-surface-variant"
+                >
+                  Duree totale
+                </dt>
+                <dd class="font-headline text-lg font-bold text-on-surface">
+                  {{ totalDurationMinutes() | number }} min
+                </dd>
+              </div>
+            </div>
+          }
+          @if (data.expectedHours) {
+            <div
+              class="flex items-center gap-3 squircle-xl bg-surface-container-high px-4 py-3 ghost-border"
+            >
+              <span
+                class="flex size-9 shrink-0 items-center justify-center squircle-lg bg-primary/12 text-primary"
+              >
+                <span class="icon-[heroicons--calendar-days] text-lg" aria-hidden="true"></span>
+              </span>
+              <div>
+                <dt
+                  class="font-headline text-[10px] uppercase tracking-widest text-on-surface-variant"
+                >
+                  Volume prevu
+                </dt>
+                <dd class="font-headline text-lg font-bold text-on-surface">
+                  {{ data.expectedHours }}h
+                </dd>
+              </div>
+            </div>
+          }
+        </dl>
+
+        <!-- Progress -->
+        @if (totalArticles() > 0) {
+          <div class="mt-8 max-w-xl">
+            <div
+              class="mb-2 flex items-center justify-between font-mono text-[11px] uppercase tracking-widest text-on-surface-variant"
+            >
+              <span>Progression</span>
+              <span class="text-on-surface">{{ progressPercent() }}%</span>
+            </div>
+            <div
+              class="h-1.5 w-full overflow-hidden rounded-full bg-surface-container-highest"
+              role="progressbar"
+              [attr.aria-valuenow]="progressPercent()"
+              aria-valuemin="0"
+              aria-valuemax="100"
+              [attr.aria-label]="'Progression ' + data.name"
+            >
+              <div
+                class="h-full rounded-full bg-linear-to-r from-primary to-primary-dim transition-all duration-500"
+                [style.width.%]="progressPercent()"
+              ></div>
+            </div>
+          </div>
+        }
+      </div>
+    </header>
+
+    @if (totalArticles() === 0) {
+      <div
+        class="flex flex-col items-center justify-center squircle-xl bg-surface-container p-12 text-center ghost-border"
+        role="status"
+      >
+        <span
+          class="icon-[heroicons--sparkles] mb-4 text-5xl text-on-surface-variant"
+          aria-hidden="true"
+        ></span>
+        <p class="font-headline text-lg font-bold text-on-surface">Programme bientot disponible</p>
+        <p class="mt-2 max-w-md text-sm text-on-surface-variant">
+          Les chapitres et contenus de cette formation seront publies prochainement.
+        </p>
+      </div>
+    } @else {
+      <div class="grid gap-6 lg:grid-cols-[320px_1fr] lg:gap-10">
+        <!-- Programme / sommaire -->
+        <aside
+          aria-labelledby="programme-heading"
+          class="squircle-xl bg-surface-container p-5 ghost-border lg:sticky lg:top-6 lg:self-start lg:max-h-[calc(100vh-3rem)] lg:overflow-y-auto"
+        >
+          <h2
+            id="programme-heading"
+            class="mb-4 flex items-center gap-2 font-headline text-xs font-bold uppercase tracking-widest text-on-surface-variant"
+          >
+            <span class="icon-[heroicons--list-bullet] text-base" aria-hidden="true"></span>
+            Programme
+          </h2>
+
+          <ol role="list" class="space-y-5">
+            @for (chapitre of chapitres(); track chapitre.id) {
+              <li>
+                <p
+                  class="mb-2 font-headline text-xs font-bold uppercase tracking-[0.15em] text-on-surface"
+                >
+                  <span class="text-primary">{{ chapitre.sortOrder }}.</span>
+                  {{ chapitre.title }}
+                </p>
+                @let entries = entriesForChapitre(chapitre.id);
+                @if (entries.length === 0) {
+                  <p class="pl-4 text-xs italic text-on-surface-variant">Contenus a venir.</p>
+                } @else {
+                  <ul role="list" class="space-y-1">
+                    @for (entry of entries; track entry.article.id) {
+                      <li>
+                        <a
+                          [routerLink]="['/formations', data.id, entry.article.id]"
+                          class="group flex items-start gap-3 squircle-lg border-l-2 border-transparent px-3 py-2 text-sm transition-all hover:border-primary/50 hover:bg-surface-container-high focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+                          [class.border-primary]="isActive(entry)"
+                          [class.bg-surface-container-high]="isActive(entry)"
+                          [attr.aria-current]="isActive(entry) ? 'page' : null"
+                        >
+                          <span
+                            class="flex size-6 shrink-0 items-center justify-center squircle-md text-base transition-colors"
+                            [class.bg-primary]="isActive(entry)"
+                            [class.text-on-primary]="isActive(entry)"
+                            [class.bg-surface-container-highest]="!isActive(entry)"
+                            [class.text-on-surface-variant]="!isActive(entry)"
+                            aria-hidden="true"
+                          >
+                            <span [class]="contentTypeIcon(entry.article.type)"></span>
+                          </span>
+                          <span class="min-w-0 flex-1">
+                            <span
+                              class="block font-medium text-on-surface transition-colors"
+                              [class.font-bold]="isActive(entry)"
+                            >
+                              {{ entry.article.title }}
+                            </span>
+                            <span
+                              class="mt-0.5 inline-flex items-center gap-2 font-mono text-[10px] text-on-surface-variant"
+                            >
+                              <span>{{ contentTypeLabel(entry.article.type) }}</span>
+                              @if (articleDurationMinutes(entry.article); as mins) {
+                                <span class="inline-flex items-center gap-0.5">
+                                  <span
+                                    class="icon-[heroicons--clock] text-xs"
+                                    aria-hidden="true"
+                                  ></span>
+                                  {{ mins }} min
+                                </span>
+                              }
+                            </span>
+                          </span>
+                        </a>
+                      </li>
+                    }
+                  </ul>
+                }
+              </li>
+            }
+          </ol>
+        </aside>
+
+        <!-- Contenu actif -->
+        <section aria-labelledby="article-heading" class="min-w-0">
+          @if (activeArticle(); as entry) {
+            <article class="squircle-2xl bg-surface-container p-6 ghost-border sm:p-8 lg:p-10">
+              <header class="mb-6 border-b border-outline-variant/40 pb-6">
+                <p
+                  class="mb-3 inline-flex items-center gap-2 font-headline text-[11px] font-bold uppercase tracking-[0.2em] text-primary"
+                >
+                  <span
+                    class="flex size-5 items-center justify-center squircle-sm bg-primary/15 font-mono"
+                    aria-hidden="true"
+                  >
+                    {{ entry.chapitre.sortOrder }}
+                  </span>
+                  {{ entry.chapitre.title }}
+                </p>
+                <h2
+                  id="article-heading"
+                  class="font-headline text-2xl font-extrabold leading-tight tracking-tight text-on-surface sm:text-3xl lg:text-4xl"
+                >
+                  {{ entry.article.title }}
+                </h2>
+                <div class="mt-4 flex flex-wrap items-center gap-4 text-xs text-on-surface-variant">
+                  <span class="inline-flex items-center gap-1.5 font-mono">
+                    <span
+                      [class]="contentTypeIcon(entry.article.type)"
+                      class="text-sm"
+                      aria-hidden="true"
+                    ></span>
+                    {{ contentTypeLabel(entry.article.type) }}
+                  </span>
+                  <span class="inline-flex items-center gap-1.5 font-mono">
+                    <span class="icon-[heroicons--hashtag] text-sm" aria-hidden="true"></span>
+                    Contenu {{ entry.index }} / {{ totalArticles() }}
+                  </span>
+                  @if (articleDurationMinutes(entry.article); as mins) {
+                    <span class="inline-flex items-center gap-1.5 font-mono">
+                      <span class="icon-[heroicons--clock] text-sm" aria-hidden="true"></span>
+                      {{ mins }} min
+                    </span>
+                  }
+                </div>
+              </header>
+
+              <!-- === CONTENT BODY (lecteur unifié) === -->
+              <div class="mb-8">
+                <app-article-body [article]="entry.article" />
+              </div>
+
+              <!-- Prev / next -->
+              <nav
+                aria-label="Navigation entre contenus"
+                class="mt-10 flex items-stretch gap-3 border-t border-outline-variant/40 pt-6"
+              >
+                @if (previousEntry(); as prev) {
+                  <a
+                    [routerLink]="['/formations', data.id, prev.article.id]"
+                    [attr.aria-label]="'Précédent : ' + prev.article.title"
+                    class="group flex size-12 shrink-0 items-center justify-center squircle-xl bg-surface-container-low text-on-surface-variant ghost-border transition-all hover:-translate-y-0.5 hover:bg-surface-container-high hover:text-primary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+                  >
+                    <span
+                      class="icon-[heroicons--arrow-left] text-lg"
+                      aria-hidden="true"
+                    ></span>
+                  </a>
+                }
+                @if (nextEntry(); as next) {
+                  <a
+                    [routerLink]="['/formations', data.id, next.article.id]"
+                    class="group ml-auto flex flex-1 flex-col items-end squircle-xl bg-primary/10 p-4 ghost-border transition-all hover:-translate-y-0.5 hover:bg-primary/20 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary sm:max-w-md sm:text-right"
+                  >
+                    <span
+                      class="flex items-center gap-1 font-headline text-[10px] font-bold uppercase tracking-widest text-primary"
+                    >
+                      Suivant
+                      <span class="icon-[heroicons--arrow-right] text-sm" aria-hidden="true"></span>
+                    </span>
+                    <span
+                      class="mt-1 truncate font-headline text-sm font-bold text-on-surface group-hover:text-primary"
+                    >
+                      {{ next.article.title }}
+                    </span>
+                  </a>
+                }
+              </nav>
+            </article>
+          } @else {
+            <div
+              class="flex flex-col items-center justify-center squircle-2xl bg-surface-container p-12 text-center ghost-border"
+              role="status"
+            >
+              <span
+                class="icon-[heroicons--book-open] mb-4 text-5xl text-primary"
+                aria-hidden="true"
+              ></span>
+              <h2 id="article-heading" class="font-headline text-xl font-bold text-on-surface">
+                Pret a commencer ?
+              </h2>
+              <p class="mt-2 max-w-md text-sm text-on-surface-variant">
+                Selectionnez un contenu dans le programme pour demarrer.
+              </p>
+            </div>
+          }
+        </section>
+      </div>
+    }
+  } @else {
+    <!-- Not found -->
+    <div
+      role="alert"
+      class="flex flex-col items-center justify-center squircle-xl bg-surface-container p-12 text-center ghost-border"
+    >
+      <span
+        class="icon-[heroicons--exclamation-triangle] mb-4 text-5xl text-error"
+        aria-hidden="true"
+      ></span>
+      <h1 class="font-headline text-2xl font-bold text-on-surface">Formation introuvable</h1>
+      <p class="mt-2 text-on-surface-variant">
+        La formation #{{ formationId() }} n'existe pas dans le catalogue.
+      </p>
+      <a
+        routerLink="/formations"
+        class="mt-6 inline-flex items-center gap-2 squircle-lg bg-primary px-4 py-2 font-headline text-sm font-bold text-on-primary transition-opacity hover:opacity-90 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+      >
+        Retour au catalogue
+      </a>
+    </div>
+  }
+</div>
