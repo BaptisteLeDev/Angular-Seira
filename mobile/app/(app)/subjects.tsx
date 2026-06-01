@@ -55,7 +55,7 @@ export default function FormationsScreen() {
           </Text>
 
           <View className="mt-8">
-            {status === 'loading' && items.length === 0 ? (
+            {status === 'loading' && available.length === 0 && locked.length === 0 ? (
               <LoadingView />
             ) : error ? (
               <ErrorCard message={error} />
