@@ -47,6 +47,8 @@ const FALLBACK_VIDEO = '/dev-assets/sample-video.mp4';
           preload="metadata"
           playsinline
           (error)="onError()"
+          (timeupdate)="onTimeUpdate()"
+          (seeking)="onSeeking()"
         ></video>
       }
     </div>
@@ -61,12 +63,41 @@ export class VideoPlayer {
   /** Passe à true quand la vraie URL échoue, pour basculer sur le placeholder. */
   private readonly failed = signal(false);
 
+  /** Plafond anti-skip : position max vue en lecture continue (secondes). */
+  private cap = 0;
+  private static readonly SEEK_TOLERANCE = 1;
+
   constructor() {
-    // Réinitialise l'état d'échec dès que la source change.
+    // Réinitialise l'état d'échec ET le plafond dès que la source change.
     effect(() => {
       this.url();
       this.failed.set(false);
+      this.cap = 0;
     });
+  }
+
+  /** Monte le plafond en lecture continue (ignore les avances anormales). */
+  protected onTimeUpdate(): void {
+    const v = this.video()?.nativeElement;
+    if (!v) return;
+    if (v.currentTime <= this.cap + VideoPlayer.SEEK_TOLERANCE) {
+      this.cap = Math.max(this.cap, v.currentTime);
+    }
+  }
+
+  /**
+   * Anti-skip par défaut : rejette toute avance au-delà de la position vue,
+   * tant que la vidéo n'est pas vue jusqu'au bout. Une fois vue à ~100%, le
+   * seek redevient libre. (Sans effet sur le fallback / YouTube en iframe.)
+   */
+  protected onSeeking(): void {
+    const v = this.video()?.nativeElement;
+    if (!v || !isFinite(v.duration) || v.duration <= 0) return;
+    const fullyWatched = this.cap >= v.duration - 1;
+    if (fullyWatched) return;
+    if (v.currentTime > this.cap + VideoPlayer.SEEK_TOLERANCE) {
+      v.currentTime = this.cap;
+    }
   }
 
   /** URL d'embed YouTube (iframe) si l'URL fournie est un lien YouTube, sinon null. */

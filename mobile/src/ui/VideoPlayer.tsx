@@ -140,12 +140,12 @@ function NativeVideoPlayer({ url, videoId }: Props) {
     return () => sub.remove();
   }, [player]);
 
-  // Anti-seek inline : si currentTime saute (l'utilisateur a quand même réussi
-  // à scrubber via les contrôles natifs en fullscreen), on revient à la
-  // dernière position validée (cap). Tolère un delta normal d'update.
+  // Anti-skip PAR DÉFAUT (indépendant du backend) : on bloque l'avance rapide
+  // au-delà de la position vue (`cap`). Le plafond monte en lecture continue ;
+  // une fois la vidéo vue jusqu'au bout (cap ≈ durée), tout seek redevient
+  // libre (computeCap n'a plus rien à bloquer). Désactivé sur la vidéo de démo.
   useEffect(() => {
-    if (!trackingEnabled) return;
-    // Garde la durée connue à jour (player vivant ici) pour flush().
+    if (useFallback) return;
     if (player.duration > 0) durationRef.current = player.duration;
     const before = capRef.current;
     const next = computeCap(before, currentTime);
@@ -154,10 +154,11 @@ function NativeVideoPlayer({ url, videoId }: Props) {
       return;
     }
     capRef.current = next;
+    // L'envoi serveur reste conditionné au tracking (videoId) via flush().
     if (Math.floor(next) - lastSentRef.current >= 8) {
       flush();
     }
-  }, [currentTime, player, trackingEnabled, flush]);
+  }, [currentTime, player, useFallback, flush]);
 
   // Envois finaux : pause, fin de lecture, démontage.
   useEffect(() => {
