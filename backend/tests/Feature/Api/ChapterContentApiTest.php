@@ -115,4 +115,27 @@ class ChapterContentApiTest extends TestCase
             'is_published' => true,
         ])->assertCreated();
     }
+
+    public function test_admin_can_patch_video_content_with_integer_fields(): void
+    {
+        $admin = User::factory()->create(['role' => User::ROLE_ADMIN]);
+        $chapter = Chapter::factory()->create();
+        $content = ChapterContent::factory()->create([
+            'chapter_id' => $chapter->id,
+            'type' => 'video',
+            'duration_seconds' => 420,
+            'sort_order' => 1,
+        ]);
+        Sanctum::actingAs($admin);
+
+        $this->json('PATCH', "/api/chapter-contents/{$content->id}", [
+            'durationSeconds' => 500,
+            'sortOrder' => 2,
+        ], ['Content-Type' => 'application/merge-patch+json'])
+            ->assertOk()
+            ->assertJson([
+                'durationSeconds' => 500,
+                'sortOrder' => 2,
+            ]);
+    }
 }

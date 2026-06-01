@@ -59,6 +59,10 @@ class Chapter extends Model
         'sort_order',
     ];
 
+    protected $casts = [
+        'sort_order' => 'integer',
+    ];
+
     public function getId(): ?int
     {
         return $this->attributes['id'] ?? null;

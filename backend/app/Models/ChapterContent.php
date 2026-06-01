@@ -67,6 +67,8 @@ class ChapterContent extends Model
     ];
 
     protected $casts = [
+        'duration_seconds' => 'integer',
+        'sort_order' => 'integer',
         'is_published' => 'boolean',
     ];
 
