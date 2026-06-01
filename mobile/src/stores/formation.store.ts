@@ -89,23 +89,31 @@ export const useFormationStore = create<FormationState>((set, get) => ({
     const alreadyLoaded = state.chapitresByFormation[formationId] !== undefined;
     if (!force && (currentStatus === 'loading' || alreadyLoaded)) return;
 
-    const formation = state.items.find((f) => f.id === formationId);
-    const chapterIris = formation?.chapters ?? [];
-
-    if (chapterIris.length === 0) {
-      set((s) => ({
-        chapitresByFormation: { ...s.chapitresByFormation, [formationId]: [] },
-        chapitresStatus: { ...s.chapitresStatus, [formationId]: 'idle' },
-      }));
-      return;
-    }
-
     set((s) => ({
       chapitresStatus: { ...s.chapitresStatus, [formationId]: 'loading' },
       chapitresError: omit(s.chapitresError, formationId),
     }));
 
     try {
+      let chapterIris = state.items.find((f) => f.id === formationId)?.chapters ?? [];
+      if (chapterIris.length === 0) {
+        const full = await FormationApi.getById(formationId);
+        chapterIris = full.chapters ?? [];
+        set((s) => ({
+          items: s.items.some((f) => f.id === full.id)
+            ? s.items.map((f) => (f.id === full.id ? full : f))
+            : [...s.items, full],
+        }));
+      }
+
+      if (chapterIris.length === 0) {
+        set((s) => ({
+          chapitresByFormation: { ...s.chapitresByFormation, [formationId]: [] },
+          chapitresStatus: { ...s.chapitresStatus, [formationId]: 'idle' },
+        }));
+        return;
+      }
+
       const chapitres = await FormationApi.getChapitresByIris([...chapterIris]);
       const sorted = [...chapitres].sort((a, b) => a.sortOrder - b.sortOrder);
       set((s) => ({
