@@ -34,7 +34,7 @@ export class ArticleApi {
   }): Observable<Article> {
     return this.http
       .post<unknown>(`${this.apiUrl}/chapter-contents`, payload)
-      .pipe(parseResponse(ArticleSchema), catchError(this.toError));
+      .pipe(parseResponse(ArticleSchema), catchError(this.passError));
   }
 
   update(
@@ -53,13 +53,13 @@ export class ArticleApi {
   ): Observable<Article> {
     return this.http
       .patch<unknown>(`${this.apiUrl}/chapter-contents/${id}`, payload)
-      .pipe(parseResponse(ArticleSchema), catchError(this.toError));
+      .pipe(parseResponse(ArticleSchema), catchError(this.passError));
   }
 
   delete(id: number): Observable<void> {
     return this.http
       .delete<void>(`${this.apiUrl}/chapter-contents/${id}`)
-      .pipe(catchError(this.toError));
+      .pipe(catchError(this.passError));
   }
 
   /**
@@ -81,4 +81,9 @@ export class ArticleApi {
     }
     return throwError(() => error);
   };
+
+  // Mutations : on propage l'erreur HTTP brute (status + detail) pour que l'UI
+  // affiche un message précis (409 sort_order, 422 validation…).
+  private readonly passError = (error: unknown): Observable<never> =>
+    throwError(() => error);
 }

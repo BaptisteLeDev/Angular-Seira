@@ -31,6 +31,7 @@ import {
   contentTypeLabel,
 } from '../../shared/utils/article-meta';
 import type { Article } from '../../core/schemas/article.schema';
+import { httpErrorMessage } from '../../core/utils/http-error';
 import type { Chapitre } from '../../core/schemas/chapitre.schema';
 
 @Component({
@@ -359,8 +360,7 @@ export class AdminArticles implements OnInit {
         this.toast.success(editing ? 'Chapitre mis à jour.' : 'Chapitre créé.');
         this.chapterDialogOpen.set(false);
       },
-      error: (e: unknown) =>
-        this.toast.error(e instanceof Error ? e.message : 'Erreur chapitre.'),
+      error: (e: unknown) => this.toast.error(httpErrorMessage(e, 'Erreur chapitre.')),
     });
   }
 
@@ -409,8 +409,7 @@ export class AdminArticles implements OnInit {
         this.toast.success(editing ? 'Contenu mis à jour.' : 'Contenu créé.');
         this.articleDialogOpen.set(false);
       },
-      error: (e: unknown) =>
-        this.toast.error(e instanceof Error ? e.message : 'Erreur contenu.'),
+      error: (e: unknown) => this.toast.error(httpErrorMessage(e, 'Erreur contenu.')),
     });
   }
 
