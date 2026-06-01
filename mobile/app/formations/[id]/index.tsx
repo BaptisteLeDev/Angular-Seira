@@ -12,6 +12,7 @@ import { useArticleStore } from '@src/stores/article.store';
 import { useFormationStore } from '@src/stores/formation.store';
 import { useProgressStore } from '@src/stores/progress.store';
 import { aggregatePercent } from '@src/utils/video-progress';
+import { unlockedChapterIds } from '@src/utils/chapter-gating';
 import type { Article } from '@src/schemas/article.schema';
 import type { Chapitre } from '@src/schemas/chapitre.schema';
 import { useThemeColors } from '@src/ui/useThemeColors';
@@ -77,6 +78,32 @@ export default function FormationOverviewScreen() {
     const percents = videoIds.map((id) => progressByVideo[id]?.completionPercent ?? 0);
     return aggregatePercent(percents);
   }, [entries, progressByVideo]);
+
+  // Un chapitre est « terminé » si ses contenus vidéo sont tous à 100%.
+  // Sans progression backend (videoId null), cet ensemble est vide → seul le
+  // 1er chapitre reste déverrouillé. Se branche automatiquement quand le suivi
+  // backend fournira la progression réelle.
+  const completedChapterIds = useMemo(
+    () =>
+      chapitres
+        .filter((ch) => {
+          const vids = entries
+            .filter((e) => e.chapitre.id === ch.id)
+            .map((e) => e.article.videoId)
+            .filter((v): v is number => typeof v === 'number');
+          return (
+            vids.length > 0 &&
+            vids.every((id) => (progressByVideo[id]?.completionPercent ?? 0) >= 100)
+          );
+        })
+        .map((ch) => ch.id),
+    [chapitres, entries, progressByVideo],
+  );
+
+  const unlockedIds = useMemo(
+    () => new Set(unlockedChapterIds(chapitres.map((c) => c.id), completedChapterIds)),
+    [chapitres, completedChapterIds],
+  );
 
   const variant = variantFor(formationId);
   const accent = variant.color;
@@ -194,8 +221,9 @@ export default function FormationOverviewScreen() {
                       const chapterPercent = aggregatePercent(
                         chapterVideoIds.map((id) => progressByVideo[id]?.completionPercent ?? 0),
                       );
+                      const locked = !unlockedIds.has(chapitre.id);
                       return (
-                        <View key={chapitre.id}>
+                        <View key={chapitre.id} style={{ opacity: locked ? 0.5 : 1 }}>
                           <View className="mb-2 flex-row items-center gap-2">
                             <Text
                               className="font-headline text-xs font-bold uppercase tracking-widest"
@@ -206,13 +234,19 @@ export default function FormationOverviewScreen() {
                             <Text className="flex-1 font-headline text-xs font-bold uppercase tracking-widest text-on-surface">
                               {chapitre.title}
                             </Text>
-                            {chapterVideoIds.length > 0 ? (
+                            {locked ? (
+                              <Icon name="lock-closed" size={13} color={palette.onSurfaceVariant} />
+                            ) : chapterVideoIds.length > 0 ? (
                               <Text className="font-mono text-[10px] text-primary">
                                 {chapterPercent}%
                               </Text>
                             ) : null}
                           </View>
-                          {chapitreEntries.length === 0 ? (
+                          {locked ? (
+                            <Text className="pl-4 text-xs italic text-on-surface-variant">
+                              Terminez le chapitre précédent pour débloquer ce contenu.
+                            </Text>
+                          ) : chapitreEntries.length === 0 ? (
                             <Text className="pl-4 text-xs italic text-on-surface-variant">
                               Contenus à venir.
                             </Text>

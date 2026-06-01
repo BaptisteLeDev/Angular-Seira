@@ -7,6 +7,7 @@ import type { Formation } from '../../../core/schemas/formation.schema';
 import { ArticleStore } from '../../../core/stores/article.store';
 import { FormationStore } from '../../../core/stores/formation.store';
 import { ArticleBody } from '../../../shared/article/article-body';
+import { isChapterUnlocked } from '../../../core/utils/chapter-gating';
 
 interface ArticleEntry {
   readonly article: Article;
@@ -41,6 +42,19 @@ export class CourseDetail {
     if (!current) return [];
     return this.formationStore.chapitresOf(current.id)();
   });
+
+  /**
+   * Chapitres terminés (qui déverrouillent le suivant). Vide tant que la
+   * progression backend n'est pas branchée (#16/#29) → seul le 1er chapitre
+   * est accessible. Point d'extension : remplacer par la vraie progression.
+   */
+  protected readonly completedChapterIds = computed<readonly number[]>(() => []);
+
+  /** Verrouillage séquentiel : 1er ouvert, suivant ouvert si le précédent est fait. */
+  protected isChapterLocked(chapterId: number): boolean {
+    const order = this.chapitres().map((c) => c.id);
+    return !isChapterUnlocked(order, chapterId, this.completedChapterIds());
+  }
 
   protected readonly isLoading = computed(() => {
     if (this.formationStore.status() === 'loading') return true;

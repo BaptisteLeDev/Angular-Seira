@@ -2,11 +2,13 @@ import { useEvent } from 'expo';
 import { VideoView, useVideoPlayer } from 'expo-video';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Pressable, Text, View } from 'react-native';
+import { WebView } from 'react-native-webview';
 
 import { FALLBACK_VIDEO_SOURCE, resolveVideoSource } from '@src/constants/video';
 import { colors } from '@src/constants/theme';
 import { useProgressStore } from '@src/stores/progress.store';
 import { clampPercent, computeCap, deriveStatus } from '@src/utils/video-progress';
+import { youtubeEmbedUrl } from '@src/utils/video-url';
 import { Icon } from './Icon';
 
 type Props = {
@@ -16,7 +18,35 @@ type Props = {
 
 const LOCKED_RATE = 1;
 
+/**
+ * Aiguillage : un lien YouTube ne se lit pas avec expo-video → WebView d'embed.
+ * Toute autre source (mp4 direct, fallback) passe par le lecteur natif.
+ */
 export function VideoPlayer({ url, videoId }: Props) {
+  const embedUrl = youtubeEmbedUrl(url);
+  if (embedUrl) {
+    return <YoutubeEmbed embedUrl={embedUrl} />;
+  }
+  return <NativeVideoPlayer url={url} videoId={videoId} />;
+}
+
+function YoutubeEmbed({ embedUrl }: { embedUrl: string }) {
+  return (
+    <View className="overflow-hidden squircle-xl bg-black ghost-border">
+      <WebView
+        source={{ uri: embedUrl }}
+        style={{ width: '100%', aspectRatio: 16 / 9, backgroundColor: '#000' }}
+        javaScriptEnabled
+        domStorageEnabled
+        allowsInlineMediaPlayback
+        allowsFullscreenVideo
+        mediaPlaybackRequiresUserAction
+      />
+    </View>
+  );
+}
+
+function NativeVideoPlayer({ url, videoId }: Props) {
   const videoRef = useRef<VideoView>(null);
 
   // Si la vraie source échoue, on bascule sur la vidéo de démonstration locale.
@@ -110,12 +140,12 @@ export function VideoPlayer({ url, videoId }: Props) {
     return () => sub.remove();
   }, [player]);
 
-  // Anti-seek inline : si currentTime saute (l'utilisateur a quand même réussi
-  // à scrubber via les contrôles natifs en fullscreen), on revient à la
-  // dernière position validée (cap). Tolère un delta normal d'update.
+  // Anti-skip PAR DÉFAUT (indépendant du backend) : on bloque l'avance rapide
+  // au-delà de la position vue (`cap`). Le plafond monte en lecture continue ;
+  // une fois la vidéo vue jusqu'au bout (cap ≈ durée), tout seek redevient
+  // libre (computeCap n'a plus rien à bloquer). Désactivé sur la vidéo de démo.
   useEffect(() => {
-    if (!trackingEnabled) return;
-    // Garde la durée connue à jour (player vivant ici) pour flush().
+    if (useFallback) return;
     if (player.duration > 0) durationRef.current = player.duration;
     const before = capRef.current;
     const next = computeCap(before, currentTime);
@@ -124,10 +154,11 @@ export function VideoPlayer({ url, videoId }: Props) {
       return;
     }
     capRef.current = next;
+    // L'envoi serveur reste conditionné au tracking (videoId) via flush().
     if (Math.floor(next) - lastSentRef.current >= 8) {
       flush();
     }
-  }, [currentTime, player, trackingEnabled, flush]);
+  }, [currentTime, player, useFallback, flush]);
 
   // Envois finaux : pause, fin de lecture, démontage.
   useEffect(() => {

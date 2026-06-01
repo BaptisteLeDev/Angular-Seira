@@ -69,6 +69,8 @@ export interface ChapterFormPayload {
 export class ChapterFormDialog {
   readonly open = input<boolean>(false);
   readonly chapitre = input<Chapitre | null>(null);
+  /** sort_order proposé à la création (max+1) pour éviter les collisions. */
+  readonly defaultSortOrder = input<number>(1);
   readonly submitted = output<ChapterFormPayload>();
   readonly closed = output<void>();
 
@@ -93,7 +95,7 @@ export class ChapterFormDialog {
       const c = this.chapitre();
       this.form.reset({
         title: c?.title ?? '',
-        sortOrder: c?.sortOrder ?? 1,
+        sortOrder: c?.sortOrder ?? this.defaultSortOrder(),
       });
       this.hydrated.set(true);
     });

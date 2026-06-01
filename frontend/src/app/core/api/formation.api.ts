@@ -89,7 +89,7 @@ export class FormationApi {
   }): Observable<Chapitre> {
     return this.http
       .post<unknown>(`${this.apiUrl}/chapters`, payload)
-      .pipe(parseResponse(ChapitreSchema), catchError(this.toError));
+      .pipe(parseResponse(ChapitreSchema), catchError(this.passError));
   }
 
   updateChapitre(
@@ -98,13 +98,13 @@ export class FormationApi {
   ): Observable<Chapitre> {
     return this.http
       .patch<unknown>(`${this.apiUrl}/chapters/${id}`, payload)
-      .pipe(parseResponse(ChapitreSchema), catchError(this.toError));
+      .pipe(parseResponse(ChapitreSchema), catchError(this.passError));
   }
 
   deleteChapitre(id: number): Observable<void> {
     return this.http
       .delete<void>(`${this.apiUrl}/chapters/${id}`)
-      .pipe(catchError(this.toError));
+      .pipe(catchError(this.passError));
   }
 
   /**
@@ -127,4 +127,8 @@ export class FormationApi {
     }
     return throwError(() => error);
   };
+
+  // Mutations : propage l'erreur HTTP brute (status + detail) pour un message précis.
+  private readonly passError = (error: unknown): Observable<never> =>
+    throwError(() => error);
 }

@@ -31,6 +31,7 @@ import {
   contentTypeLabel,
 } from '../../shared/utils/article-meta';
 import type { Article } from '../../core/schemas/article.schema';
+import { httpErrorMessage } from '../../core/utils/http-error';
 import type { Chapitre } from '../../core/schemas/chapitre.schema';
 
 @Component({
@@ -217,6 +218,7 @@ import type { Chapitre } from '../../core/schemas/chapitre.schema';
     <app-chapter-form-dialog
       [open]="chapterDialogOpen()"
       [chapitre]="chapterDialogTarget()"
+      [defaultSortOrder]="chapterDefaultOrder()"
       (submitted)="onChapterSubmit($event)"
       (closed)="chapterDialogOpen.set(false)"
     />
@@ -281,7 +283,16 @@ export class AdminArticles implements OnInit {
     const chap = this.articleDialogChapter();
     if (!chap) return 1;
     const existing = this.articleStore.byChapitre(chap.id)();
-    return existing.length + 1;
+    // max(sortOrder)+1 (et non length+1) pour éviter les collisions sur la
+    // contrainte unique (chapter_id, sort_order) après suppressions/réordres.
+    const maxOrder = existing.reduce((m, a) => Math.max(m, a.sortOrder ?? 0), 0);
+    return maxOrder + 1;
+  });
+
+  /** Prochain sort_order libre pour un nouveau chapitre (max+1). */
+  protected readonly chapterDefaultOrder = computed(() => {
+    const maxOrder = this.chapitres().reduce((m, c) => Math.max(m, c.sortOrder ?? 0), 0);
+    return maxOrder + 1;
   });
 
   ngOnInit(): void {
@@ -349,8 +360,7 @@ export class AdminArticles implements OnInit {
         this.toast.success(editing ? 'Chapitre mis à jour.' : 'Chapitre créé.');
         this.chapterDialogOpen.set(false);
       },
-      error: (e: unknown) =>
-        this.toast.error(e instanceof Error ? e.message : 'Erreur chapitre.'),
+      error: (e: unknown) => this.toast.error(httpErrorMessage(e, 'Erreur chapitre.')),
     });
   }
 
@@ -399,8 +409,7 @@ export class AdminArticles implements OnInit {
         this.toast.success(editing ? 'Contenu mis à jour.' : 'Contenu créé.');
         this.articleDialogOpen.set(false);
       },
-      error: (e: unknown) =>
-        this.toast.error(e instanceof Error ? e.message : 'Erreur contenu.'),
+      error: (e: unknown) => this.toast.error(httpErrorMessage(e, 'Erreur contenu.')),
     });
   }
 
