@@ -17,6 +17,7 @@ import { variantFor } from '@src/ui/formation-visual';
 import { hexToRgba } from '@src/utils/color';
 import {
   articleDurationMin,
+  articleKey,
   contentTypeIcon,
   contentTypeLabel,
 } from '@src/utils/article-meta';
@@ -29,7 +30,7 @@ export default function ArticleScreen() {
   const palette = useThemeColors();
   const { id, articleId } = useLocalSearchParams<{ id: string; articleId: string }>();
   const formationId = Number(id);
-  const currentArticleId = Number(articleId);
+  const currentArticleKey = articleId;
 
   const formation = useFormationStore((s) => s.byId(formationId));
   const formationStatus = useFormationStore((s) => s.status);
@@ -48,7 +49,8 @@ export default function ArticleScreen() {
   useEffect(() => { void loadFormations(); }, [loadFormations]);
   useEffect(() => { if (formation) void loadChapitres(formation.id); }, [formation, loadChapitres]);
   useEffect(() => {
-    for (const c of chapitres) void loadByChapitre(c.id, [...(c.contents ?? [])]);
+    for (const c of chapitres)
+      void loadByChapitre(c.id, [...(c.contents ?? [])], [...(c.videos ?? [])]);
   }, [chapitres, loadByChapitre]);
 
   const entries = useMemo<SommaireEntry[]>(() => {
@@ -64,7 +66,7 @@ export default function ArticleScreen() {
   }, [chapitres, articlesByChapitre]);
 
   const accent = variantFor(formationId).color;
-  const active = entries.find((e) => e.article.id === currentArticleId) ?? null;
+  const active = entries.find((e) => articleKey(e.article) === currentArticleKey) ?? null;
   const next = active ? entries.find((e) => e.index === active.index + 1) ?? null : null;
   const prev = active ? entries.find((e) => e.index === active.index - 1) ?? null : null;
 
@@ -75,9 +77,11 @@ export default function ArticleScreen() {
 
   const goTo = (entry: SommaireEntry) => {
     setSheetOpen(false);
-    router.push({
+    // replace (pas push) : naviguer prev/suivant ne doit pas empiler les écrans,
+    // ainsi la flèche « Retour » du haut revient toujours à la formation.
+    router.replace({
       pathname: '/formations/[id]/[articleId]',
-      params: { id: String(formationId), articleId: String(entry.article.id) },
+      params: { id: String(formationId), articleId: articleKey(entry.article) },
     });
   };
 
@@ -188,7 +192,7 @@ export default function ArticleScreen() {
         onClose={() => setSheetOpen(false)}
         chapitres={chapitres}
         entries={entries}
-        activeArticleId={currentArticleId}
+        activeArticleKey={currentArticleKey}
         onSelect={goTo}
       />
     </SafeAreaView>

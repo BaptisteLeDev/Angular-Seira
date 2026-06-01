@@ -32,7 +32,10 @@ export async function apiRequest<T = unknown>(
     ...headers,
   };
   if (body !== undefined) {
-    finalHeaders['Content-Type'] = 'application/json';
+    // API Platform exige application/merge-patch+json pour les PATCH ;
+    // application/json sinon (POST/PUT). Sinon -> 415 Unsupported Media Type.
+    finalHeaders['Content-Type'] =
+      method === 'PATCH' ? 'application/merge-patch+json' : 'application/json';
   }
   if (auth) {
     const token = await storage.get(TOKEN_KEY);

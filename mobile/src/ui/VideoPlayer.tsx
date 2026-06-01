@@ -1,19 +1,22 @@
 import { useEvent } from 'expo';
 import { VideoView, useVideoPlayer } from 'expo-video';
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { Pressable, Text, View } from 'react-native';
 
 import { FALLBACK_VIDEO_SOURCE, resolveVideoSource } from '@src/constants/video';
 import { colors } from '@src/constants/theme';
+import { useProgressStore } from '@src/stores/progress.store';
+import { clampPercent, computeCap, deriveStatus } from '@src/utils/video-progress';
 import { Icon } from './Icon';
 
 type Props = {
   url: string | null | undefined;
+  videoId?: number | null;
 };
 
 const LOCKED_RATE = 1;
 
-export function VideoPlayer({ url }: Props) {
+export function VideoPlayer({ url, videoId }: Props) {
   const videoRef = useRef<VideoView>(null);
 
   // Si la vraie source échoue, on bascule sur la vidéo de démonstration locale.
@@ -47,6 +50,54 @@ export function VideoPlayer({ url }: Props) {
     bufferedPosition: 0,
   });
 
+  const trackingEnabled = videoId != null && !useFallback;
+  const report = useProgressStore((s) => s.report);
+  const hydrate = useProgressStore((s) => s.hydrate);
+  const savedSeconds = useProgressStore((s) =>
+    videoId != null ? (s.byVideoId[videoId]?.watchedSeconds ?? 0) : 0,
+  );
+
+  const capRef = useRef(0);
+  const lastSentRef = useRef(0);
+  const resumedRef = useRef(false);
+  // Dernière durée connue (le player natif est libéré au démontage : flush()
+  // doit lire cette ref, jamais player.duration, sous peine de crash
+  // "shared object already released").
+  const durationRef = useRef(0);
+
+  useEffect(() => {
+    void hydrate();
+  }, [hydrate]);
+
+  useEffect(() => {
+    if (!trackingEnabled) return;
+    const duration = player.duration || 0;
+    if (resumedRef.current || duration <= 0) return;
+    if (savedSeconds > 0 && savedSeconds < duration - 1) {
+      player.currentTime = savedSeconds;
+      capRef.current = savedSeconds;
+    }
+    resumedRef.current = true;
+  }, [trackingEnabled, savedSeconds, currentTime, player]);
+
+  const flush = useCallback(() => {
+    if (!trackingEnabled || videoId == null) return;
+    // Lecture via ref uniquement : ne JAMAIS toucher `player` ici (peut être
+    // appelé depuis le cleanup de démontage, après libération native).
+    const duration = durationRef.current;
+    if (duration <= 0) return;
+    const cap = capRef.current;
+    if (cap <= lastSentRef.current) return;
+    lastSentRef.current = cap;
+    const percent = clampPercent((cap / duration) * 100);
+    void report(videoId, {
+      watchedSecondsValidated: Math.floor(cap),
+      completionPercent: percent,
+      status: deriveStatus(percent),
+      lastSeenAt: new Date().toISOString(),
+    });
+  }, [trackingEnabled, videoId, report]);
+
   // Verrouillage vitesse à 1x (en mode inline ; les contrôles natifs en
   // fullscreen permettent quand même de changer la vitesse, on ne peut pas
   // l'empêcher avec l'API expo-video).
@@ -61,17 +112,43 @@ export function VideoPlayer({ url }: Props) {
 
   // Anti-seek inline : si currentTime saute (l'utilisateur a quand même réussi
   // à scrubber via les contrôles natifs en fullscreen), on revient à la
-  // dernière position connue. Tolère un delta normal d'update.
-  const lastTimeRef = useRef(0);
+  // dernière position validée (cap). Tolère un delta normal d'update.
   useEffect(() => {
-    const last = lastTimeRef.current;
-    const delta = currentTime - last;
-    if (delta > 1.5) {
-      player.currentTime = last;
+    if (!trackingEnabled) return;
+    // Garde la durée connue à jour (player vivant ici) pour flush().
+    if (player.duration > 0) durationRef.current = player.duration;
+    const before = capRef.current;
+    const next = computeCap(before, currentTime);
+    if (next === before && currentTime > before + 1) {
+      player.currentTime = before;
       return;
     }
-    lastTimeRef.current = currentTime;
-  }, [currentTime, player]);
+    capRef.current = next;
+    if (Math.floor(next) - lastSentRef.current >= 8) {
+      flush();
+    }
+  }, [currentTime, player, trackingEnabled, flush]);
+
+  // Envois finaux : pause, fin de lecture, démontage.
+  useEffect(() => {
+    if (!trackingEnabled) return;
+    if (!isPlaying) flush();
+  }, [isPlaying, trackingEnabled, flush]);
+
+  useEffect(() => {
+    const sub = player.addListener('playToEnd', () => {
+      if (player.duration > 0) durationRef.current = player.duration;
+      capRef.current = durationRef.current || capRef.current;
+      flush();
+    });
+    return () => sub.remove();
+  }, [player, flush]);
+
+  useEffect(() => {
+    return () => {
+      flush();
+    };
+  }, [flush]);
 
   const duration = player.duration || 0;
   const progress = duration > 0 ? Math.min(1, currentTime / duration) : 0;

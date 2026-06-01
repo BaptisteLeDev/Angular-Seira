@@ -10,6 +10,8 @@ import { ErrorCard } from '@src/ui/ErrorCard';
 import { EmptyState } from '@src/ui/EmptyState';
 import { useArticleStore } from '@src/stores/article.store';
 import { useFormationStore } from '@src/stores/formation.store';
+import { useProgressStore } from '@src/stores/progress.store';
+import { aggregatePercent } from '@src/utils/video-progress';
 import type { Article } from '@src/schemas/article.schema';
 import type { Chapitre } from '@src/schemas/chapitre.schema';
 import { useThemeColors } from '@src/ui/useThemeColors';
@@ -17,6 +19,7 @@ import { variantFor } from '@src/ui/formation-visual';
 import { hexToRgba } from '@src/utils/color';
 import {
   articleDurationMin,
+  articleKey,
   contentTypeIcon,
   contentTypeLabel,
 } from '@src/utils/article-meta';
@@ -44,11 +47,16 @@ export default function FormationOverviewScreen() {
   const articlesByChapitre = useArticleStore((s) => s.byChapitre);
   const loadByChapitre = useArticleStore((s) => s.loadByChapitre);
 
+  const hydrateProgress = useProgressStore((s) => s.hydrate);
+  const progressByVideo = useProgressStore((s) => s.byVideoId);
+
   useEffect(() => { void loadFormations(); }, [loadFormations]);
   useEffect(() => { if (formation) void loadChapitres(formation.id); }, [formation, loadChapitres]);
   useEffect(() => {
-    for (const c of chapitres) void loadByChapitre(c.id, [...(c.contents ?? [])]);
+    for (const c of chapitres)
+      void loadByChapitre(c.id, [...(c.contents ?? [])], [...(c.videos ?? [])]);
   }, [chapitres, loadByChapitre]);
+  useEffect(() => { void hydrateProgress(); }, [hydrateProgress]);
 
   const entries = useMemo<Entry[]>(() => {
     let i = 0;
@@ -61,6 +69,14 @@ export default function FormationOverviewScreen() {
     }
     return result;
   }, [chapitres, articlesByChapitre]);
+
+  const formationPercent = useMemo(() => {
+    const videoIds = entries
+      .map((e) => e.article.videoId)
+      .filter((v): v is number => typeof v === 'number');
+    const percents = videoIds.map((id) => progressByVideo[id]?.completionPercent ?? 0);
+    return aggregatePercent(percents);
+  }, [entries, progressByVideo]);
 
   const variant = variantFor(formationId);
   const accent = variant.color;
@@ -143,6 +159,7 @@ export default function FormationOverviewScreen() {
                 </Text>
 
                 <View className="mt-6 flex-row flex-wrap gap-3">
+                  <StatCard accent={accent} icon="trending-up-outline" label="Progression" value={`${formationPercent}%`} />
                   <StatCard accent={accent} icon="list-outline" label="Chapitres" value={String(chapitres.length)} />
                   <StatCard accent={accent} icon="document-text-outline" label="Contenus" value={String(totalArticles)} />
                   {totalDurationMin > 0 ? (
@@ -171,6 +188,12 @@ export default function FormationOverviewScreen() {
                   <View className="gap-4">
                     {chapitres.map((chapitre) => {
                       const chapitreEntries = entries.filter((e) => e.chapitre.id === chapitre.id);
+                      const chapterVideoIds = chapitreEntries
+                        .map((e) => e.article.videoId)
+                        .filter((v): v is number => typeof v === 'number');
+                      const chapterPercent = aggregatePercent(
+                        chapterVideoIds.map((id) => progressByVideo[id]?.completionPercent ?? 0),
+                      );
                       return (
                         <View key={chapitre.id}>
                           <View className="mb-2 flex-row items-center gap-2">
@@ -180,9 +203,14 @@ export default function FormationOverviewScreen() {
                             >
                               {chapitre.sortOrder}.
                             </Text>
-                            <Text className="font-headline text-xs font-bold uppercase tracking-widest text-on-surface">
+                            <Text className="flex-1 font-headline text-xs font-bold uppercase tracking-widest text-on-surface">
                               {chapitre.title}
                             </Text>
+                            {chapterVideoIds.length > 0 ? (
+                              <Text className="font-mono text-[10px] text-primary">
+                                {chapterPercent}%
+                              </Text>
+                            ) : null}
                           </View>
                           {chapitreEntries.length === 0 ? (
                             <Text className="pl-4 text-xs italic text-on-surface-variant">
@@ -192,12 +220,12 @@ export default function FormationOverviewScreen() {
                             <View className="gap-1">
                               {chapitreEntries.map((entry) => (
                                 <ProgrammeItem
-                                  key={entry.article.id}
+                                  key={articleKey(entry.article)}
                                   entry={entry}
                                   onPress={() =>
                                     router.push({
                                       pathname: '/formations/[id]/[articleId]',
-                                      params: { id: String(formationId), articleId: String(entry.article.id) },
+                                      params: { id: String(formationId), articleId: articleKey(entry.article) },
                                     })
                                   }
                                 />
@@ -251,6 +279,9 @@ function StatCard({
 function ProgrammeItem({ entry, onPress }: { entry: Entry; onPress: () => void }) {
   const palette = useThemeColors();
   const mins = articleDurationMin(entry.article);
+  const progress = useProgressStore((s) =>
+    entry.article.videoId != null ? s.byVideoId[entry.article.videoId] : null,
+  );
   return (
     <Pressable
       onPress={onPress}
@@ -273,6 +304,11 @@ function ProgrammeItem({ entry, onPress }: { entry: Entry; onPress: () => void }
               <Icon name="time-outline" size={10} color={palette.onSurfaceVariant} />
               <Text className="font-mono text-[10px] text-on-surface-variant">{mins} min</Text>
             </View>
+          ) : null}
+          {progress ? (
+            <Text className="font-mono text-[10px] text-primary">
+              {progress.status === 'completed' ? '✓ Terminé' : `${Math.round(progress.completionPercent)}%`}
+            </Text>
           ) : null}
         </View>
       </View>

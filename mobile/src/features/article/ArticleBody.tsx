@@ -19,7 +19,9 @@ export function ArticleBody({ article }: Props) {
 
   return (
     <View className="gap-5">
-      {article.type === 'video' ? <VideoPlayer url={article.sourceUrl} /> : null}
+      {article.type === 'video' ? (
+        <VideoPlayer url={article.sourceUrl} videoId={article.videoId ?? null} />
+      ) : null}
 
       {article.type === 'link' && article.sourceUrl ? (
         <LinkCard

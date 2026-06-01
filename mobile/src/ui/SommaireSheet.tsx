@@ -7,6 +7,7 @@ import type { Chapitre } from '@src/schemas/chapitre.schema';
 import { Icon } from './Icon';
 import {
   articleDurationMin,
+  articleKey,
   contentTypeIcon,
   contentTypeLabel,
 } from '@src/utils/article-meta';
@@ -22,7 +23,7 @@ type Props = {
   onClose: () => void;
   chapitres: readonly Chapitre[];
   entries: readonly SommaireEntry[];
-  activeArticleId: number | null;
+  activeArticleKey: string | null;
   onSelect: (entry: SommaireEntry) => void;
 };
 
@@ -31,7 +32,7 @@ export function SommaireSheet({
   onClose,
   chapitres,
   entries,
-  activeArticleId,
+  activeArticleKey,
   onSelect,
 }: Props) {
   return (
@@ -111,9 +112,9 @@ export function SommaireSheet({
                     <View className="gap-1">
                       {chapitreEntries.map((entry) => (
                         <SommaireRow
-                          key={entry.article.id}
+                          key={articleKey(entry.article)}
                           entry={entry}
-                          active={entry.article.id === activeArticleId}
+                          active={articleKey(entry.article) === activeArticleKey}
                           onPress={() => onSelect(entry)}
                         />
                       ))}
