@@ -107,6 +107,12 @@ export class Dashboard {
     return [
       base,
       {
+        label: 'Ma progression',
+        description: 'Suivez votre avancement par matière.',
+        icon: 'icon-[heroicons--chart-bar]',
+        routerLink: '/progression',
+      },
+      {
         label: 'Mes paramètres',
         description: 'Gérez votre thème et votre session.',
         icon: 'icon-[heroicons--cog-6-tooth]',

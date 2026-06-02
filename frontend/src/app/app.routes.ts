@@ -36,6 +36,12 @@ export const routes: Routes = [
     canActivate: [authGuard],
     loadComponent: () => import('./features/settings/settings.page').then((m) => m.Settings),
   },
+  {
+    path: 'progression',
+    canActivate: [authGuard],
+    loadComponent: () =>
+      import('./features/progression/progression.page').then((m) => m.Progression),
+  },
 
   // ── Teacher hub (teacher only — l'admin a son propre hub /admin) ─────────
   {
