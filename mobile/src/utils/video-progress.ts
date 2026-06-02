@@ -17,7 +17,9 @@ export function computeCap(
 }
 
 export function deriveStatus(percent: number): ProgressStatus {
-  return percent >= COMPLETED_THRESHOLD ? 'completed' : 'in_progress';
+  if (percent >= COMPLETED_THRESHOLD) return 'completed';
+  if (percent > 0) return 'in_progress';
+  return 'not_started';
 }
 
 /** Moyenne entière d'une liste de pourcentages ; liste vide -> 0. */

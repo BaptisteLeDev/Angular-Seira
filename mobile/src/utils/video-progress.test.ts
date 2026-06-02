@@ -20,9 +20,12 @@ describe('deriveStatus', () => {
     expect(deriveStatus(95)).toBe('completed');
     expect(deriveStatus(100)).toBe('completed');
   });
-  it('in_progress en dessous de 95%', () => {
+  it('in_progress entre 0 (exclu) et 95%', () => {
     expect(deriveStatus(94.9)).toBe('in_progress');
-    expect(deriveStatus(0)).toBe('in_progress');
+    expect(deriveStatus(0.1)).toBe('in_progress');
+  });
+  it('not_started à 0%', () => {
+    expect(deriveStatus(0)).toBe('not_started');
   });
 });
 
