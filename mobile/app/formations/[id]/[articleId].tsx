@@ -39,6 +39,8 @@ export default function ArticleScreen() {
   const chapitres =
     useFormationStore((s) => s.chapitresByFormation[formationId]) ?? EMPTY;
   const chapitresStatus = useFormationStore((s) => s.chapitresStatusOf(formationId));
+  const formationError = useFormationStore((s) => s.error);
+  const chapitresError = useFormationStore((s) => s.chapitresErrorOf(formationId));
   const loadFormations = useFormationStore((s) => s.loadMine);
   const loadChapitres = useFormationStore((s) => s.loadChapitres);
 
@@ -117,6 +119,7 @@ export default function ArticleScreen() {
     formationStatus === 'loading' ||
     chapitresStatus === 'loading' ||
     (!active && entries.length === 0);
+  const errorMessage = formationError ?? chapitresError ?? null;
 
   const goTo = (entry: SommaireEntry) => {
     setSheetOpen(false);
@@ -149,6 +152,8 @@ export default function ArticleScreen() {
 
           {isLoading ? (
             <LoadingView label="Chargement..." />
+          ) : errorMessage ? (
+            <ErrorCard message={errorMessage} />
           ) : !active ? (
             <ErrorCard message="Contenu introuvable." />
           ) : (
