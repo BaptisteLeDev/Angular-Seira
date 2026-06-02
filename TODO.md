@@ -2,7 +2,7 @@
 
 > Plateforme pédagogique : écoles → classes → matières → chapitres → vidéos, avec suivi de progression certifié et IA intégrée. API centralisée Laravel + API Platform exposée via Swagger/OpenAPI.
 
-**État vérifié le 2026-06-01** — `[x]` = codé · `[ ]` = à faire · ⚠️ = partiel (détail entre parenthèses).
+**État vérifié le 2026-06-02** — `[x]` = codé · `[ ]` = à faire · ⚠️ = partiel (détail entre parenthèses).
 
 ---
 
@@ -71,20 +71,20 @@
 - [x] Accès aux matières *(`/formations`, `/formations/{id}`)*
 - [x] Ouverture d'un cours *(`/formations/{id}/{articleId}`, navigation prev/next)*
 - [x] Liste des vidéos à visionner *(sommaire/programme avec icônes + durée)*
-- [ ] Suivi de progression en temps réel *(aucun envoi de progression vidéo)*
+- [x] Suivi de progression en temps réel *(émission VideoProgress + ChapterProgress, reprise position, throttle — `core/api/progress.api.ts`, `core/stores/progress.store.ts`)*
 
 ### Lecteur vidéo contrôlé (anti-triche côté client)
-- [x] Lecteur vidéo *(`shared/ui/video-player.ts`, HTML5 + `controlsList=nodownload`)* — ⚠️ non « contrôlé »
-- [ ] Détection lecture active *(pas de listener `play`/`timeupdate`)*
-- [ ] Détection onglet actif / premier plan *(pas de `visibilitychange`)*
-- [ ] Blocage / invalidation au-delà de 2x
-- [ ] Réception et envoi des clés temporelles serveur par segment
+- [x] Lecteur vidéo *(`shared/ui/video-player.ts`, HTML5 + `controlsList=nodownload`)*
+- [x] Détection lecture active *(signal `isPlaying` sur `play`/`pause`/`ended` + indicateur)*
+- [x] Détection onglet actif / premier plan *(pause auto sur `visibilitychange`)*
+- [x] Blocage / invalidation au-delà de 2x *(`clampPlaybackRate` sur `ratechange`)*
+- [ ] Réception et envoi des clés temporelles serveur par segment *(backend prêt : `/watch-sessions/request|heartbeat`)*
 
 ### Tableaux de bord de suivi
-- [ ] Vue auto-évaluation élève
-- [ ] Vue suivi individuel formateur *(`/teacher/students` = liste sans stats)*
-- [ ] Vue globale école
-- [ ] Affichage : temps total, % par vidéo, statut, avancement par matière — ⚠️ seul le temps total matière s'affiche, % = position dans la liste d'articles
+- [x] Vue auto-évaluation élève *(`/progression` : KPIs temps/%/vidéos + avancement par matière)*
+- [ ] Vue suivi individuel formateur *(`/teacher/students` = liste sans stats ; backend prêt : `/aggregates/teacher`)*
+- [ ] Vue globale école *(backend prêt : `/aggregates/school`)*
+- [x] Affichage : temps total, % par vidéo, statut, avancement par matière *(côté élève sur `/progression`)* — ⚠️ vues formateur/école à brancher
 
 ### Interface IA enrichie
 - [ ] Chat contextuel à droite de la vidéo *(aucun composant chat/IA)*
@@ -94,12 +94,12 @@
 
 ## 📱 Mobile (Expo / React Native)
 
-- [ ] Parcours élève : classes → matières → cours → vidéos — ⚠️ matières/cours/vidéos OK, écran **classes** manquant (`classroom.api.ts` inutilisé)
+- [x] Parcours élève : classes → matières → cours → vidéos *(écran `/classes` : classe attribuée → matières — `ClassroomApi.get`)*
 - [x] Lecteur vidéo contrôlé *(`src/ui/VideoPlayer.tsx`, `expo-video`, vitesse verrouillée à 1x, anti-seek)*
 - [x] Détection lecture active + vitesse ≤ 2x *(listener `isPlaying`, `LOCKED_RATE = 1`)* — ⚠️ bypass possible en fullscreen natif
-- [ ] Réception / envoi des clés temporelles serveur *(`currentTime` capturé mais non envoyé)*
-- [ ] Suivi de progression en temps réel *(aucun store/sync de progression)*
-- [ ] Affichage du suivi pédagogique (temps, %, statut, avancement)
+- [ ] Réception / envoi des clés temporelles serveur *(`currentTime` capturé mais non envoyé ; backend prêt : `/watch-sessions/*`)*
+- [x] Suivi de progression en temps réel *(`progress.store` sync VideoProgress, POST/PATCH best-effort)*
+- [x] Affichage du suivi pédagogique (temps, %, statut, avancement) *(écran `/progress` : temps visionné, % moyen, vidéos commencées/terminées)*
 - [ ] Chat IA contextuel
 - [x] Authentification (token Sanctum + `expo-secure-store`) *(`src/stores/auth.store.ts`)*
 - [x] Gestion des rôles (`RoleGate` / `use-role-guard`) *(`src/ui/RoleGate.tsx`)*
