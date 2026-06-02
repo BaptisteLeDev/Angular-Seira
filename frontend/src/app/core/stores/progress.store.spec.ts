@@ -114,6 +114,24 @@ describe('ProgressStore.reportChapter', () => {
   });
 });
 
+describe('ProgressStore.applyHeartbeat', () => {
+  it('met à jour l’entrée vidéo avec le temps certifié', () => {
+    const api = makeApi();
+    const store = setup(api);
+    store.applyHeartbeat(7, {
+      validatedSeconds: 90,
+      segmentValidated: 30,
+      completionPercent: 75,
+      status: 'in_progress',
+    });
+    expect(store.byVideoId()[7]).toMatchObject({
+      watchedSeconds: 90,
+      completionPercent: 75,
+      status: 'in_progress',
+    });
+  });
+});
+
 describe('ProgressStore.hydrate', () => {
   it('charge vidéos + chapitres et indexe par id', async () => {
     const api = makeApi();

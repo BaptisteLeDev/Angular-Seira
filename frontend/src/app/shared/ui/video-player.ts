@@ -13,6 +13,7 @@ import {
 import { DomSanitizer, type SafeResourceUrl } from '@angular/platform-browser';
 import { youtubeEmbedUrl } from '../../core/utils/video-url';
 import { ProgressStore } from '../../core/stores/progress.store';
+import { WatchSessionService } from '../../core/stores/watch-session.service';
 import { buildVideoProgressPayload, shouldFlush } from '../../core/utils/video-progress';
 import { clampPlaybackRate } from '../../core/utils/playback';
 
@@ -85,6 +86,7 @@ export class VideoPlayer {
 
   private readonly sanitizer = inject(DomSanitizer);
   private readonly progress = inject(ProgressStore);
+  private readonly watch = inject(WatchSessionService);
 
   /** Passe à true quand la vraie URL échoue, pour basculer sur le placeholder. */
   private readonly failed = signal(false);
@@ -105,11 +107,13 @@ export class VideoPlayer {
     effect(() => {
       this.url();
       this.videoId();
+      const id = this.videoId();
       this.failed.set(false);
       this.cap = 0;
       this.lastSent = 0;
       this.resumed = false;
       this.isPlaying.set(false);
+      if (id != null) this.watch.reset(id);
     });
 
     // Hydrate la progression connue (pour la reprise + les tableaux de bord).
@@ -132,6 +136,11 @@ export class VideoPlayer {
     }
     if (this.trackingEnabled && shouldFlush(this.cap, this.lastSent)) {
       this.flush();
+    }
+    // Visionnage certifié (clés temporelles) : piloté par le plafond vu.
+    const id = this.videoId();
+    if (this.trackingEnabled && id != null && isFinite(v.duration) && v.duration > 0) {
+      this.watch.track(id, this.cap, v.duration);
     }
   }
 

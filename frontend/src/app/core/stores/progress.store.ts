@@ -5,6 +5,7 @@ import { ProgressApi } from '../api/progress.api';
 import { iriToId } from '../utils/iri';
 import type { ProgressStatus, VideoProgressPayload, ChapterProgressPayload } from '../utils/video-progress';
 import type { VideoProgress, ChapterProgress } from '../schemas/progress.schema';
+import type { HeartbeatResult } from '../schemas/watch-session.schema';
 
 interface VideoEntry {
   readonly id: number | null;
@@ -159,6 +160,22 @@ export class ProgressStore {
       map(() => undefined),
       catchError(() => of(undefined)),
     );
+  }
+
+  /**
+   * Applique le résultat d'un heartbeat de watch-session (temps certifié serveur)
+   * à l'entrée vidéo locale, pour que les tableaux de bord reflètent l'autorité.
+   */
+  applyHeartbeat(videoId: number, result: HeartbeatResult): void {
+    this._byVideoId.update((m) => ({
+      ...m,
+      [videoId]: {
+        id: m[videoId]?.id ?? null,
+        watchedSeconds: result.validatedSeconds,
+        completionPercent: result.completionPercent,
+        status: result.status,
+      },
+    }));
   }
 
   reset(): void {
