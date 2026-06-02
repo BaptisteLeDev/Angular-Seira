@@ -22,6 +22,12 @@ const QUICK: readonly Quick[] = [
     href: '/teacher/students',
   },
   {
+    label: 'Suivi des élèves',
+    description: 'Progression par matière et par classe.',
+    icon: 'bar-chart-outline',
+    href: '/teacher/suivi',
+  },
+  {
     label: 'Mes matières',
     description: 'Formations dont vous êtes responsable.',
     icon: 'book-outline',
