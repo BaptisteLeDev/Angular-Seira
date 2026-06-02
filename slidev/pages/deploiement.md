@@ -6,6 +6,10 @@ transition: slide-left
 # 5 · Déploiement & DevOps
 <div class="text-base opacity-70 mt-2">Préparer, documenter et mettre en production</div>
 
+<!--
+[~15 s — transition] Cinquième partie : comment je prépare, documente et mets en production l'application.
+-->
+
 ---
 layout: default
 ---
@@ -49,6 +53,10 @@ Comptes de seed documentés pour démo : <code>admin</code> / <code>prof</code> 
 
 </div>
 
+<!--
+[~50 s] Pour la préparation, deux cibles distinctes. Le backend est conteneurisé : tout est décrit dans le docker-compose, les migrations et seeders sont versionnés, et la configuration passe par les variables d'environnement. Le frontend, lui, est déployé sur Vercel : le vercel.json gère l'installation pnpm, le build, et surtout le rewrite SPA vers index.html — indispensable pour qu'une URL profonde fonctionne au rechargement. Les variables NG_APP sont définies dans Vercel. Côté documentation livrée : CLAUDE.md pour l'architecture et les commandes, SCHEMA_BDD comme source de vérité du modèle, un TODO de suivi, et le contrat OpenAPI auto-généré. J'ai aussi documenté trois comptes de seed — admin, prof, élève — pour rendre la démo immédiate.
+-->
+
 ---
 layout: default
 ---
@@ -89,3 +97,8 @@ Piste d'amélioration : ajouter une <b>CI</b> (GitHub Actions) exécutant la sui
 </div>
 
 </div>
+
+<!--
+[~45 s] Ma démarche DevOps suit un flux simple et continu : un push sur une branche déclenche un build et un déploiement automatique sur Vercel — un environnement de preview par branche, la production sur la branche principale. Docker me garantit la parité des environnements, du local à l'intégration. Et l'intégration se fait par Pull Request : une branche par lot, revue, puis fusion. Je termine sur une piste d'amélioration que j'assume comme telle : aujourd'hui les tests se lancent manuellement ; la prochaine étape est une CI GitHub Actions qui exécuterait la suite à chaque PR pour bloquer toute régression avant la fusion. C'est volontairement présenté comme un axe de progression, pas comme un acquis.
+-->
+
