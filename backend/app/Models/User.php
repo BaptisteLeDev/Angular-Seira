@@ -109,6 +109,12 @@ class User extends Authenticatable
         return $this->belongsTo(School::class);
     }
 
+    /** Toutes les écoles de l'utilisateur (via le pivot user_school). */
+    public function schools(): \Illuminate\Database\Eloquent\Relations\BelongsToMany
+    {
+        return $this->belongsToMany(School::class, 'user_school')->withTimestamps();
+    }
+
     public function classroom(): BelongsTo
     {
         return $this->belongsTo(Classroom::class);

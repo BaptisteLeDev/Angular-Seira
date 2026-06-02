@@ -30,17 +30,17 @@
 - [x] Gestion des contenus vidéo *(`Video.source_url`, `duration_seconds`)*
 
 ### Suivi avancé anti-triche (cœur backend)
-- [ ] Génération serveur de **clés temporelles dynamiques**
-- [ ] Validation du temps de visionnage par segment via clé valide
-- [ ] Rendre impossible la simulation de temps sans validation serveur
-- [ ] Persistance d'un suivi **certifié** par élève — ⚠️ `VideoProgress` existe mais accepte `watched_seconds_validated` sans clé
+- [x] Génération serveur de **clés temporelles dynamiques** *(`WatchTokenService`, HMAC-SHA256)*
+- [x] Validation du temps de visionnage par segment via clé valide *(`POST /api/watch-sessions/heartbeat`)*
+- [x] Rendre impossible la simulation de temps sans validation serveur *(fenêtre temporelle stricte + anti-replay nonce)*
+- [x] Persistance d'un suivi **certifié** par élève *(`watched_seconds_validated` modifiable uniquement via heartbeat)*
 
 ### Données de suivi pédagogique (exposition API)
 - [x] Temps total visionné *(`VideoProgress.watched_seconds_validated`)*
 - [x] Pourcentage par vidéo *(`completion_percent`)*
 - [x] Statut (vu / partiellement vu / non vu) *(`status`: not_started/in_progress/completed)*
 - [x] Avancement par matière *(agrégeable via `VideoProgress`)*
-- [ ] Vues agrégées élève / formateur / école — ⚠️ provider filtre `own`/`admin` uniquement, pas d'endpoint formateur/école
+- [x] Vues agrégées élève / formateur / école *(`GET /api/aggregates/teacher` + `GET /api/aggregates/school`)*
 
 ### Sécurité & conformité
 - [ ] Logs d'activité *(aucune table audit/activity_log)*

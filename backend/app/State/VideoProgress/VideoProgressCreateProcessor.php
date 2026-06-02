@@ -44,10 +44,11 @@ class VideoProgressCreateProcessor implements ProcessorInterface
             throw new ConflictHttpException('Progress already exists for this user and video.');
         }
 
+        // watched_seconds_validated forcé à 0 — seul le heartbeat peut l'incrémenter
         return VideoProgress::query()->create([
             'user_id' => $user->id,
             'video_id' => $videoId,
-            'watched_seconds_validated' => $data->watched_seconds_validated,
+            'watched_seconds_validated' => 0,
             'completion_percent' => $data->completion_percent,
             'status' => $data->status,
             'last_seen_at' => $data->last_seen_at,
