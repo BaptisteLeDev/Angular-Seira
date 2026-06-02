@@ -2,6 +2,7 @@ import {
   ChangeDetectionStrategy,
   Component,
   ElementRef,
+  HostListener,
   computed,
   effect,
   inject,
@@ -13,6 +14,7 @@ import { DomSanitizer, type SafeResourceUrl } from '@angular/platform-browser';
 import { youtubeEmbedUrl } from '../../core/utils/video-url';
 import { ProgressStore } from '../../core/stores/progress.store';
 import { buildVideoProgressPayload, shouldFlush } from '../../core/utils/video-progress';
+import { clampPlaybackRate } from '../../core/utils/playback';
 
 /**
  * Vidéo de démonstration servie depuis frontend/public/dev-assets. Affichée en
@@ -52,11 +54,27 @@ const FALLBACK_VIDEO = '/dev-assets/sample-video.mp4';
           (timeupdate)="onTimeUpdate()"
           (seeking)="onSeeking()"
           (loadedmetadata)="onLoadedMetadata()"
-          (pause)="flush()"
-          (ended)="flush()"
+          (play)="onPlay()"
+          (pause)="onPause()"
+          (ratechange)="onRateChange()"
+          (ended)="onEnded()"
         ></video>
       }
     </div>
+    @if (!embedUrl()) {
+      <p
+        class="mt-2 flex items-center gap-1.5 text-xs text-on-surface-variant"
+        aria-live="polite"
+      >
+        <span
+          class="size-2 rounded-full transition-colors"
+          [class.bg-emerald-500]="isPlaying()"
+          [class.bg-on-surface-variant]="!isPlaying()"
+          aria-hidden="true"
+        ></span>
+        {{ isPlaying() ? 'En lecture' : 'En pause' }}
+      </p>
+    }
   `,
 })
 export class VideoPlayer {
@@ -70,6 +88,9 @@ export class VideoPlayer {
 
   /** Passe à true quand la vraie URL échoue, pour basculer sur le placeholder. */
   private readonly failed = signal(false);
+
+  /** État de lecture courant (détection lecture active / en pause). */
+  protected readonly isPlaying = signal(false);
 
   /** Plafond anti-skip : position max vue en lecture continue (secondes). */
   private cap = 0;
@@ -88,6 +109,7 @@ export class VideoPlayer {
       this.cap = 0;
       this.lastSent = 0;
       this.resumed = false;
+      this.isPlaying.set(false);
     });
 
     // Hydrate la progression connue (pour la reprise + les tableaux de bord).
@@ -138,6 +160,38 @@ export class VideoPlayer {
     this.lastSent = Math.floor(this.cap);
     const payload = buildVideoProgressPayload(this.cap, v.duration, new Date().toISOString());
     this.progress.reportVideo(id, payload).subscribe();
+  }
+
+  protected onPlay(): void {
+    this.isPlaying.set(true);
+  }
+
+  protected onPause(): void {
+    this.isPlaying.set(false);
+    this.flush();
+  }
+
+  protected onEnded(): void {
+    this.isPlaying.set(false);
+    this.flush();
+  }
+
+  /** Anti-triche : interdit toute vitesse de lecture au-delà de 2x. */
+  protected onRateChange(): void {
+    const v = this.video()?.nativeElement;
+    if (!v) return;
+    const clamped = clampPlaybackRate(v.playbackRate);
+    if (v.playbackRate !== clamped) {
+      v.playbackRate = clamped;
+    }
+  }
+
+  /** Met en pause dès que l'onglet passe en arrière-plan (présence active). */
+  @HostListener('document:visibilitychange')
+  protected onVisibilityChange(): void {
+    if (typeof document !== 'undefined' && document.hidden) {
+      this.video()?.nativeElement?.pause();
+    }
   }
 
   /**
