@@ -100,10 +100,6 @@ export class AuthStore {
     localStorage.removeItem(USER_KEY);
   }
 
-  isTokenExpired(): boolean {
-    return this._token() === null;
-  }
-
   private persistToken(token: string): void {
     this._token.set(token);
     localStorage.setItem(TOKEN_KEY, token);

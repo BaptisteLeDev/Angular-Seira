@@ -174,7 +174,7 @@ export const routes: Routes = [
 
   // ── Legacy redirects ─────────────────────────────────────────────────────
   { path: 'courses', redirectTo: 'formations', pathMatch: 'full' },
-  { path: 'courses/:id', redirectTo: 'formations', pathMatch: 'full' },
+  { path: 'courses/:formationId', redirectTo: 'formations/:formationId', pathMatch: 'full' },
 
   // ── 404 ──────────────────────────────────────────────────────────────────
   {
