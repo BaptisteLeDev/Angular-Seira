@@ -68,3 +68,17 @@ test('erreur reseau n\'jette pas et libere le in-flight', async () => {
   await expect(useProgressStore.getState().report(3, payload)).resolves.toBeUndefined();
   expect(useProgressStore.getState().inFlight[3]).toBeFalsy();
 });
+
+test('applyHeartbeat met à jour le temps certifié de la vidéo', () => {
+  useProgressStore.getState().applyHeartbeat(3, {
+    validatedSeconds: 90,
+    segmentValidated: 30,
+    completionPercent: 75,
+    status: 'in_progress',
+  });
+  expect(useProgressStore.getState().byVideoId[3]).toMatchObject({
+    watchedSeconds: 90,
+    completionPercent: 75,
+    status: 'in_progress',
+  });
+});

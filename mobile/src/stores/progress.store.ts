@@ -3,6 +3,7 @@ import { HttpError } from '@src/api/client';
 import { iriToId } from '@src/utils/iri';
 import { VideoProgressApi, type ProgressPayload } from '@src/api/video-progress.api';
 import type { ProgressStatus } from '@src/utils/video-progress';
+import type { HeartbeatResult } from '@src/schemas/watch-session.schema';
 
 type Entry = {
   id: number | null;
@@ -18,6 +19,7 @@ type ProgressState = {
 
   hydrate: (force?: boolean) => Promise<void>;
   report: (videoId: number, payload: ProgressPayload) => Promise<void>;
+  applyHeartbeat: (videoId: number, result: HeartbeatResult) => void;
 };
 
 export const useProgressStore = create<ProgressState>((set, get) => ({
@@ -94,6 +96,20 @@ export const useProgressStore = create<ProgressState>((set, get) => ({
         return { inFlight: next };
       });
     }
+  },
+
+  applyHeartbeat(videoId, result) {
+    set((s) => ({
+      byVideoId: {
+        ...s.byVideoId,
+        [videoId]: {
+          id: s.byVideoId[videoId]?.id ?? null,
+          watchedSeconds: result.validatedSeconds,
+          completionPercent: result.completionPercent,
+          status: result.status,
+        },
+      },
+    }));
   },
 
 }));

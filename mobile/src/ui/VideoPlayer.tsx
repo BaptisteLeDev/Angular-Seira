@@ -7,6 +7,7 @@ import { WebView } from 'react-native-webview';
 import { FALLBACK_VIDEO_SOURCE, resolveVideoSource } from '@src/constants/video';
 import { colors } from '@src/constants/theme';
 import { useProgressStore } from '@src/stores/progress.store';
+import { useWatchSessionStore } from '@src/stores/watch-session.store';
 import { clampPercent, computeCap, deriveStatus } from '@src/utils/video-progress';
 import { youtubeEmbedUrl } from '@src/utils/video-url';
 import { Icon } from './Icon';
@@ -49,11 +50,15 @@ function YoutubeEmbed({ embedUrl }: { embedUrl: string }) {
 function NativeVideoPlayer({ url, videoId }: Props) {
   const videoRef = useRef<VideoView>(null);
 
+  const trackSegment = useWatchSessionStore((s) => s.track);
+  const resetWatch = useWatchSessionStore((s) => s.reset);
+
   // Si la vraie source échoue, on bascule sur la vidéo de démonstration locale.
   const [useFallback, setUseFallback] = useState(false);
   useEffect(() => {
     setUseFallback(false);
-  }, [url]);
+    if (videoId != null) resetWatch(videoId);
+  }, [url, videoId, resetWatch]);
 
   const source = useFallback ? FALLBACK_VIDEO_SOURCE : resolveVideoSource(url);
 
@@ -158,7 +163,11 @@ function NativeVideoPlayer({ url, videoId }: Props) {
     if (Math.floor(next) - lastSentRef.current >= 8) {
       flush();
     }
-  }, [currentTime, player, useFallback, flush]);
+    // Visionnage certifié (clés temporelles), piloté par le plafond vu.
+    if (trackingEnabled && videoId != null && durationRef.current > 0) {
+      void trackSegment(videoId, next, durationRef.current);
+    }
+  }, [currentTime, player, useFallback, flush, trackingEnabled, videoId, trackSegment]);
 
   // Envois finaux : pause, fin de lecture, démontage.
   useEffect(() => {
