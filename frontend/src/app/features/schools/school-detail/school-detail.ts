@@ -15,6 +15,8 @@ import { AuthStore } from '../../../core/stores/auth.store';
 import { ToastService } from '../../../shared/feedback/toast.service';
 import { ConfirmDialogService } from '../../../shared/feedback/confirm-dialog.service';
 import { SchoolFormDialog, type SchoolFormPayload } from '../../../shared/dialogs/school-form.dialog';
+import { FormationFormDialog, type FormationFormPayload } from '../../../shared/dialogs/formation-form.dialog';
+import type { Formation } from '../../../core/schemas/formation.schema';
 
 /**
  * Vue : détail d'une école + résumé des classes + liens.
@@ -23,7 +25,7 @@ import { SchoolFormDialog, type SchoolFormPayload } from '../../../shared/dialog
  */
 @Component({
   selector: 'app-school-detail',
-  imports: [RouterLink, SchoolFormDialog],
+  imports: [RouterLink, SchoolFormDialog, FormationFormDialog],
   templateUrl: './school-detail.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
@@ -38,6 +40,8 @@ export class SchoolDetail implements OnInit {
 
   protected readonly schoolId = input.required<string>();
   protected readonly dialogOpen = signal(false);
+  protected readonly formationDialogOpen = signal(false);
+  protected readonly editingFormation = signal<Formation | null>(null);
 
   protected readonly school = computed(() => this.schoolStore.selected());
   protected readonly classrooms = computed(() => {
@@ -101,6 +105,58 @@ export class SchoolDetail implements OnInit {
         this.toast.success('École supprimée.');
         void this.router.navigate(['/schools']);
       },
+      error: (err: unknown) =>
+        this.toast.error(err instanceof Error ? err.message : 'Erreur lors de la suppression.'),
+    });
+  }
+
+  // ── Matières (formations) ────────────────────────────────────────────────
+  protected openCreateFormation(): void {
+    this.editingFormation.set(null);
+    this.formationDialogOpen.set(true);
+  }
+
+  protected openEditFormation(formation: Formation): void {
+    this.editingFormation.set(formation);
+    this.formationDialogOpen.set(true);
+  }
+
+  protected onFormationSubmit(payload: FormationFormPayload): void {
+    const current = this.school();
+    if (!current) return;
+    const editing = this.editingFormation();
+    const op = editing
+      ? this.formationStore.update(editing.id, {
+          name: payload.name,
+          description: payload.description ?? undefined,
+          expectedHours: payload.expectedHours ?? undefined,
+        })
+      : this.formationStore.create({
+          name: payload.name,
+          description: payload.description ?? undefined,
+          expectedHours: payload.expectedHours ?? undefined,
+          school: `/api/schools/${current.id}`,
+        });
+    op.subscribe({
+      next: () => {
+        this.formationDialogOpen.set(false);
+        this.toast.success(editing ? 'Matière mise à jour.' : 'Matière créée.');
+      },
+      error: (err: unknown) =>
+        this.toast.error(err instanceof Error ? err.message : 'Erreur sur la matière.'),
+    });
+  }
+
+  protected async onDeleteFormation(formation: Formation): Promise<void> {
+    const ok = await this.confirmSvc.confirm({
+      title: `Supprimer « ${formation.name} » ?`,
+      message: 'Cette matière et son rattachement seront retirés (suppression logique).',
+      confirmLabel: 'Supprimer',
+      tone: 'danger',
+    });
+    if (!ok) return;
+    this.formationStore.delete(formation.id).subscribe({
+      next: () => this.toast.success('Matière supprimée.'),
       error: (err: unknown) =>
         this.toast.error(err instanceof Error ? err.message : 'Erreur lors de la suppression.'),
     });

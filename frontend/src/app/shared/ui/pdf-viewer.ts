@@ -1,6 +1,7 @@
 import {
   ChangeDetectionStrategy,
   Component,
+  HostListener,
   computed,
   effect,
   inject,
@@ -34,27 +35,53 @@ const FALLBACK_PDF = '/dev-assets/sample.pdf';
           <button
             type="button"
             class="flex size-9 items-center justify-center squircle-md bg-surface-container-high text-on-surface transition-colors hover:bg-surface-container-highest focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
-            [attr.aria-label]="fullscreen() ? 'Quitter le plein écran' : 'Plein écran'"
-            (click)="toggleFullscreen()"
+            aria-label="Agrandir le document"
+            (click)="open()"
           >
-            <span
-              class="text-base"
-              [class]="
-                fullscreen()
-                  ? 'icon-[heroicons--arrows-pointing-in]'
-                  : 'icon-[heroicons--arrows-pointing-out]'
-              "
-              aria-hidden="true"
-            ></span>
+            <span class="icon-[heroicons--arrows-pointing-out] text-base" aria-hidden="true"></span>
           </button>
         </header>
         <iframe
           [src]="safeUrl()"
-          class="block w-full border-0"
-          [style.height]="fullscreen() ? '80vh' : '480px'"
+          class="block h-[480px] w-full border-0"
           [title]="fileName() ?? 'PDF'"
         ></iframe>
       </div>
+
+      <!-- Modal plein écran -->
+      @if (fullscreen()) {
+        <div
+          class="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4 sm:p-8"
+          role="dialog"
+          aria-modal="true"
+          [attr.aria-label]="fileName() ?? 'Document PDF'"
+          (click)="close()"
+        >
+          <div
+            class="flex h-[92vh] w-full max-w-6xl flex-col overflow-hidden squircle-xl bg-surface-container-lowest ghost-border"
+            (click)="$event.stopPropagation()"
+          >
+            <header class="flex items-center justify-between bg-surface-container-low px-4 py-3">
+              <p class="min-w-0 flex-1 truncate pr-3 font-headline text-sm font-bold text-on-surface">
+                {{ fileName() ?? 'Document PDF' }}
+              </p>
+              <button
+                type="button"
+                class="flex size-9 items-center justify-center squircle-md bg-surface-container-high text-on-surface transition-colors hover:bg-surface-container-highest focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+                aria-label="Fermer"
+                (click)="close()"
+              >
+                <span class="icon-[heroicons--x-mark] text-lg" aria-hidden="true"></span>
+              </button>
+            </header>
+            <iframe
+              [src]="safeUrl()"
+              class="block w-full flex-1 border-0"
+              [title]="fileName() ?? 'PDF'"
+            ></iframe>
+          </div>
+        </div>
+      }
     } @else {
       <div
         class="flex flex-col items-center squircle-xl bg-surface-container-low p-6 ghost-border"
@@ -111,7 +138,16 @@ export class PdfViewer {
     return u ? this.sanitizer.bypassSecurityTrustResourceUrl(u) : null;
   });
 
-  protected toggleFullscreen(): void {
-    this.fullscreen.update((v) => !v);
+  protected open(): void {
+    this.fullscreen.set(true);
+  }
+
+  protected close(): void {
+    this.fullscreen.set(false);
+  }
+
+  @HostListener('document:keydown.escape')
+  protected onEscape(): void {
+    if (this.fullscreen()) this.close();
   }
 }
