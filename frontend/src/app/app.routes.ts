@@ -42,6 +42,12 @@ export const routes: Routes = [
     loadComponent: () =>
       import('./features/progression/progression.page').then((m) => m.Progression),
   },
+  {
+    path: 'student',
+    ...requireRoles('student'),
+    loadComponent: () =>
+      import('./features/student/student-space.page').then((m) => m.StudentSpace),
+  },
 
   // ── Teacher hub (teacher only — l'admin a son propre hub /admin) ─────────
   {

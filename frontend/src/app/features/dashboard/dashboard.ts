@@ -117,6 +117,12 @@ export class Dashboard {
     }
 
     return [
+      {
+        label: 'Mon espace',
+        description: 'Ma classe, mes matières, ma progression.',
+        icon: 'icon-[heroicons--home-modern]',
+        routerLink: '/student',
+      },
       base,
       {
         label: 'Ma progression',
