@@ -7,6 +7,7 @@ import {
   input,
   signal,
 } from '@angular/core';
+import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 
 /**
@@ -72,30 +73,29 @@ export class PdfViewer {
   readonly fileName = input<string | null>(null);
 
   private readonly sanitizer = inject(DomSanitizer);
+  private readonly http = inject(HttpClient);
   protected readonly fullscreen = signal(false);
 
   /** Passe à true quand la vraie URL est injoignable, pour basculer sur le placeholder (dev). */
   private readonly failed = signal(false);
 
   constructor() {
-    // On sonde l'URL réelle : un 404 bascule sur le placeholder. Une erreur
-    // réseau/CORS ne déclenche pas le fallback (on garde l'URL telle quelle, car
-    // indéterminée — l'iframe affichera le PDF si l'URL est en réalité valide).
+    // On sonde l'URL réelle via HttpClient (intercepteur JWT appliqué → un PDF
+    // protégé renvoie 200 au lieu de 401). Seul un 404 bascule sur le
+    // placeholder ; 401/403/réseau restent indéterminés (on garde l'URL).
     effect((onCleanup) => {
       const u = this.url();
       this.failed.set(false);
       if (!u || u.length === 0) return;
-      let cancelled = false;
-      onCleanup(() => {
-        cancelled = true;
+      const sub = this.http.head(u, { observe: 'response' }).subscribe({
+        next: () => {},
+        error: (err: unknown) => {
+          if (err instanceof HttpErrorResponse && err.status === 404) {
+            this.failed.set(true);
+          }
+        },
       });
-      fetch(u, { method: 'HEAD' })
-        .then((res) => {
-          if (!cancelled && !res.ok) this.failed.set(true);
-        })
-        .catch(() => {
-          /* CORS / réseau : indéterminé, on n'active pas le fallback. */
-        });
+      onCleanup(() => sub.unsubscribe());
     });
   }
 
