@@ -1,5 +1,5 @@
-import { useEffect, useState } from 'react';
-import { View, Text, Pressable, ScrollView, Modal, Alert } from 'react-native';
+import { useCallback, useEffect, useState } from 'react';
+import { View, Text, Pressable, ScrollView, Modal, Alert, RefreshControl } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 
@@ -24,9 +24,19 @@ export default function FormationsScreen() {
   const loadMine = useFormationStore((s) => s.loadMine);
 
   const [accessRequest, setAccessRequest] = useState<Formation | null>(null);
+  const [refreshing, setRefreshing] = useState(false);
 
   useEffect(() => {
     void loadMine();
+  }, [loadMine]);
+
+  const onRefresh = useCallback(async () => {
+    setRefreshing(true);
+    try {
+      await loadMine(true);
+    } finally {
+      setRefreshing(false);
+    }
   }, [loadMine]);
 
   const requestAccess = (formation: Formation) => {
@@ -42,6 +52,9 @@ export default function FormationsScreen() {
       <ScrollView
         style={{ backgroundColor: palette.background }}
         contentContainerStyle={{ paddingBottom: 40 }}
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={palette.primary} />
+        }
       >
         <View className="px-4 py-8">
           <Text className="mb-3 font-headline text-xs font-bold uppercase tracking-[3px] text-primary">

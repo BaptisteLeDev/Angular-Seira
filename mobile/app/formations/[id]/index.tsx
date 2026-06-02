@@ -1,5 +1,5 @@
-import { useEffect, useMemo } from 'react';
-import { Pressable, ScrollView, Text, View } from 'react-native';
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import { Pressable, RefreshControl, ScrollView, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Link, useLocalSearchParams, useRouter } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -58,6 +58,29 @@ export default function FormationOverviewScreen() {
       void loadByChapitre(c.id, [...(c.contents ?? [])], [...(c.videos ?? [])]);
   }, [chapitres, loadByChapitre]);
   useEffect(() => { void hydrateProgress(); }, [hydrateProgress]);
+
+  // Pull-to-refresh : recharge de force matières, chapitres, contenus et
+  // progression (les stores sont sinon en cache mémoire et n'affichent pas
+  // le contenu ajouté pendant que l'app tourne).
+  const [refreshing, setRefreshing] = useState(false);
+  const onRefresh = useCallback(async () => {
+    setRefreshing(true);
+    try {
+      await loadFormations(true);
+      if (!Number.isNaN(formationId)) {
+        await loadChapitres(formationId, true);
+        const chs = useFormationStore.getState().chapitresByFormation[formationId] ?? [];
+        await Promise.all(
+          chs.map((c) =>
+            loadByChapitre(c.id, [...(c.contents ?? [])], [...(c.videos ?? [])], true),
+          ),
+        );
+      }
+      await hydrateProgress(true);
+    } finally {
+      setRefreshing(false);
+    }
+  }, [loadFormations, loadChapitres, loadByChapitre, hydrateProgress, formationId]);
 
   const entries = useMemo<Entry[]>(() => {
     let i = 0;
@@ -127,6 +150,13 @@ export default function FormationOverviewScreen() {
       <ScrollView
         style={{ backgroundColor: palette.background }}
         contentContainerStyle={{ paddingBottom: 48, backgroundColor: palette.background }}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            tintColor={palette.primary}
+          />
+        }
       >
         <View className="px-4 py-6">
           <Pressable
