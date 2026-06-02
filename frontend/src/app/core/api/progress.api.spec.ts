@@ -61,7 +61,6 @@ describe('ProgressApi', () => {
     expect(req.request.method).toBe('POST');
     expect(req.request.body).toEqual({
       video_id: 7,
-      watched_seconds_validated: 30,
       completion_percent: 50,
       status: 'in_progress',
       last_seen_at: '2026-06-02T10:00:00.000Z',
@@ -81,7 +80,6 @@ describe('ProgressApi', () => {
     const req = http.expectOne(`${base}/video-progress/1`);
     expect(req.request.method).toBe('PATCH');
     expect(req.request.body).toEqual({
-      watchedSecondsValidated: 90,
       completionPercent: 96,
       status: 'completed',
       lastSeenAt: '2026-06-02T11:00:00.000Z',

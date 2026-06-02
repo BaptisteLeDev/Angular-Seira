@@ -38,8 +38,9 @@ export class ProgressApi {
   createVideoProgress(videoId: number, p: VideoProgressPayload): Observable<VideoProgress> {
     return this.http
       .post<unknown>(`${this.apiUrl}/video-progress`, {
+        // watched_seconds_validated n'est plus accepté : le temps certifié
+        // est exclusivement crédité via les watch-sessions (heartbeat).
         video_id: videoId,
-        watched_seconds_validated: p.watchedSecondsValidated,
         completion_percent: p.completionPercent,
         status: p.status,
         last_seen_at: p.lastSeenAt,
@@ -50,7 +51,7 @@ export class ProgressApi {
   updateVideoProgress(id: number, p: VideoProgressPayload): Observable<VideoProgress> {
     return this.http
       .patch<unknown>(`${this.apiUrl}/video-progress/${id}`, {
-        watchedSecondsValidated: p.watchedSecondsValidated,
+        // watched_seconds_validated certifié via heartbeat uniquement.
         completionPercent: p.completionPercent,
         status: p.status,
         lastSeenAt: p.lastSeenAt,

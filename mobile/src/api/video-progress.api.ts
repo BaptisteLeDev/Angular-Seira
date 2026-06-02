@@ -27,8 +27,8 @@ export const VideoProgressApi = {
     const raw = await apiRequest<unknown>('/video-progress', {
       method: 'POST',
       body: {
+        // watched_seconds_validated certifié via heartbeat (watch-sessions).
         video_id: videoId,
-        watched_seconds_validated: p.watchedSecondsValidated,
         completion_percent: p.completionPercent,
         status: p.status,
         last_seen_at: p.lastSeenAt,
@@ -42,7 +42,6 @@ export const VideoProgressApi = {
     const raw = await apiRequest<unknown>(`/video-progress/${id}`, {
       method: 'PATCH',
       body: {
-        watchedSecondsValidated: p.watchedSecondsValidated,
         completionPercent: p.completionPercent,
         status: p.status,
         lastSeenAt: p.lastSeenAt,
