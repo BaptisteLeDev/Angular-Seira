@@ -9,6 +9,7 @@ import {
 import { AuthStore } from '../../core/stores/auth.store';
 import { ClassStore } from '../../core/stores/class.store';
 import { FormationStore } from '../../core/stores/formation.store';
+import { UserStore } from '../../core/stores/user.store';
 import { ScreenShell } from '../../shared/layout/screen-shell.component';
 import { LoadingView } from '../../shared/ui/loading-view';
 import { EmptyState } from '../../shared/ui/empty-state';
@@ -16,6 +17,8 @@ import { iriToId } from '../../core/utils/iri';
 
 interface StudentRef {
   readonly id: number;
+  readonly name: string;
+  readonly email: string | null;
   readonly classroomName: string;
 }
 
@@ -48,12 +51,15 @@ interface StudentRef {
             >
               <div class="flex items-center gap-3">
                 <span
-                  class="flex size-9 items-center justify-center squircle-md bg-primary/15 font-mono text-xs text-primary"
+                  class="flex size-9 items-center justify-center squircle-md bg-primary/15 font-headline text-xs font-bold text-primary"
                 >
-                  #{{ s.id }}
+                  {{ s.name.charAt(0).toUpperCase() }}
                 </span>
-                <span class="font-headline text-sm font-medium text-on-surface">
-                  Élève #{{ s.id }}
+                <span class="flex flex-col">
+                  <span class="font-headline text-sm font-medium text-on-surface">{{ s.name }}</span>
+                  @if (s.email) {
+                    <span class="font-mono text-[11px] text-on-surface-variant">{{ s.email }}</span>
+                  }
                 </span>
               </div>
               <span class="font-mono text-[11px] uppercase tracking-widest text-on-surface-variant">
@@ -70,6 +76,7 @@ export class TeacherStudents implements OnInit {
   private readonly auth = inject(AuthStore);
   protected readonly formationStore = inject(FormationStore);
   protected readonly classStore = inject(ClassStore);
+  private readonly userStore = inject(UserStore);
 
   protected readonly subtitle = computed(
     () => `${this.students().length} élève(s) au total dans vos classes.`,
@@ -87,15 +94,30 @@ export class TeacherStudents implements OnInit {
     return set;
   });
 
+  /** Index id → utilisateur, pour résoudre noms/emails. */
+  private readonly userById = computed(() => {
+    const map = new Map<number, { name: string; email: string }>();
+    for (const u of this.userStore.items()) map.set(u.id, { name: u.name, email: u.email });
+    return map;
+  });
+
   protected readonly students = computed<StudentRef[]>(() => {
     const ids = new Set([...this.myClassroomIris()].map(iriToId));
     if (ids.size === 0) return [];
+    const byId = this.userById();
     const all = Object.values(this.classStore.bySchool()).flat();
     const list: StudentRef[] = [];
     for (const cls of all) {
       if (!ids.has(cls.id)) continue;
       for (const studentIri of cls.students ?? []) {
-        list.push({ id: iriToId(studentIri), classroomName: cls.name });
+        const id = iriToId(studentIri);
+        const u = byId.get(id);
+        list.push({
+          id,
+          name: u?.name ?? `Élève #${id}`,
+          email: u?.email ?? null,
+          classroomName: cls.name,
+        });
       }
     }
     return list;
@@ -107,6 +129,10 @@ export class TeacherStudents implements OnInit {
       const iris = this.myClassroomIris();
       if (schoolId && iris.size > 0 && this.classStore.forSchool(schoolId).length === 0) {
         this.classStore.loadBySchool(schoolId).subscribe({ error: () => {} });
+      }
+      // Charge les élèves de l'école pour résoudre noms/emails.
+      if (schoolId) {
+        this.userStore.load({ role: 'student', schoolId });
       }
     });
   }
