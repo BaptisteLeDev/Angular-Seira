@@ -58,7 +58,7 @@ function Body() {
 
   useEffect(() => {
     for (const c of chapitres) {
-      void loadByChapitre(c.id, [...(c.contents ?? [])], [...(c.videos ?? [])]);
+      void loadByChapitre(c.id, [...(c.contents ?? [])]);
     }
   }, [chapitres, loadByChapitre]);
 

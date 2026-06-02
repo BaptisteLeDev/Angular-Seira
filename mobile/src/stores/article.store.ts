@@ -1,6 +1,5 @@
 import { create } from 'zustand';
 import { ArticleApi } from '@src/api/article.api';
-import { VideoApi } from '@src/api/video.api';
 import type { Article } from '@src/schemas/article.schema';
 
 type Status = 'idle' | 'loading' | 'error';
@@ -10,7 +9,7 @@ type ArticleState = {
   status: Record<number, Status>;
   error: Record<number, string>;
 
-  loadByChapitre: (chapitreId: number, contentIris: string[], videoIris: string[], force?: boolean) => Promise<void>;
+  loadByChapitre: (chapitreId: number, contentIris: string[], force?: boolean) => Promise<void>;
   articlesOf: (chapitreId: number) => readonly Article[];
   statusOf: (chapitreId: number) => Status;
   errorOf: (chapitreId: number) => string | null;
@@ -34,13 +33,13 @@ export const useArticleStore = create<ArticleState>((set, get) => ({
     return get().error[chapitreId] ?? null;
   },
 
-  async loadByChapitre(chapitreId, contentIris, videoIris, force = false) {
+  async loadByChapitre(chapitreId, contentIris, force = false) {
     const state = get();
     const currentStatus = state.status[chapitreId];
     const alreadyLoaded = state.byChapitre[chapitreId] !== undefined;
     if (!force && (currentStatus === 'loading' || alreadyLoaded)) return;
 
-    if (contentIris.length === 0 && videoIris.length === 0) {
+    if (contentIris.length === 0) {
       set((s) => ({
         byChapitre: { ...s.byChapitre, [chapitreId]: [] },
         status: { ...s.status, [chapitreId]: 'idle' },
@@ -54,29 +53,13 @@ export const useArticleStore = create<ArticleState>((set, get) => ({
     }));
 
     try {
-      const [contents, videos] = await Promise.all([
-        ArticleApi.listByIris(contentIris),
-        VideoApi.getByIris(videoIris),
-      ]);
-      const nonVideoContents = contents.filter((c) => c.type !== 'video');
-      const videoItems: Article[] = videos.map((v) => ({
-        id: v.id,
-        videoId: v.id,
-        type: 'video',
-        title: v.title,
-        description: v.description ?? null,
-        content: null,
-        sourceUrl: v.sourceUrl ?? null,
-        filePath: null,
-        durationSeconds: v.durationSeconds ?? null,
-        sortOrder: v.sortOrder ?? 0,
-        isPublished: v.isPublished ?? true,
-      }));
-      const merged = [...videoItems, ...nonVideoContents].sort(
-        (a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0),
-      );
+      // Tous les ChapterContent (y compris type vidéo), comme le web. La
+      // relation `videos` n'est plus utilisée : c'était une représentation
+      // parallèle (placeholders de seed) qui masquait les vraies vidéos-contenus.
+      const contents = await ArticleApi.listByIris(contentIris);
+      const sorted = [...contents].sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0));
       set((s) => ({
-        byChapitre: { ...s.byChapitre, [chapitreId]: merged },
+        byChapitre: { ...s.byChapitre, [chapitreId]: sorted },
         status: { ...s.status, [chapitreId]: 'idle' },
       }));
     } catch (err) {
