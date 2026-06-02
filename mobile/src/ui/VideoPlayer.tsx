@@ -2,14 +2,14 @@ import { useEvent } from 'expo';
 import { VideoView, useVideoPlayer } from 'expo-video';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Pressable, Text, View } from 'react-native';
-import { WebView } from 'react-native-webview';
+import YoutubePlayer, { type YoutubeIframeRef } from 'react-native-youtube-iframe';
 
 import { FALLBACK_VIDEO_SOURCE, resolveVideoSource } from '@src/constants/video';
 import { colors } from '@src/constants/theme';
 import { useProgressStore } from '@src/stores/progress.store';
 import { useWatchSessionStore } from '@src/stores/watch-session.store';
 import { clampPercent, computeCap, deriveStatus } from '@src/utils/video-progress';
-import { youtubeEmbedUrl } from '@src/utils/video-url';
+import { youtubeVideoId } from '@src/utils/video-url';
 import { Icon } from './Icon';
 
 type Props = {
@@ -24,24 +24,114 @@ const LOCKED_RATE = 1;
  * Toute autre source (mp4 direct, fallback) passe par le lecteur natif.
  */
 export function VideoPlayer({ url, videoId }: Props) {
-  const embedUrl = youtubeEmbedUrl(url);
-  if (embedUrl) {
-    return <YoutubeEmbed embedUrl={embedUrl} />;
+  const ytId = youtubeVideoId(url);
+  if (ytId) {
+    return <YoutubeControlled ytId={ytId} videoId={videoId} />;
   }
   return <NativeVideoPlayer url={url} videoId={videoId} />;
 }
 
-function YoutubeEmbed({ embedUrl }: { embedUrl: string }) {
+const YT_POLL_MS = 700;
+
+/**
+ * Lecteur YouTube contrôlé via react-native-youtube-iframe : plafond anti-skip
+ * avec snap-back (seekTo), suivi de progression + visionnage certifié
+ * (watch-sessions). Best-effort. La vitesse n'est pas forçable de façon fiable
+ * via l'API YouTube embed (limite connue).
+ */
+function YoutubeControlled({ ytId, videoId }: { ytId: string; videoId?: number | null }) {
+  const playerRef = useRef<YoutubeIframeRef>(null);
+  const [playing, setPlaying] = useState(false);
+
+  const capRef = useRef(0);
+  const lastSentRef = useRef(0);
+  const durationRef = useRef(0);
+  const resumedRef = useRef(false);
+
+  const report = useProgressStore((s) => s.report);
+  const hydrate = useProgressStore((s) => s.hydrate);
+  const trackSegment = useWatchSessionStore((s) => s.track);
+  const savedSeconds = useProgressStore((s) =>
+    videoId != null ? (s.byVideoId[videoId]?.watchedSeconds ?? 0) : 0,
+  );
+
+  const trackingEnabled = videoId != null;
+
+  useEffect(() => { void hydrate(); }, [hydrate]);
+
+  const flush = useCallback(() => {
+    if (!trackingEnabled || videoId == null) return;
+    const duration = durationRef.current;
+    const cap = capRef.current;
+    if (duration <= 0 || cap <= lastSentRef.current) return;
+    lastSentRef.current = cap;
+    const percent = clampPercent((cap / duration) * 100);
+    void report(videoId, {
+      watchedSecondsValidated: Math.floor(cap),
+      completionPercent: percent,
+      status: deriveStatus(percent),
+      lastSeenAt: new Date().toISOString(),
+    });
+  }, [trackingEnabled, videoId, report]);
+
+  // Boucle de contrôle : plafond anti-skip + snap-back + tracking.
+  useEffect(() => {
+    if (!playing) return;
+    const interval = setInterval(async () => {
+      const ref = playerRef.current;
+      if (!ref) return;
+      const [t, d] = await Promise.all([ref.getCurrentTime(), ref.getDuration()]);
+      if (d > 0) durationRef.current = d;
+      const before = capRef.current;
+      const next = computeCap(before, t);
+      const fullyWatched = durationRef.current > 0 && before >= durationRef.current - 1;
+      if (next === before && t > before + 1 && !fullyWatched) {
+        ref.seekTo(before, true); // saut avant non autorisé
+      } else {
+        capRef.current = next;
+      }
+      if (trackingEnabled && videoId != null && durationRef.current > 0) {
+        if (Math.floor(capRef.current) - lastSentRef.current >= 8) flush();
+        void trackSegment(videoId, capRef.current, durationRef.current);
+      }
+    }, YT_POLL_MS);
+    return () => clearInterval(interval);
+  }, [playing, trackingEnabled, videoId, flush, trackSegment]);
+
+  const onReady = useCallback(async () => {
+    const ref = playerRef.current;
+    if (!ref || resumedRef.current) return;
+    const d = await ref.getDuration();
+    if (d > 0) durationRef.current = d;
+    if (trackingEnabled && savedSeconds > 0 && d > 0 && savedSeconds < d - 1) {
+      ref.seekTo(savedSeconds, true);
+      capRef.current = savedSeconds;
+      lastSentRef.current = Math.floor(savedSeconds);
+    }
+    resumedRef.current = true;
+  }, [trackingEnabled, savedSeconds]);
+
+  const onChangeState = useCallback(
+    (state: string) => {
+      setPlaying(state === 'playing');
+      if (state === 'paused' || state === 'ended') {
+        if (state === 'ended') capRef.current = durationRef.current || capRef.current;
+        flush();
+      }
+    },
+    [flush],
+  );
+
   return (
     <View className="overflow-hidden squircle-xl bg-black ghost-border">
-      <WebView
-        source={{ uri: embedUrl }}
-        style={{ width: '100%', aspectRatio: 16 / 9, backgroundColor: '#000' }}
-        javaScriptEnabled
-        domStorageEnabled
-        allowsInlineMediaPlayback
-        allowsFullscreenVideo
-        mediaPlaybackRequiresUserAction
+      <YoutubePlayer
+        ref={playerRef}
+        height={220}
+        videoId={ytId}
+        play={playing}
+        onReady={onReady}
+        onChangeState={onChangeState}
+        initialPlayerParams={{ modestbranding: true, rel: false, controls: true }}
       />
     </View>
   );
