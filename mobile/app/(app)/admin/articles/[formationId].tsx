@@ -12,7 +12,7 @@ import { SearchBar, useFuzzySearch } from '@src/ui/search';
 import { ArticlePreviewModal } from '@src/features/article/ArticlePreviewModal';
 import { useFormationStore } from '@src/stores/formation.store';
 import { useArticleStore } from '@src/stores/article.store';
-import { contentTypeIcon } from '@src/utils/article-meta';
+import { articleKey, contentTypeIcon } from '@src/utils/article-meta';
 import type { Article } from '@src/schemas/article.schema';
 import type { Chapitre } from '@src/schemas/chapitre.schema';
 
@@ -184,7 +184,7 @@ function ChapterBlock({
         <View className="gap-3 pl-3">
           {articles.map((a) => (
             <Pressable
-              key={a.id}
+              key={articleKey(a)}
               onPress={() => onSelectArticle(a)}
               accessibilityRole="button"
               accessibilityLabel={`Prévisualiser ${a.title}`}
