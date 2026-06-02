@@ -78,7 +78,8 @@
 - [x] Détection lecture active *(signal `isPlaying` sur `play`/`pause`/`ended` + indicateur)*
 - [x] Détection onglet actif / premier plan *(pause auto sur `visibilitychange`)*
 - [x] Blocage / invalidation au-delà de 2x *(`clampPlaybackRate` sur `ratechange`)*
-- [x] Réception et envoi des clés temporelles serveur par segment *(`WatchSessionApi` + `WatchSessionService` : request/heartbeat pilotés par le plafond vu)*
+- [x] Réception et envoi des clés temporelles serveur par segment *(`WatchSessionApi` + `WatchSessionService` : request/heartbeat pilotés par le plafond vu ; YouTube géré via IFrame API `youtube-player`)*
+- [x] Gating chapitre : bouton suivant + garde d'accès URL (sommaire déjà protégé) — critère = vidéos terminées *(non-vidéo → backend #69)*
 
 ### Tableaux de bord de suivi
 - [x] Vue auto-évaluation élève *(`/progression` : KPIs temps/%/vidéos + avancement par matière)*
@@ -97,7 +98,7 @@
 - [x] Parcours élève : classes → matières → cours → vidéos *(écran `/classes` : classe attribuée → matières — `ClassroomApi.get`)*
 - [x] Lecteur vidéo contrôlé *(`src/ui/VideoPlayer.tsx`, `expo-video`, vitesse verrouillée à 1x, anti-seek)*
 - [x] Détection lecture active + vitesse ≤ 2x *(listener `isPlaying`, `LOCKED_RATE = 1`)* — ⚠️ bypass possible en fullscreen natif
-- [x] Réception / envoi des clés temporelles serveur *(`watch-session.store` : request/heartbeat par segment, piloté par le plafond vu)*
+- [x] Réception / envoi des clés temporelles serveur *(`watch-session.store` : request/heartbeat par segment, piloté par le plafond vu ; YouTube via `react-native-youtube-iframe`)*
 - [x] Suivi de progression en temps réel *(`progress.store` sync VideoProgress, POST/PATCH best-effort)*
 - [x] Affichage du suivi pédagogique (temps, %, statut, avancement) *(écran `/progress` : temps visionné, % moyen, vidéos commencées/terminées)*
 - [ ] Chat IA contextuel
