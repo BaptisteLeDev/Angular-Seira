@@ -11,6 +11,8 @@ import { SommaireSheet, type SommaireEntry } from '@src/ui/SommaireSheet';
 import { Fab } from '@src/ui/Fab';
 import { useArticleStore } from '@src/stores/article.store';
 import { useFormationStore } from '@src/stores/formation.store';
+import { useProgressStore } from '@src/stores/progress.store';
+import { unlockedChapterIds } from '@src/utils/chapter-gating';
 import type { Chapitre } from '@src/schemas/chapitre.schema';
 import { useThemeColors } from '@src/ui/useThemeColors';
 import { variantFor } from '@src/ui/formation-visual';
@@ -43,6 +45,11 @@ export default function ArticleScreen() {
   const articlesByChapitre = useArticleStore((s) => s.byChapitre);
   const loadByChapitre = useArticleStore((s) => s.loadByChapitre);
 
+  const progressByVideo = useProgressStore((s) => s.byVideoId);
+  const hydrateProgress = useProgressStore((s) => s.hydrate);
+  const progressHydrated = useProgressStore((s) => s.hydrated);
+  useEffect(() => { void hydrateProgress(); }, [hydrateProgress]);
+
   const [sheetOpen, setSheetOpen] = useState(false);
   const { visible: fabVisible, onScroll } = useScrollDirection();
 
@@ -65,10 +72,41 @@ export default function ArticleScreen() {
     return r;
   }, [chapitres, articlesByChapitre]);
 
+  // Chapitres déverrouillés (séquentiel : un chapitre est fini quand toutes
+  // ses vidéos sont à 100% du temps certifié). Sert au gating navigation.
+  const unlockedIds = useMemo(() => {
+    const completed = chapitres
+      .filter((ch) => {
+        const vids = entries
+          .filter((e) => e.chapitre.id === ch.id && e.article.videoId != null)
+          .map((e) => e.article.videoId as number);
+        return vids.length > 0 && vids.every((vid) => (progressByVideo[vid]?.completionPercent ?? 0) >= 100);
+      })
+      .map((ch) => ch.id);
+    return new Set(unlockedChapterIds(chapitres.map((c) => c.id), completed));
+  }, [chapitres, entries, progressByVideo]);
+  const isLockedChapter = (chapterId: number) => !unlockedIds.has(chapterId);
+
   const accent = variantFor(formationId).color;
   const active = entries.find((e) => articleKey(e.article) === currentArticleKey) ?? null;
-  const next = active ? entries.find((e) => e.index === active.index + 1) ?? null : null;
+  const nextRaw = active ? entries.find((e) => e.index === active.index + 1) ?? null : null;
+  // Le bouton « suivant » ne franchit pas un chapitre verrouillé.
+  const next = nextRaw && !isLockedChapter(nextRaw.chapitre.id) ? nextRaw : null;
   const prev = active ? entries.find((e) => e.index === active.index - 1) ?? null : null;
+
+  // Garde d'accès : si l'article ouvert est dans un chapitre verrouillé,
+  // redirige vers le 1er contenu accessible (attend l'hydratation progression).
+  useEffect(() => {
+    if (!progressHydrated || !active || !isLockedChapter(active.chapitre.id)) return;
+    const target = entries.find((e) => !isLockedChapter(e.chapitre.id));
+    if (target && articleKey(target.article) !== currentArticleKey) {
+      router.replace({
+        pathname: '/formations/[id]/[articleId]',
+        params: { id: String(formationId), articleId: articleKey(target.article) },
+      });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [progressHydrated, active, entries, unlockedIds, currentArticleKey, formationId]);
 
   const isLoading =
     formationStatus === 'loading' ||
