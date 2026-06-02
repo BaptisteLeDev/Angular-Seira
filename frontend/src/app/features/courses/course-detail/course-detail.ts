@@ -6,8 +6,10 @@ import type { Chapitre } from '../../../core/schemas/chapitre.schema';
 import type { Formation } from '../../../core/schemas/formation.schema';
 import { ArticleStore } from '../../../core/stores/article.store';
 import { FormationStore } from '../../../core/stores/formation.store';
+import { ProgressStore } from '../../../core/stores/progress.store';
 import { ArticleBody } from '../../../shared/article/article-body';
 import { isChapterUnlocked } from '../../../core/utils/chapter-gating';
+import { buildChapterProgressPayload } from '../../../core/utils/video-progress';
 
 interface ArticleEntry {
   readonly article: Article;
@@ -27,6 +29,7 @@ export class CourseDetail {
   private readonly router = inject(Router);
   private readonly formationStore = inject(FormationStore);
   private readonly articleStore = inject(ArticleStore);
+  private readonly progress = inject(ProgressStore);
 
   readonly formationId = input.required<string>();
   readonly articleId = input<string>();
@@ -44,11 +47,15 @@ export class CourseDetail {
   });
 
   /**
-   * Chapitres terminés (qui déverrouillent le suivant). Vide tant que la
-   * progression backend n'est pas branchée (#16/#29) → seul le 1er chapitre
-   * est accessible. Point d'extension : remplacer par la vraie progression.
+   * Chapitres terminés (qui déverrouillent le suivant), lus depuis la
+   * progression serveur de l'élève. Tant que rien n'est hydraté, la liste est
+   * vide → seul le 1er chapitre est accessible (verrouillage séquentiel).
    */
-  protected readonly completedChapterIds = computed<readonly number[]>(() => []);
+  protected readonly completedChapterIds = computed<readonly number[]>(() =>
+    Object.entries(this.progress.byChapterId())
+      .filter(([, entry]) => entry.status === 'completed')
+      .map(([id]) => Number(id)),
+  );
 
   /** Verrouillage séquentiel : 1er ouvert, suivant ouvert si le précédent est fait. */
   protected isChapterLocked(chapterId: number): boolean {
@@ -124,6 +131,37 @@ export class CourseDetail {
   });
 
   constructor() {
+    // Charge la progression connue de l'élève (gating + reprise + dashboard).
+    effect(() => {
+      void this.progress.hydrate();
+    });
+
+    // Émet la progression du chapitre dérivée de l'avancement de ses vidéos.
+    // Idempotent : on ne renvoie que si l'agrégat a réellement changé, ce qui
+    // empêche toute boucle (le report met à jour le store lu ici).
+    effect(() => {
+      const byVideo = this.progress.byVideoId();
+      const byChapter = this.progress.byChapterId();
+      for (const chapitre of this.chapitres()) {
+        const videoArticles = this.articleStore
+          .byChapitre(chapitre.id)()
+          .filter((a) => a.type === 'video' && a.videoId != null);
+        if (videoArticles.length === 0) continue;
+        const percents = videoArticles.map(
+          (a) => byVideo[a.videoId as number]?.completionPercent ?? 0,
+        );
+        const payload = buildChapterProgressPayload(chapitre.id, percents);
+        const current = byChapter[chapitre.id];
+        if (
+          current?.completionPercent === payload.completionPercent &&
+          current?.status === payload.status
+        ) {
+          continue;
+        }
+        this.progress.reportChapter(chapitre.id, payload).subscribe();
+      }
+    });
+
     effect(() => {
       this.formationStore.load();
       // Récupère le subject complet (avec IRIs de chapitres) : pour les élèves,

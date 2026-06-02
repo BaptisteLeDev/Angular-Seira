@@ -12,6 +12,8 @@ export const ArticleSchema = z.object({
   '@type': z.string().optional(),
   id: z.number().int(),
   chapterId: z.number().int().optional(),
+  /** Id de la Video liée (pour le suivi de progression) ; null si non-vidéo. */
+  videoId: z.number().int().nullable().optional(),
   createdBy: z.number().int().nullable().optional(),
   type: ContentTypeSchema,
   title: z.string(),
