@@ -1,6 +1,6 @@
 import { useEvent } from 'expo';
 import { VideoView, useVideoPlayer } from 'expo-video';
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Pressable, Text, View } from 'react-native';
 import { WebView } from 'react-native-webview';
 
@@ -60,7 +60,13 @@ function NativeVideoPlayer({ url, videoId }: Props) {
     if (videoId != null) resetWatch(videoId);
   }, [url, videoId, resetWatch]);
 
-  const source = useFallback ? FALLBACK_VIDEO_SOURCE : resolveVideoSource(url);
+  // Mémoïsé : sinon `resolveVideoSource` renvoie un nouvel objet à chaque
+  // render → useVideoPlayer recrée le player et libère l'ancien, ce qui crashe
+  // ("shared object already released") au prochain accès (play/pause).
+  const source = useMemo(
+    () => (useFallback ? FALLBACK_VIDEO_SOURCE : resolveVideoSource(url)),
+    [useFallback, url],
+  );
 
   const player = useVideoPlayer(source, (p) => {
     p.loop = false;
