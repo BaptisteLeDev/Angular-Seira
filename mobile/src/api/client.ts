@@ -3,6 +3,18 @@ import { storage } from '@src/utils/storage';
 
 export const TOKEN_KEY = 'seira.auth.token';
 
+/** Délai max d'une requête avant abandon (évite le spinner infini). */
+const TIMEOUT_MS = 15000;
+
+/**
+ * Handler global déclenché sur 401 d'une requête authentifiée (token expiré).
+ * Enregistré au démarrage (app/_layout) pour déconnecter + rediriger.
+ */
+let unauthorizedHandler: (() => void) | null = null;
+export function setUnauthorizedHandler(fn: (() => void) | null): void {
+  unauthorizedHandler = fn;
+}
+
 export class HttpError extends Error {
   constructor(
     public readonly status: number,
@@ -45,14 +57,20 @@ export async function apiRequest<T = unknown>(
   }
 
   let response: Response;
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), TIMEOUT_MS);
   try {
     response = await fetch(url, {
       method,
       headers: finalHeaders,
       body: body !== undefined ? JSON.stringify(body) : undefined,
+      signal: controller.signal,
     });
   } catch (err) {
-    throw new HttpError(0, null, 'Serveur injoignable.');
+    const aborted = err instanceof Error && err.name === 'AbortError';
+    throw new HttpError(0, null, aborted ? "Délai d'attente dépassé." : 'Serveur injoignable.');
+  } finally {
+    clearTimeout(timeout);
   }
 
   if (response.status === 204) {
@@ -70,6 +88,11 @@ export async function apiRequest<T = unknown>(
   }
 
   if (!response.ok) {
+    // Token expiré en session : déconnexion + redirection globale (sauf sur les
+    // requêtes non authentifiées comme le login, qui gèrent leur propre erreur).
+    if (response.status === 401 && auth) {
+      unauthorizedHandler?.();
+    }
     const msg = extractMessage(parsed) ?? defaultMessage(response.status);
     throw new HttpError(response.status, parsed, msg);
   }

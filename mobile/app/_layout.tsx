@@ -6,6 +6,7 @@ import { StatusBar } from 'expo-status-bar';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import 'react-native-reanimated';
 
+import { setUnauthorizedHandler } from '@src/api/client';
 import { useAuthStore } from '@src/stores/auth.store';
 import { useThemeStore } from '@src/stores/theme.store';
 import { LoadingView } from '@src/ui/LoadingView';
@@ -49,6 +50,15 @@ export default function RootLayout() {
     void hydrateAuth();
     void hydrateTheme();
   }, [hydrateAuth, hydrateTheme]);
+
+  // 401 sur une requête authentifiée (token expiré) → déconnexion globale.
+  // Le `token` passant à null déclenche la redirection réactive ci-dessous.
+  useEffect(() => {
+    setUnauthorizedHandler(() => {
+      void useAuthStore.getState().clearSession();
+    });
+    return () => setUnauthorizedHandler(null);
+  }, []);
 
   if (!hydratedAuth || !hydratedTheme) {
     return (
