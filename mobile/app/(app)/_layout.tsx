@@ -72,6 +72,9 @@ export default function AppTabLayout() {
           ),
         }}
       />
+      {/* Écrans élève accessibles via le tableau de bord, masqués de la barre. */}
+      <Tabs.Screen name="classes" options={{ href: null }} />
+      <Tabs.Screen name="progress" options={{ href: null }} />
     </Tabs>
   );
 }
