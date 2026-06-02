@@ -37,10 +37,11 @@ export const FormationApi = {
   },
 
   async getChapitresByIris(chapterIris: string[]): Promise<Chapitre[]> {
-    if (chapterIris.length === 0) return [];
+    const ids = chapterIris.map(iriToId).filter((id): id is number => id != null);
+    if (ids.length === 0) return [];
     return Promise.all(
-      chapterIris.map(async (iri) => {
-        const raw = await apiRequest<unknown>(`/chapters/${iriToId(iri)}`);
+      ids.map(async (id) => {
+        const raw = await apiRequest<unknown>(`/chapters/${id}`);
         return parseResponse(ChapitreSchema, raw);
       }),
     );

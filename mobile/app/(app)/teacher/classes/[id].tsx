@@ -12,19 +12,9 @@ import { ClassroomApi } from '@src/api/classroom.api';
 import { UserApi } from '@src/api/user.api';
 import { useAuthStore } from '@src/stores/auth.store';
 import { useFormationStore } from '@src/stores/formation.store';
-import { iriToId } from '@src/utils/iri';
+import { safeIriToId } from '@src/utils/iri';
 import type { Classroom } from '@src/schemas/classroom.schema';
 import type { Formation } from '@src/schemas/formation.schema';
-
-function safeIriToId(iri?: string | null): number | null {
-  if (!iri) return null;
-  try {
-    const n = iriToId(iri);
-    return Number.isFinite(n) ? n : null;
-  } catch {
-    return null;
-  }
-}
 
 export default function TeacherClassroomDetailScreen() {
   return (

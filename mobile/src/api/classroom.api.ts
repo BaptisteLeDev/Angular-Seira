@@ -5,14 +5,7 @@ import { iriToId } from '@src/utils/iri';
 
 function classroomSchoolId(c: Classroom): number | null {
   if (c.schoolId != null) return c.schoolId;
-  if (c.school) {
-    try {
-      return Number(iriToId(c.school));
-    } catch {
-      return null;
-    }
-  }
-  return null;
+  return c.school ? iriToId(c.school) : null;
 }
 
 export const ClassroomApi = {
