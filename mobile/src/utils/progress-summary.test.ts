@@ -37,3 +37,26 @@ describe('videoStats', () => {
     expect(videoStats([])).toEqual({ started: 0, completed: 0, averagePercent: 0 });
   });
 });
+
+import { summarizeSubjectProgress } from './progress-summary';
+
+describe('summarizeSubjectProgress', () => {
+  test('agrège % + statut + compteurs par matière', () => {
+    const r = summarizeSubjectProgress(
+      [
+        { id: 1, name: 'Maths' },
+        { id: 2, name: 'Histoire' },
+      ],
+      { 1: [100, 50], 2: [] },
+    );
+    expect(r[0]).toEqual({
+      subjectId: 1,
+      name: 'Maths',
+      completionPercent: 75,
+      status: 'in_progress',
+      videosTotal: 2,
+      videosCompleted: 1,
+    });
+    expect(r[1]).toMatchObject({ completionPercent: 0, status: 'not_started', videosTotal: 0 });
+  });
+});
