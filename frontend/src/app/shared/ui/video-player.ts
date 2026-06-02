@@ -10,12 +10,12 @@ import {
   signal,
   viewChild,
 } from '@angular/core';
-import { DomSanitizer, type SafeResourceUrl } from '@angular/platform-browser';
-import { youtubeEmbedUrl } from '../../core/utils/video-url';
+import { youtubeVideoId } from '../../core/utils/video-url';
 import { ProgressStore } from '../../core/stores/progress.store';
 import { WatchSessionService } from '../../core/stores/watch-session.service';
 import { buildVideoProgressPayload, shouldFlush } from '../../core/utils/video-progress';
 import { clampPlaybackRate } from '../../core/utils/playback';
+import { YoutubePlayer } from './youtube-player';
 
 /**
  * Vidéo de démonstration servie depuis frontend/public/dev-assets. Affichée en
@@ -28,21 +28,14 @@ const FALLBACK_VIDEO = '/dev-assets/sample-video.mp4';
 @Component({
   selector: 'app-video-player',
   standalone: true,
+  imports: [YoutubePlayer],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <div class="overflow-hidden squircle-xl bg-black ghost-border">
-      @if (embedUrl(); as embed) {
-        <!-- Lien YouTube : <video> natif ne sait pas le lire → iframe d'embed. -->
-        <iframe
-          class="block aspect-video w-full"
-          [src]="embed"
-          title="Lecteur vidéo"
-          loading="lazy"
-          referrerpolicy="strict-origin-when-cross-origin"
-          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share; fullscreen"
-          allowfullscreen
-        ></iframe>
-      } @else {
+    @if (isYoutube()) {
+      <!-- YouTube : lecteur contrôlé via l'IFrame API (anti-skip + tracking). -->
+      <app-youtube-player [url]="url()" [videoId]="videoId()" />
+    } @else {
+      <div class="overflow-hidden squircle-xl bg-black ghost-border">
         <video
           #video
           class="block aspect-video w-full bg-black"
@@ -60,9 +53,7 @@ const FALLBACK_VIDEO = '/dev-assets/sample-video.mp4';
           (ratechange)="onRateChange()"
           (ended)="onEnded()"
         ></video>
-      }
-    </div>
-    @if (!embedUrl()) {
+      </div>
       <p
         class="mt-2 flex items-center gap-1.5 text-xs text-on-surface-variant"
         aria-live="polite"
@@ -84,7 +75,6 @@ export class VideoPlayer {
   readonly videoId = input<number | null | undefined>(null);
   protected readonly video = viewChild<ElementRef<HTMLVideoElement>>('video');
 
-  private readonly sanitizer = inject(DomSanitizer);
   private readonly progress = inject(ProgressStore);
   private readonly watch = inject(WatchSessionService);
 
@@ -122,9 +112,12 @@ export class VideoPlayer {
     });
   }
 
-  /** Le suivi est actif quand une Video est liée et que la vraie source joue. */
+  /** Vrai si l'URL est un lien YouTube (délégué à app-youtube-player). */
+  protected readonly isYoutube = computed(() => youtubeVideoId(this.url()) != null);
+
+  /** Le suivi natif est actif quand une Video est liée et que la vraie source joue. */
   private get trackingEnabled(): boolean {
-    return this.videoId() != null && !this.failed() && !this.embedUrl();
+    return this.videoId() != null && !this.failed() && !this.isYoutube();
   }
 
   /** Monte le plafond en lecture continue (ignore les avances anormales). */
@@ -217,12 +210,6 @@ export class VideoPlayer {
       v.currentTime = this.cap;
     }
   }
-
-  /** URL d'embed YouTube (iframe) si l'URL fournie est un lien YouTube, sinon null. */
-  protected readonly embedUrl = computed<SafeResourceUrl | null>(() => {
-    const yt = youtubeEmbedUrl(this.url());
-    return yt ? this.sanitizer.bypassSecurityTrustResourceUrl(yt) : null;
-  });
 
   protected readonly resolvedUrl = computed<string>(() => {
     if (this.failed()) return FALLBACK_VIDEO;

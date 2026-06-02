@@ -1,5 +1,18 @@
 import { describe, it, expect } from 'vitest';
-import { youtubeEmbedUrl } from './video-url';
+import { youtubeEmbedUrl, youtubeVideoId } from './video-url';
+
+describe('youtubeVideoId', () => {
+  it('extrait l’id depuis watch / youtu.be / embed / shorts', () => {
+    expect(youtubeVideoId('https://www.youtube.com/watch?v=ep6gKuxxCyE')).toBe('ep6gKuxxCyE');
+    expect(youtubeVideoId('https://youtu.be/ep6gKuxxCyE')).toBe('ep6gKuxxCyE');
+    expect(youtubeVideoId('https://www.youtube.com/embed/ep6gKuxxCyE')).toBe('ep6gKuxxCyE');
+    expect(youtubeVideoId('https://www.youtube.com/shorts/ep6gKuxxCyE?x=1')).toBe('ep6gKuxxCyE');
+  });
+  it('null si non-YouTube ou vide', () => {
+    expect(youtubeVideoId('https://example.com/x.mp4')).toBeNull();
+    expect(youtubeVideoId(null)).toBeNull();
+  });
+});
 
 describe('youtubeEmbedUrl', () => {
   it('convertit une URL watch?v= en URL embed', () => {

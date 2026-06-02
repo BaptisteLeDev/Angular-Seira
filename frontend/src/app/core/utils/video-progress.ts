@@ -35,6 +35,16 @@ export function deriveStatus(percent: number): ProgressStatus {
   return 'not_started';
 }
 
+/**
+ * Plafond anti-skip : monte en lecture continue, bloque les sauts avant
+ * au-delà de la tolérance, ignore les reculs (renvoie le plafond inchangé).
+ * Mutualisé entre lecteur natif et lecteur YouTube (IFrame API).
+ */
+export function computeCap(cap: number, currentTime: number, tolerance = 1): number {
+  if (currentTime > cap + tolerance) return cap;
+  return Math.max(cap, currentTime);
+}
+
 /** Moyenne entière d'une liste de pourcentages ; liste vide -> 0. */
 export function aggregatePercent(percents: number[]): number {
   if (percents.length === 0) return 0;

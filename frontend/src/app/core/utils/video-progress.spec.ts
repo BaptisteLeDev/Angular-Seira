@@ -6,8 +6,22 @@ import {
   buildVideoProgressPayload,
   buildChapterProgressPayload,
   shouldFlush,
+  computeCap,
   COMPLETED_THRESHOLD,
 } from './video-progress';
+
+describe('computeCap', () => {
+  it('monte en lecture continue', () => {
+    expect(computeCap(0, 0.5)).toBe(0.5);
+    expect(computeCap(10, 10.8)).toBe(10.8);
+  });
+  it('bloque un saut avant au-delà de la tolérance (renvoie le plafond)', () => {
+    expect(computeCap(10, 40)).toBe(10);
+  });
+  it('ignore les reculs (renvoie le plafond)', () => {
+    expect(computeCap(10, 3)).toBe(10);
+  });
+});
 
 describe('clampPercent', () => {
   it('borne entre 0 et 100', () => {
