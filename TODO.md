@@ -78,12 +78,12 @@
 - [x] Détection lecture active *(signal `isPlaying` sur `play`/`pause`/`ended` + indicateur)*
 - [x] Détection onglet actif / premier plan *(pause auto sur `visibilitychange`)*
 - [x] Blocage / invalidation au-delà de 2x *(`clampPlaybackRate` sur `ratechange`)*
-- [ ] Réception et envoi des clés temporelles serveur par segment *(backend prêt : `/watch-sessions/request|heartbeat`)*
+- [x] Réception et envoi des clés temporelles serveur par segment *(`WatchSessionApi` + `WatchSessionService` : request/heartbeat pilotés par le plafond vu)*
 
 ### Tableaux de bord de suivi
 - [x] Vue auto-évaluation élève *(`/progression` : KPIs temps/%/vidéos + avancement par matière)*
-- [ ] Vue suivi individuel formateur *(`/teacher/students` = liste sans stats ; backend prêt : `/aggregates/teacher`)*
-- [ ] Vue globale école *(backend prêt : `/aggregates/school`)*
+- [x] Vue suivi individuel formateur *(`/teacher/suivi` : matières → classes → élèves, branché sur `/aggregates/teacher`)*
+- [x] Vue globale école *(`/admin/suivi` : classes → élèves → matières, branché sur `/aggregates/school`)*
 - [x] Affichage : temps total, % par vidéo, statut, avancement par matière *(côté élève sur `/progression`)* — ⚠️ vues formateur/école à brancher
 
 ### Interface IA enrichie
@@ -97,7 +97,7 @@
 - [x] Parcours élève : classes → matières → cours → vidéos *(écran `/classes` : classe attribuée → matières — `ClassroomApi.get`)*
 - [x] Lecteur vidéo contrôlé *(`src/ui/VideoPlayer.tsx`, `expo-video`, vitesse verrouillée à 1x, anti-seek)*
 - [x] Détection lecture active + vitesse ≤ 2x *(listener `isPlaying`, `LOCKED_RATE = 1`)* — ⚠️ bypass possible en fullscreen natif
-- [ ] Réception / envoi des clés temporelles serveur *(`currentTime` capturé mais non envoyé ; backend prêt : `/watch-sessions/*`)*
+- [x] Réception / envoi des clés temporelles serveur *(`watch-session.store` : request/heartbeat par segment, piloté par le plafond vu)*
 - [x] Suivi de progression en temps réel *(`progress.store` sync VideoProgress, POST/PATCH best-effort)*
 - [x] Affichage du suivi pédagogique (temps, %, statut, avancement) *(écran `/progress` : temps visionné, % moyen, vidéos commencées/terminées)*
 - [ ] Chat IA contextuel
@@ -110,8 +110,8 @@
 
 - [x] Architecture API REST avancée *(API Platform opérationnel)*
 - [x] Gestion des rôles et permissions *(Gates + guards web/mobile)*
-- [ ] Sécurisation applicative *(partielle : auth OK, anti-fraude/clés à faire)*
-- [ ] Streaming et tracking vidéo *(lecture OK, tracking absent)*
+- [x] Sécurisation applicative *(auth + anti-triche : clés temporelles serveur branchées web & mobile)* — ⚠️ reste logs/RGPD
+- [x] Streaming et tracking vidéo *(lecture + tracking certifié via watch-sessions, web & mobile)*
 - [x] Synchronisation frontend / backend *(schémas Zod + API layer web & mobile)*
 - [ ] Intégration IA (LLM + RAG)
 - [x] UX orientée apprentissage *(navigation matières/chapitres/articles)*
