@@ -8,24 +8,18 @@ use App\Models\User;
 use App\Models\VideoProgress;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Collection;
 
 class AggregateController extends Controller
 {
-    // -------------------------------------------------------------------------
-    // GET /api/aggregates/teacher
-    // Progression des élèves par matière pour le formateur connecté.
-    // Accessible aussi aux admins (avec un paramètre ?teacher_id=X optionnel).
-    // -------------------------------------------------------------------------
-
     public function teacher(Request $request): JsonResponse
     {
         $user = $request->user();
 
         if ($user->role === User::ROLE_STUDENT) {
-            return response()->json(['error' => 'Accès réservé aux formateurs et administrateurs.'], 403);
+            abort(403, 'Accès réservé aux formateurs et administrateurs.');
         }
 
-        // Admin peut consulter n'importe quel formateur via ?teacher_id=
         $teacherId = $user->isAdmin()
             ? ($request->integer('teacher_id') ?: null)
             : $user->id;
@@ -38,13 +32,11 @@ class AggregateController extends Controller
         if ($teacherId !== null) {
             $subjectsQuery->where('teacher_id', $teacherId);
         } else {
-            // Admin sans filtre → toutes les matières de son école
             $subjectsQuery->where('school_id', $user->school_id);
         }
 
         $subjects = $subjectsQuery->get();
 
-        // Pré-charger tous les VideoProgress concernés en une seule requête
         $allVideoIds = $subjects
             ->flatMap(fn ($s) => $s->chapters->flatMap(fn ($c) => $c->videos->pluck('id')))
             ->unique()
@@ -55,38 +47,30 @@ class AggregateController extends Controller
             ->keyBy(fn ($p) => $p->user_id . '_' . $p->video_id);
 
         $result = $subjects->map(function (Subject $subject) use ($progressByUserVideo) {
-            $videoIdsBySubject = $subject->chapters
-                ->flatMap(fn ($c) => $c->videos->pluck('id'))
-                ->all();
+            $videoIds      = [];
+            $totalDuration = 0;
+            foreach ($subject->chapters as $chapter) {
+                foreach ($chapter->videos as $video) {
+                    $videoIds[]     = $video->id;
+                    $totalDuration += $video->duration_seconds;
+                }
+            }
 
-            $totalVideos       = count($videoIdsBySubject);
-            $totalDuration     = $subject->chapters
-                ->flatMap(fn ($c) => $c->videos->pluck('duration_seconds'))
-                ->sum();
-
-            $classrooms = $subject->classrooms->map(function (Classroom $classroom) use (
-                $progressByUserVideo, $videoIdsBySubject, $totalVideos, $totalDuration
-            ) {
-                $students = $classroom->students->map(fn (User $student) => $this->buildStudentStats(
-                    $student,
-                    $videoIdsBySubject,
-                    $totalVideos,
-                    $totalDuration,
-                    $progressByUserVideo
-                ));
-
-                return [
-                    'id'       => $classroom->id,
-                    'name'     => $classroom->name,
-                    'level'    => $classroom->level,
-                    'students' => $students->values(),
-                ];
-            });
+            $classrooms = $subject->classrooms->map(fn (Classroom $classroom) => [
+                'id'       => $classroom->id,
+                'name'     => $classroom->name,
+                'level'    => $classroom->level,
+                'students' => $classroom->students
+                    ->map(fn (User $student) => $this->buildStudentStats(
+                        $student, $videoIds, count($videoIds), $totalDuration, $progressByUserVideo
+                    ))
+                    ->values(),
+            ]);
 
             return [
                 'id'           => $subject->id,
                 'name'         => $subject->name,
-                'totalVideos'  => $totalVideos,
+                'totalVideos'  => count($videoIds),
                 'totalSeconds' => $totalDuration,
                 'classrooms'   => $classrooms->values(),
             ];
@@ -95,17 +79,12 @@ class AggregateController extends Controller
         return response()->json($result->values());
     }
 
-    // -------------------------------------------------------------------------
-    // GET /api/aggregates/school
-    // Vue globale par classe pour l'administrateur.
-    // -------------------------------------------------------------------------
-
     public function school(Request $request): JsonResponse
     {
         $user = $request->user();
 
         if (!$user->isAdmin()) {
-            return response()->json(['error' => 'Accès réservé aux administrateurs.'], 403);
+            abort(403, 'Accès réservé aux administrateurs.');
         }
 
         $classrooms = Classroom::with([
@@ -115,7 +94,6 @@ class AggregateController extends Controller
             ->where('school_id', $user->school_id)
             ->get();
 
-        // Pré-charger tous les VideoProgress en une seule requête
         $allVideoIds = $classrooms
             ->flatMap(fn ($cl) => $cl->subjects->flatMap(
                 fn ($s) => $s->chapters->flatMap(fn ($c) => $c->videos->pluck('id'))
@@ -128,26 +106,29 @@ class AggregateController extends Controller
             ->keyBy(fn ($p) => $p->user_id . '_' . $p->video_id);
 
         $result = $classrooms->map(function (Classroom $classroom) use ($progressByUserVideo) {
+            $subjectMeta = [];
+            foreach ($classroom->subjects as $subject) {
+                $videoIds      = [];
+                $totalDuration = 0;
+                foreach ($subject->chapters as $chapter) {
+                    foreach ($chapter->videos as $video) {
+                        $videoIds[]     = $video->id;
+                        $totalDuration += $video->duration_seconds;
+                    }
+                }
+                $subjectMeta[$subject->id] = [$videoIds, count($videoIds), $totalDuration];
+            }
+
             $students = $classroom->students->map(function (User $student) use (
-                $classroom, $progressByUserVideo
+                $classroom, $progressByUserVideo, $subjectMeta
             ) {
                 $subjectStats = $classroom->subjects->map(function (Subject $subject) use (
-                    $student, $progressByUserVideo
+                    $student, $progressByUserVideo, $subjectMeta
                 ) {
-                    $videoIds      = $subject->chapters
-                        ->flatMap(fn ($c) => $c->videos->pluck('id'))
-                        ->all();
-                    $totalVideos   = count($videoIds);
-                    $totalDuration = $subject->chapters
-                        ->flatMap(fn ($c) => $c->videos->pluck('duration_seconds'))
-                        ->sum();
+                    [$videoIds, $totalVideos, $totalDuration] = $subjectMeta[$subject->id];
 
                     $stats = $this->buildStudentStats(
-                        $student,
-                        $videoIds,
-                        $totalVideos,
-                        $totalDuration,
-                        $progressByUserVideo
+                        $student, $videoIds, $totalVideos, $totalDuration, $progressByUserVideo
                     );
 
                     return [
@@ -177,15 +158,9 @@ class AggregateController extends Controller
         return response()->json($result->values());
     }
 
-    // -------------------------------------------------------------------------
-    // Helper
-    // -------------------------------------------------------------------------
-
     /**
-     * Calcule les statistiques de progression d'un élève pour un ensemble de vidéos.
-     *
-     * @param  array<int>                               $videoIds
-     * @param  \Illuminate\Support\Collection<string, VideoProgress>  $progressByUserVideo
+     * @param  array<int>      $videoIds
+     * @param  Collection<string, VideoProgress>  $progressByUserVideo
      * @return array<string, mixed>
      */
     private function buildStudentStats(
@@ -193,15 +168,14 @@ class AggregateController extends Controller
         array $videoIds,
         int $totalVideos,
         int $totalDuration,
-        $progressByUserVideo
+        Collection $progressByUserVideo
     ): array {
-        $completed   = 0;
-        $inProgress  = 0;
-        $watchedSec  = 0;
+        $completed  = 0;
+        $inProgress = 0;
+        $watchedSec = 0;
 
         foreach ($videoIds as $videoId) {
-            $key      = $student->id . '_' . $videoId;
-            $progress = $progressByUserVideo->get($key);
+            $progress = $progressByUserVideo->get($student->id . '_' . $videoId);
 
             if ($progress === null) {
                 continue;
@@ -226,13 +200,13 @@ class AggregateController extends Controller
             'lastName'  => $student->last_name,
             'email'     => $student->email,
             'progress'  => [
-                'totalVideos'        => $totalVideos,
-                'completedVideos'    => $completed,
-                'inProgressVideos'   => $inProgress,
-                'notStartedVideos'   => $totalVideos - $completed - $inProgress,
-                'watchedSeconds'     => $watchedSec,
-                'totalSeconds'       => $totalDuration,
-                'completionPercent'  => $completionPercent,
+                'totalVideos'       => $totalVideos,
+                'completedVideos'   => $completed,
+                'inProgressVideos'  => $inProgress,
+                'notStartedVideos'  => $totalVideos - $completed - $inProgress,
+                'watchedSeconds'    => $watchedSec,
+                'totalSeconds'      => $totalDuration,
+                'completionPercent' => $completionPercent,
             ],
         ];
     }

@@ -32,6 +32,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
             uriTemplate: '/chapter-progress',
             policy: 'chapter_progress.create',
             middleware: ['auth:sanctum'],
+            input: \App\ApiResource\ChapterProgressCreateInput::class,
             processor: ChapterProgressCreateProcessor::class
         ),
         new Patch(

@@ -10,8 +10,6 @@ class VideoProgressCreateInput
 
     public ?int $video_id = null;
 
-    // watched_seconds_validated n'est pas accepté du client : seul le heartbeat peut l'incrémenter
-
     #[Assert\Range(min: 0, max: 100)]
     public float $completion_percent = 0;
 
