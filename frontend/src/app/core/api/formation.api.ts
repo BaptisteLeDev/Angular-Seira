@@ -38,6 +38,16 @@ export class FormationApi {
       );
   }
 
+  /** Catalogue role-scopé complet : matières accessibles + verrouillées. */
+  listMine(): Observable<{ available: Formation[]; locked: Formation[] }> {
+    return this.http
+      .get<unknown>(`${this.apiUrl}/me/subjects`)
+      .pipe(
+        map((raw) => MySubjectsSchema.parse(raw)),
+        catchError(this.toError),
+      );
+  }
+
   getById(id: number): Observable<Formation> {
     return this.http
       .get<unknown>(`${this.apiUrl}/subjects/${id}`)
