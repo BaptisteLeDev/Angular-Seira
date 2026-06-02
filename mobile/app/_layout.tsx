@@ -10,6 +10,7 @@ import { setUnauthorizedHandler } from '@src/api/client';
 import { useAuthStore } from '@src/stores/auth.store';
 import { useThemeStore } from '@src/stores/theme.store';
 import { LoadingView } from '@src/ui/LoadingView';
+import { OfflineBanner } from '@src/ui/OfflineBanner';
 import { ThemeFadeOverlay } from '@src/ui/ThemeFadeOverlay';
 import { ThemeProvider } from '@src/ui/ThemeProvider';
 import { useThemeColors } from '@src/ui/useThemeColors';
@@ -85,6 +86,7 @@ export default function RootLayout() {
     <SafeAreaProvider>
       <ThemeProvider>
         <RootStack />
+        <OfflineBanner />
         <ThemeFadeOverlay />
       </ThemeProvider>
     </SafeAreaProvider>
