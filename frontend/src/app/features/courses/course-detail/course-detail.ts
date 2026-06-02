@@ -127,8 +127,17 @@ export class CourseDetail {
   protected readonly nextEntry = computed<ArticleEntry | null>(() => {
     const active = this.activeArticle();
     if (!active) return null;
-    return this.articleEntries().find((entry) => entry.index === active.index + 1) ?? null;
+    const candidate =
+      this.articleEntries().find((entry) => entry.index === active.index + 1) ?? null;
+    // Le bouton « suivant » ne franchit pas un chapitre verrouillé.
+    if (!candidate || this.isChapterLocked(candidate.chapitre.id)) return null;
+    return candidate;
   });
+
+  /** Premier article d'un chapitre accessible (pour rediriger hors d'un verrou). */
+  private readonly firstAccessibleEntry = computed<ArticleEntry | null>(
+    () => this.articleEntries().find((e) => !this.isChapterLocked(e.chapitre.id)) ?? null,
+  );
 
   constructor() {
     // Charge la progression connue de l'élève (gating + reprise + dashboard).
@@ -196,6 +205,22 @@ export class CourseDetail {
       this.router.navigate(['/formations', formation.id, entries[0].article.id], {
         replaceUrl: true,
       });
+    });
+
+    // Garde d'accès : si l'article ouvert (via URL directe) est dans un chapitre
+    // verrouillé, on redirige vers le 1er contenu accessible. On attend que la
+    // progression soit hydratée pour ne pas rejeter à tort un chapitre déjà fait.
+    effect(() => {
+      if (!this.progress.hydrated()) return;
+      const formation = this.formation();
+      const active = this.activeArticle();
+      if (!formation || !active || !this.isChapterLocked(active.chapitre.id)) return;
+      const target = this.firstAccessibleEntry();
+      if (target && target.article.id !== active.article.id) {
+        this.router.navigate(['/formations', formation.id, target.article.id], {
+          replaceUrl: true,
+        });
+      }
     });
   }
 
