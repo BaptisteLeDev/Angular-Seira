@@ -58,6 +58,7 @@
               <button
                 type="button"
                 data-testid="school-edit-btn"
+                (click)="dialogOpen.set(true)"
                 class="inline-flex items-center gap-1.5 squircle-lg border border-outline-variant bg-surface-container px-4 py-2 font-headline text-sm font-bold text-on-surface transition-colors hover:border-primary/50 hover:text-primary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
               >
                 <span class="icon-[heroicons--pencil-square] text-base" aria-hidden="true"></span>
@@ -66,6 +67,7 @@
               <button
                 type="button"
                 data-testid="school-delete-btn"
+                (click)="onDelete()"
                 class="inline-flex items-center gap-1.5 squircle-lg border border-error/40 bg-error-container px-4 py-2 font-headline text-sm font-bold text-on-error-container transition-colors hover:border-error focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
               >
                 <span class="icon-[heroicons--trash] text-base" aria-hidden="true"></span>
@@ -213,4 +215,12 @@
     }
   }
 
+  @if (school(); as s) {
+    <app-school-form-dialog
+      [open]="dialogOpen()"
+      [school]="s"
+      (submitted)="onSubmit($event)"
+      (closed)="dialogOpen.set(false)"
+    />
+  }
 </div>
