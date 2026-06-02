@@ -9,7 +9,7 @@ export const FormationSchema = z.object({
   '@id': z.string().optional(),
   '@type': z.string().optional(),
   id: z.number().int(),
-  name: z.string(),
+  name: z.string().min(1),
   description: z.string().nullable().optional(),
   expectedHours: z.number().int().optional(),
   school: z.string().optional(),

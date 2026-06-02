@@ -133,6 +133,14 @@ export class FormationApi {
 
   private readonly toError = (error: unknown): Observable<never> => {
     if (error instanceof HttpErrorResponse) {
+      if (error.status === 422) {
+        const detail = (error.error?.detail ?? error.error?.['hydra:description']) as
+          | string
+          | undefined;
+        return throwError(() => new Error(detail ?? 'Données invalides.'));
+      }
+      if (error.status === 403) return throwError(() => new Error('Accès refusé.'));
+      if (error.status === 404) return throwError(() => new Error('Formation introuvable.'));
       return throwError(() => new Error('Impossible de charger les formations.'));
     }
     return throwError(() => error);

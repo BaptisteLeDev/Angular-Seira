@@ -9,7 +9,7 @@ export const ChapitreSchema = z.object({
   '@id': z.string().optional(),
   '@type': z.string().optional(),
   id: z.number().int(),
-  title: z.string(),
+  title: z.string().min(1),
   sortOrder: z.number().int(),
   subject: z.string().optional(),
   contents: z.array(z.string()).optional(),

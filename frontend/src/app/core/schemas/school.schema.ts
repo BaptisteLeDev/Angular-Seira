@@ -4,7 +4,7 @@ export const SchoolSchema = z.object({
   '@id': z.string().optional(),
   '@type': z.string().optional(),
   id: z.number().int(),
-  name: z.string(),
+  name: z.string().min(1),
   slug: z.string().optional(),
   /** IRIs des classes liées à cette école */
   classrooms: z.array(z.string()).optional(),
