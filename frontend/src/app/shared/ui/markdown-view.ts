@@ -3,10 +3,8 @@ import {
   Component,
   ViewEncapsulation,
   computed,
-  inject,
   input,
 } from '@angular/core';
-import { DomSanitizer } from '@angular/platform-browser';
 import { marked } from 'marked';
 
 @Component({
@@ -154,10 +152,14 @@ import { marked } from 'marked';
 })
 export class MarkdownView {
   readonly source = input.required<string>();
-  private readonly sanitizer = inject(DomSanitizer);
 
-  protected readonly html = computed(() => {
-    const raw = marked.parse(this.source(), { async: false }) as string;
-    return this.sanitizer.bypassSecurityTrustHtml(raw);
-  });
+  /**
+   * HTML du markdown rendu, lié à `[innerHTML]` qui applique la sanitisation
+   * intégrée d'Angular (suppression des `<script>`, handlers `on*`, `javascript:`…).
+   * On ne fait PLUS de `bypassSecurityTrustHtml` (faille XSS, #47) : le contenu
+   * provient d'auteurs et doit être nettoyé.
+   */
+  protected readonly html = computed(
+    () => marked.parse(this.source(), { async: false }) as string,
+  );
 }
