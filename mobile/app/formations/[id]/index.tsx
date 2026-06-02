@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Pressable, RefreshControl, ScrollView, Text, View } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Link, useLocalSearchParams, useRouter } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
 
@@ -32,6 +32,7 @@ type Entry = { article: Article; chapitre: Chapitre; index: number };
 export default function FormationOverviewScreen() {
   const router = useRouter();
   const palette = useThemeColors();
+  const insets = useSafeAreaInsets();
   const { id } = useLocalSearchParams<{ id: string }>();
   const formationId = Number(id);
 
@@ -154,7 +155,7 @@ export default function FormationOverviewScreen() {
     <SafeAreaView style={{ flex: 1, backgroundColor: palette.background }} edges={['top']}>
       <ScrollView
         style={{ backgroundColor: palette.background }}
-        contentContainerStyle={{ paddingBottom: 48, backgroundColor: palette.background }}
+        contentContainerStyle={{ paddingBottom: 48 + insets.bottom, backgroundColor: palette.background }}
         refreshControl={
           <RefreshControl
             refreshing={refreshing}

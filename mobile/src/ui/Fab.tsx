@@ -1,5 +1,6 @@
 import { useEffect, useRef } from 'react';
 import { Animated, Pressable } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { colors } from '@src/constants/theme';
 import { Icon, type IoniconName } from './Icon';
@@ -17,8 +18,11 @@ export function Fab({
   onPress,
   icon,
   accessibilityLabel,
-  bottom = 24,
+  bottom,
 }: Props) {
+  const insets = useSafeAreaInsets();
+  // Par défaut on remonte au-dessus de l'indicateur home (safe area basse).
+  const effectiveBottom = bottom ?? 24 + insets.bottom;
   const value = useRef(new Animated.Value(visible ? 0 : 100)).current;
 
   useEffect(() => {
@@ -36,7 +40,7 @@ export function Fab({
       style={{
         position: 'absolute',
         right: 20,
-        bottom,
+        bottom: effectiveBottom,
         transform: [{ translateY: value }],
       }}
     >

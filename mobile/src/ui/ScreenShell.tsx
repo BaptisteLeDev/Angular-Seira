@@ -1,5 +1,5 @@
 import { ScrollView, Text, View } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import type { ReactNode } from 'react';
 
 import { BackHeader } from './BackHeader';
@@ -15,12 +15,13 @@ type Props = {
 
 export function ScreenShell({ eyebrow, title, subtitle, back = false, children }: Props) {
   const palette = useThemeColors();
+  const insets = useSafeAreaInsets();
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: palette.background }} edges={['top']}>
       {back ? <BackHeader /> : null}
       <ScrollView
         style={{ backgroundColor: palette.background }}
-        contentContainerStyle={{ paddingBottom: 40 }}
+        contentContainerStyle={{ paddingBottom: 40 + insets.bottom }}
       >
         <View className="px-4 py-6">
           <Text className="mb-3 font-headline text-xs font-bold uppercase tracking-[3px] text-primary">
