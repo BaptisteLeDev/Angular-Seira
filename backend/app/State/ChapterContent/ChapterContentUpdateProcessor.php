@@ -19,13 +19,11 @@ class ChapterContentUpdateProcessor implements ProcessorInterface
         $content = ChapterContent::find($id);
 
         if ($content === null) {
-            throw new NotFoundHttpException('ChapterContent introuvable.');
+            throw new NotFoundHttpException('Chapter content not found.');
         }
 
         Gate::authorize('chapter_contents.update', $content);
 
-        // Lecture directe de la request pour éviter les problèmes de désérialisation merge-patch.
-        // Gestion camelCase + snake_case.
         $body = request()->json()->all();
 
         $map = [

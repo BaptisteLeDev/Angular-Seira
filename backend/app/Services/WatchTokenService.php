@@ -6,10 +6,11 @@ use Illuminate\Support\Facades\Cache;
 
 class WatchTokenService
 {
-    private const SEGMENT_SECONDS       = 30;
-    private const TIMING_TOLERANCE_EARLY = 5;   // tolérance avant fin de segment
-    private const TIMING_BUFFER_LATE    = 60;   // tolérance après fin de segment
-    private const NONCE_TTL_EXTRA       = 120;  // TTL cache = durée segment + cette valeur
+    private const SEGMENT_SECONDS        = 30;
+    private const TIMING_TOLERANCE_EARLY = 5;
+    private const TIMING_BUFFER_LATE     = 60;
+    private const NONCE_TTL_EXTRA        = 120;
+    private const CONSUME_TTL            = 300;
 
     private function secret(): string
     {
@@ -20,10 +21,6 @@ class WatchTokenService
         return $key;
     }
 
-    /**
-     * Génère un token signé HMAC-SHA256 pour un segment de visionnage.
-     * Encode : user, video, bornes du segment, timestamp d'émission, nonce unique.
-     */
     public function generate(int $userId, int $videoId, int $segmentStart, int $videoDuration): array
     {
         if ($segmentStart >= $videoDuration) {
@@ -47,25 +44,17 @@ class WatchTokenService
         $signature = hash_hmac('sha256', $encoded, $this->secret());
         $token     = $encoded . '.' . $signature;
 
-        $duration = $segmentEnd - $segmentStart;
-        Cache::put(
-            "watch_nonce:{$nonce}",
-            'pending',
-            now()->addSeconds($duration + self::NONCE_TTL_EXTRA)
-        );
+        $ttl = $segmentEnd - $segmentStart + self::NONCE_TTL_EXTRA;
+        Cache::put("watch_nonce:{$nonce}", 'pending', now()->addSeconds($ttl));
 
         return [
             'token'      => $token,
             'seg_start'  => $segmentStart,
             'seg_end'    => $segmentEnd,
-            'expires_at' => now()->addSeconds($duration + self::NONCE_TTL_EXTRA)->toIso8601String(),
+            'expires_at' => now()->addSeconds($ttl)->toIso8601String(),
         ];
     }
 
-    /**
-     * Valide un token et retourne son payload.
-     * Lance une RuntimeException descriptive en cas d'échec.
-     */
     public function validate(string $token, int $userId): array
     {
         $parts = explode('.', $token, 2);
@@ -115,11 +104,8 @@ class WatchTokenService
         return $payload;
     }
 
-    /**
-     * Marque le nonce comme consommé pour bloquer tout replay ultérieur.
-     */
     public function consume(string $nonce): void
     {
-        Cache::put("watch_nonce:{$nonce}", 'used', now()->addSeconds(300));
+        Cache::put("watch_nonce:{$nonce}", 'used', now()->addSeconds(self::CONSUME_TTL));
     }
 }

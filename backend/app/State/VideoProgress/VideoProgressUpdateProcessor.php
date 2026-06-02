@@ -4,15 +4,13 @@ namespace App\State\VideoProgress;
 
 use ApiPlatform\Metadata\Operation;
 use ApiPlatform\State\ProcessorInterface;
-use App\ApiResource\VideoProgressUpdateInput;
 use App\Models\VideoProgress;
 use Illuminate\Support\Facades\Gate;
 use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
-use Symfony\Component\HttpKernel\Exception\UnprocessableEntityHttpException;
 
 /**
- * @implements ProcessorInterface<VideoProgressUpdateInput, VideoProgress>
+ * @implements ProcessorInterface<mixed, VideoProgress>
  */
 class VideoProgressUpdateProcessor implements ProcessorInterface
 {
@@ -22,18 +20,16 @@ class VideoProgressUpdateProcessor implements ProcessorInterface
         $progress = VideoProgress::find($id);
 
         if ($progress === null) {
-            throw new NotFoundHttpException('VideoProgress introuvable.');
+            throw new NotFoundHttpException('Video progress not found.');
         }
 
-        // Autorisation ici car API Platform passe le DTO à la gate, pas le modèle
+        // Gate reçoit le modèle plutôt que le DTO (contournement API Platform)
         if (Gate::denies('video_progress.update', $progress)) {
             throw new AccessDeniedHttpException();
         }
 
-        // On lit la request brute pour éviter les problèmes de désérialisation merge-patch.
-        // watched_seconds_validated est intentionnellement absent — seul le heartbeat peut le modifier.
-        $body     = request()->json()->all();
-        $allowed  = ['not_started', 'in_progress', 'completed'];
+        $body    = request()->json()->all();
+        $allowed = ['not_started', 'in_progress', 'completed'];
 
         if (array_key_exists('completion_percent', $body)) {
             $v = (float) $body['completion_percent'];
