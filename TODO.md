@@ -16,7 +16,7 @@
 ### Authentification & rôles
 - [x] Authentification sécurisée (Sanctum, `/auth/login`, tokens) *(`app/State/Auth/`)*
 - [x] Gestion fine des rôles (RBAC) : `admin` / `teacher` / `student` *(30+ Gates dans `AppServiceProvider`)*
-- [ ] Un utilisateur peut gérer **plusieurs** écoles *(actuellement `school_id` unique, relation 1-N)*
+- [x] Un utilisateur peut gérer **plusieurs** écoles *(pivot `user_school` + `User::schools()` + routes `/users/{id}/schools` — #19)*
 - [x] Isolation des données entre écoles *(filtrage par `school_id`/`classroom_id` dans les Gates)* — ⚠️ pas de middleware global
 
 ### Modèle métier
@@ -43,9 +43,9 @@
 - [x] Vues agrégées élève / formateur / école *(`GET /api/aggregates/teacher` + `GET /api/aggregates/school`)*
 
 ### Sécurité & conformité
-- [ ] Logs d'activité *(aucune table audit/activity_log)*
-- [ ] Protection anti-fraude *(lié à l'anti-triche, non implémenté)*
-- [ ] Conformité RGPD — ⚠️ SoftDeletes présents, pas d'anonymisation ni de routes RGPD
+- [ ] Logs d'activité *(aucune table audit/activity_log — #20)*
+- [x] Protection anti-fraude *(clés temporelles HMAC + anti-replay nonce + fenêtre temporelle stricte ; reste : compléter l'enforcement quand ChapterContent expose `video_id` #29, et chapitre certifié serveur #71)*
+- [ ] Conformité RGPD — ⚠️ SoftDeletes présents, pas d'anonymisation ni de routes RGPD *(#21)*
 
 ---
 
