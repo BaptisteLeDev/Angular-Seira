@@ -42,7 +42,9 @@ export function ArticleBody({ article }: Props) {
 
       {article.type === 'file' && article.filePath ? (
         <LinkCard
-          onPress={() => {}}
+          onPress={() => {
+            void Linking.openURL(article.filePath!);
+          }}
           icon="attach-outline"
           iconBg="rgba(123,208,255,0.1)"
           iconColor={palette.primary}
