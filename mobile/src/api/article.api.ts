@@ -1,5 +1,5 @@
 import { apiRequest } from './client';
-import { parseHydraCollection, parseResponse } from './parse-response';
+import { parseResponse } from './parse-response';
 import { ArticleSchema, type Article } from '@src/schemas/article.schema';
 import { iriToId } from '@src/utils/iri';
 
@@ -18,10 +18,5 @@ export const ArticleApi = {
         return parseResponse(ArticleSchema, raw);
       }),
     );
-  },
-
-  async listAll(): Promise<Article[]> {
-    const raw = await apiRequest<unknown>('/chapter-contents');
-    return parseHydraCollection(ArticleSchema, raw);
   },
 };
