@@ -17,6 +17,21 @@ export function isChapterUnlocked(
   return completedChapterIds.includes(orderedChapterIds[index - 1]);
 }
 
+/**
+ * Gating assoupli : chapitres comptés comme « faits » = réellement complétés OU
+ * sans vidéo traçable (en attendant `video_id` sur ChapterContent, backend #29).
+ * Le verrouillage reste actif pour les chapitres ayant des vidéos traçables.
+ */
+export function effectiveCompleted(
+  completedIds: readonly number[],
+  chaptersWithTrackable: readonly number[],
+  allChapterIds: readonly number[],
+): number[] {
+  const completed = new Set(completedIds);
+  const trackable = new Set(chaptersWithTrackable);
+  return allChapterIds.filter((id) => completed.has(id) || !trackable.has(id));
+}
+
 /** Ids des chapitres déverrouillés (1er + ceux dont le précédent est terminé). */
 export function unlockedChapterIds(
   orderedChapterIds: readonly number[],

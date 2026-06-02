@@ -12,7 +12,7 @@ import { Fab } from '@src/ui/Fab';
 import { useArticleStore } from '@src/stores/article.store';
 import { useFormationStore } from '@src/stores/formation.store';
 import { useProgressStore } from '@src/stores/progress.store';
-import { unlockedChapterIds } from '@src/utils/chapter-gating';
+import { unlockedChapterIds, effectiveCompleted } from '@src/utils/chapter-gating';
 import type { Chapitre } from '@src/schemas/chapitre.schema';
 import { useThemeColors } from '@src/ui/useThemeColors';
 import { variantFor } from '@src/ui/formation-visual';
@@ -72,10 +72,11 @@ export default function ArticleScreen() {
     return r;
   }, [chapitres, articlesByChapitre]);
 
-  // Chapitres déverrouillés (séquentiel : un chapitre est fini quand toutes
-  // ses vidéos sont à 100% du temps certifié). Sert au gating navigation.
+  // Chapitres déverrouillés. Gating assoupli : un chapitre sans vidéo traçable
+  // (videoId null, en attendant le backend #29) ne bloque pas le suivant.
   const unlockedIds = useMemo(() => {
-    const completed = chapitres
+    const allIds = chapitres.map((c) => c.id);
+    const reallyCompleted = chapitres
       .filter((ch) => {
         const vids = entries
           .filter((e) => e.chapitre.id === ch.id && e.article.videoId != null)
@@ -83,7 +84,11 @@ export default function ArticleScreen() {
         return vids.length > 0 && vids.every((vid) => (progressByVideo[vid]?.completionPercent ?? 0) >= 100);
       })
       .map((ch) => ch.id);
-    return new Set(unlockedChapterIds(chapitres.map((c) => c.id), completed));
+    const withTrackable = chapitres
+      .filter((ch) => entries.some((e) => e.chapitre.id === ch.id && e.article.videoId != null))
+      .map((ch) => ch.id);
+    const completed = effectiveCompleted(reallyCompleted, withTrackable, allIds);
+    return new Set(unlockedChapterIds(allIds, completed));
   }, [chapitres, entries, progressByVideo]);
   const isLockedChapter = (chapterId: number) => !unlockedIds.has(chapterId);
 

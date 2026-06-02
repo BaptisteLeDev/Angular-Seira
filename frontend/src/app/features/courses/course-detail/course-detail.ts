@@ -8,7 +8,7 @@ import { ArticleStore } from '../../../core/stores/article.store';
 import { FormationStore } from '../../../core/stores/formation.store';
 import { ProgressStore } from '../../../core/stores/progress.store';
 import { ArticleBody } from '../../../shared/article/article-body';
-import { isChapterUnlocked } from '../../../core/utils/chapter-gating';
+import { isChapterUnlocked, effectiveCompleted } from '../../../core/utils/chapter-gating';
 import { buildChapterProgressPayload } from '../../../core/utils/video-progress';
 
 interface ArticleEntry {
@@ -51,11 +51,22 @@ export class CourseDetail {
    * progression serveur de l'élève. Tant que rien n'est hydraté, la liste est
    * vide → seul le 1er chapitre est accessible (verrouillage séquentiel).
    */
-  protected readonly completedChapterIds = computed<readonly number[]>(() =>
-    Object.entries(this.progress.byChapterId())
+  protected readonly completedChapterIds = computed<readonly number[]>(() => {
+    const completed = Object.entries(this.progress.byChapterId())
       .filter(([, entry]) => entry.status === 'completed')
-      .map(([id]) => Number(id)),
-  );
+      .map(([id]) => Number(id));
+    const all = this.chapitres().map((c) => c.id);
+    // Chapitres ayant au moins une vidéo traçable (videoId non nul).
+    const withTrackable = this.chapitres()
+      .filter((ch) =>
+        this.articleStore
+          .byChapitre(ch.id)()
+          .some((a) => a.type === 'video' && a.videoId != null),
+      )
+      .map((ch) => ch.id);
+    // Gating assoupli : un chapitre sans vidéo traçable ne bloque pas (#29).
+    return effectiveCompleted(completed, withTrackable, all);
+  });
 
   /** Verrouillage séquentiel : 1er ouvert, suivant ouvert si le précédent est fait. */
   protected isChapterLocked(chapterId: number): boolean {

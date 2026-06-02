@@ -1,7 +1,19 @@
-import { isChapterUnlocked, unlockedChapterIds } from './chapter-gating';
+import { isChapterUnlocked, unlockedChapterIds, effectiveCompleted } from './chapter-gating';
 
 // chapitres triés par sortOrder, ids dans l'ordre
 const order = [10, 20, 30];
+
+describe('effectiveCompleted (gating assoupli)', () => {
+  test('un chapitre sans vidéo traçable passe (ne bloque pas)', () => {
+    expect(effectiveCompleted([], [10], [10, 20])).toEqual([20]);
+  });
+  test('combine complétés réels + non traçables, dans l’ordre', () => {
+    expect(effectiveCompleted([10], [10, 20], [10, 20, 30])).toEqual([10, 30]);
+  });
+  test('aucune vidéo traçable -> tout passe', () => {
+    expect(effectiveCompleted([], [], [10, 20, 30])).toEqual([10, 20, 30]);
+  });
+});
 
 describe('isChapterUnlocked', () => {
   it('le 1er chapitre est toujours déverrouillé', () => {

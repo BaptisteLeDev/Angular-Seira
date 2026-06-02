@@ -12,7 +12,7 @@ import { useArticleStore } from '@src/stores/article.store';
 import { useFormationStore } from '@src/stores/formation.store';
 import { useProgressStore } from '@src/stores/progress.store';
 import { aggregatePercent } from '@src/utils/video-progress';
-import { unlockedChapterIds } from '@src/utils/chapter-gating';
+import { unlockedChapterIds, effectiveCompleted } from '@src/utils/chapter-gating';
 import type { Article } from '@src/schemas/article.schema';
 import type { Chapitre } from '@src/schemas/chapitre.schema';
 import { useThemeColors } from '@src/ui/useThemeColors';
@@ -102,26 +102,31 @@ export default function FormationOverviewScreen() {
     return aggregatePercent(percents);
   }, [entries, progressByVideo]);
 
-  // Un chapitre est « terminé » si ses contenus vidéo sont tous à 100%.
-  // Sans progression backend (videoId null), cet ensemble est vide → seul le
-  // 1er chapitre reste déverrouillé. Se branche automatiquement quand le suivi
-  // backend fournira la progression réelle.
-  const completedChapterIds = useMemo(
-    () =>
-      chapitres
-        .filter((ch) => {
-          const vids = entries
-            .filter((e) => e.chapitre.id === ch.id)
-            .map((e) => e.article.videoId)
-            .filter((v): v is number => typeof v === 'number');
-          return (
-            vids.length > 0 &&
-            vids.every((id) => (progressByVideo[id]?.completionPercent ?? 0) >= 100)
-          );
-        })
-        .map((ch) => ch.id),
-    [chapitres, entries, progressByVideo],
-  );
+  // Un chapitre est « terminé » si ses contenus vidéo traçables sont tous à
+  // 100%. Gating assoupli : un chapitre SANS vidéo traçable (videoId null, en
+  // attendant le backend #29) ne bloque pas le suivant. Le verrou se re-durcit
+  // automatiquement quand le suivi backend fournira la progression réelle.
+  const completedChapterIds = useMemo(() => {
+    const allIds = chapitres.map((c) => c.id);
+    const reallyCompleted = chapitres
+      .filter((ch) => {
+        const vids = entries
+          .filter((e) => e.chapitre.id === ch.id)
+          .map((e) => e.article.videoId)
+          .filter((v): v is number => typeof v === 'number');
+        return (
+          vids.length > 0 &&
+          vids.every((id) => (progressByVideo[id]?.completionPercent ?? 0) >= 100)
+        );
+      })
+      .map((ch) => ch.id);
+    const withTrackable = chapitres
+      .filter((ch) =>
+        entries.some((e) => e.chapitre.id === ch.id && typeof e.article.videoId === 'number'),
+      )
+      .map((ch) => ch.id);
+    return effectiveCompleted(reallyCompleted, withTrackable, allIds);
+  }, [chapitres, entries, progressByVideo]);
 
   const unlockedIds = useMemo(
     () => new Set(unlockedChapterIds(chapitres.map((c) => c.id), completedChapterIds)),

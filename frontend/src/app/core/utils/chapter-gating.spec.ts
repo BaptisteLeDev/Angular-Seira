@@ -1,5 +1,20 @@
 import { describe, it, expect } from 'vitest';
-import { isChapterUnlocked, unlockedChapterIds } from './chapter-gating';
+import { isChapterUnlocked, unlockedChapterIds, effectiveCompleted } from './chapter-gating';
+
+describe('effectiveCompleted (gating assoupli)', () => {
+  it('gating actif : un chapitre traçable non terminé ne passe pas', () => {
+    expect(effectiveCompleted([], [10, 20], [10, 20])).toEqual([]);
+  });
+  it('un chapitre sans vidéo traçable passe (ne bloque pas)', () => {
+    expect(effectiveCompleted([], [10], [10, 20])).toEqual([20]);
+  });
+  it('combine complétés réels + chapitres non traçables, dans l’ordre', () => {
+    expect(effectiveCompleted([10], [10, 20], [10, 20, 30])).toEqual([10, 30]);
+  });
+  it('aucune vidéo traçable nulle part -> tout passe (aucun verrou)', () => {
+    expect(effectiveCompleted([], [], [10, 20, 30])).toEqual([10, 20, 30]);
+  });
+});
 
 const order = [10, 20, 30];
 
