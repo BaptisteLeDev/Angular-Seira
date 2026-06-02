@@ -83,6 +83,12 @@ export class Dashboard {
           icon: 'icon-[heroicons--document-text]',
           routerLink: '/admin/articles',
         },
+        {
+          label: 'Suivi global',
+          description: 'Progression des élèves par classe.',
+          icon: 'icon-[heroicons--chart-bar]',
+          routerLink: '/admin/suivi',
+        },
       ];
     }
 
@@ -100,6 +106,12 @@ export class Dashboard {
           description: 'Vue agrégée des élèves de vos classes.',
           icon: 'icon-[heroicons--user-group]',
           routerLink: '/teacher/students',
+        },
+        {
+          label: 'Suivi des élèves',
+          description: 'Progression par matière et par classe.',
+          icon: 'icon-[heroicons--chart-bar]',
+          routerLink: '/teacher/suivi',
         },
       ];
     }

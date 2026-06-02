@@ -62,6 +62,12 @@ export const routes: Routes = [
     loadComponent: () =>
       import('./features/teacher/teacher-students.page').then((m) => m.TeacherStudents),
   },
+  {
+    path: 'teacher/suivi',
+    ...requireRoles('teacher'),
+    loadComponent: () =>
+      import('./features/teacher/teacher-progress.page').then((m) => m.TeacherProgress),
+  },
 
   // ── Formations ───────────────────────────────────────────────────────────
   {
@@ -94,6 +100,12 @@ export const routes: Routes = [
     ...requireRoles('admin'),
     loadComponent: () =>
       import('./features/admin/admin-users.page').then((m) => m.AdminUsers),
+  },
+  {
+    path: 'admin/suivi',
+    ...requireRoles('admin'),
+    loadComponent: () =>
+      import('./features/admin/school-progress.page').then((m) => m.SchoolProgress),
   },
   {
     path: 'admin/articles',
