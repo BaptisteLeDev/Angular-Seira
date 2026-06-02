@@ -1,45 +1,91 @@
 ---
 layout: section
-transition: slide-up
+transition: slide-left
 ---
 
-# 🗺️ Roadmap & clôture
+# 6 · Veille & conclusion
 
 ---
+layout: default
+---
 
-# Graphe des dépendances
+# Veille sécurité
 
-```mermaid {scale: 0.56}
-flowchart LR
-  I18["🛠️ #18 Anti-triche · clés"] --> I22["🌐 #22 Lecteur contrôlé"]
-  I18 --> I25["📱 #25 Envoi clés"]
-  I15["🛠️ #15 Agrégation"] --> I24["🌐 #24 Dashboards"]
-  I20["🛠️ #20 Logs"] --> I21["🛠️ #21 RGPD"]
-  I19["🛠️ #19 Multi-écoles"]:::solo
-  I23["🌐 #23 Espace élève"]:::solo
-  I26["📱 #26 Écran Classes"]:::solo
+<div class="grid grid-cols-2 gap-8 mt-2">
 
-  classDef hi stroke:#f87171,stroke-width:3px;
-  classDef solo stroke-dasharray:4 3,opacity:0.7;
-  class I18 hi;
-```
+<div>
 
-<div class="text-xs opacity-60 text-center mt-1">
-<b style="color:#f87171">#18</b> est le nœud critique : il débloque l'anti-triche web <em>et</em> mobile.
+### Axes de veille (OWASP)
+
+<div class="text-sm flex flex-col gap-2">
+  <div class="mm-card"><b>Broken Access Control</b> → Gates par opération + isolation école/classe</div>
+  <div class="mm-card"><b>Business Logic Abuse</b> → la faille centrale du projet : temps de visionnage falsifiable</div>
+  <div class="mm-card"><b>Mass Assignment</b> → DTO d'entrée dédiés, champs sensibles non exposés</div>
+  <div class="mm-card"><b>Auth / token</b> → Sanctum, stockage sécurisé (SecureStore mobile)</div>
+</div>
+
+</div>
+
+<div>
+
+### Vulnérabilités traitées
+
+<div class="text-sm flex flex-col gap-2">
+  <div class="mm-card" style="border-color:#f87171">
+  <b style="color:#f87171">Falsification du temps</b><br>
+  Un client pouvait certifier un temps arbitraire → corrigé par clés HMAC + anti-rejeu + fenêtre temporelle.
+  </div>
+  <div class="mm-card" style="border-color:#fbbf24">
+  <b style="color:#fbbf24">Audit du code</b><br>
+  Une revue de sécurité a fait remonter des points sensibles, tracés en <b>issues GitHub</b> et priorisés.
+  </div>
+</div>
+
+<div class="text-xs opacity-60 mt-2">
+Reste à durcir : logs d'activité (audit) et conformité RGPD (anonymisation / export).
+</div>
+
+</div>
+
 </div>
 
 ---
+layout: default
+---
 
-# Ordre de bataille
+# Synthèse & conclusion
 
-<div class="flex flex-col gap-3 mt-4 text-sm">
-  <div class="mm-card"><b style="color:#f87171">Lot 1 — Fondation anti-triche</b> · #18 (backend) → puis #22 (web) & #25 (mobile) en parallèle</div>
-  <div class="mm-card"><b style="color:#7bd0ff">Lot 2 — Suivi pédagogique</b> · #15 (agrégation) → #24 (dashboards)</div>
-  <div class="mm-card"><b style="color:#c084fc">Lot 3 — Parcours & confort</b> · #23 (espace élève) · #26 (écran classes)</div>
-  <div class="mm-card"><b style="color:#34d399">Lot 4 — Conformité & multi-tenant</b> · #19 · #20 · #21</div>
+<div class="grid grid-cols-2 gap-8 mt-2">
+
+<div>
+
+### Satisfactions
+
+<div class="text-sm flex flex-col gap-2">
+  <div class="mm-card" style="border-color:#34d399">Une <b>API unique</b> propre, consommée par web & mobile en miroir</div>
+  <div class="mm-card" style="border-color:#34d399">Une <b>anti-triche</b> robuste, prouvée par les tests</div>
+  <div class="mm-card" style="border-color:#34d399">Architecture <b>en couches</b> prête pour la couche IA</div>
 </div>
 
-<div class="text-xs opacity-60 mt-4">9 issues · projet GitHub « MontoMaster Roadmap » · périmètre IA traité dans une session ultérieure.</div>
+</div>
+
+<div>
+
+### Difficultés & apprentissages
+
+<div class="text-sm flex flex-col gap-2">
+  <div class="mm-card">Modéliser une anti-fraude <b>impossible à contourner côté client</b></div>
+  <div class="mm-card">Garder la <b>parité web / mobile</b> sans dupliquer la logique</div>
+  <div class="mm-card">Discipline <b>TDD</b> sur les règles métier sensibles</div>
+</div>
+
+<div class="mm-card mt-3 text-xs" style="border-color:#fbbf24">
+<b style="color:#fbbf24">Suite :</b> CI automatisée, logs/RGPD, puis la couche IA (transcription · RAG · chat).
+</div>
+
+</div>
+
+</div>
 
 ---
 layout: center
@@ -54,26 +100,26 @@ class: text-center
   <div class="mm-chip" style="color:#c084fc">Formateur</div>
   <QRCode
     class="mt-3"
-    :width="200" :height="200" type="svg"
+    :width="190" :height="190" type="svg"
     data="http://localhost:4200/login?role=teacher"
     :margin="6"
     :dotsOptions="{ type: 'extra-rounded', color: '#c084fc' }"
     :backgroundOptions="{ color: '#ffffff' }"
   />
-  <div class="text-xs font-mono mt-3 opacity-80">prof@monto.test<br/>Prof123!</div>
+  <div class="text-xs font-mono mt-3 opacity-80">prof@monto.test · Prof123!</div>
 </div>
 
 <div class="flex flex-col items-center">
   <div class="mm-chip" style="color:#34d399">Élève</div>
   <QRCode
     class="mt-3"
-    :width="200" :height="200" type="svg"
+    :width="190" :height="190" type="svg"
     data="http://localhost:4200/login?role=student"
     :margin="6"
     :dotsOptions="{ type: 'extra-rounded', color: '#34d399' }"
     :backgroundOptions="{ color: '#ffffff' }"
   />
-  <div class="text-xs font-mono mt-3 opacity-80">eleve@monto.test<br/>Eleve123!</div>
+  <div class="text-xs font-mono mt-3 opacity-80">eleve@monto.test · Eleve123!</div>
 </div>
 
 </div>
@@ -87,10 +133,10 @@ class: text-center
 
 # Merci 🙌
 
-Questions / discussion
+Questions / entretien technique
 
 <div class="mt-6 flex justify-center gap-3 text-xs">
-  <span class="mm-chip" style="color:#7bd0ff">Backend #18–21</span>
-  <span class="mm-chip" style="color:#c084fc">Web #22–24</span>
-  <span class="mm-chip" style="color:#34d399">Mobile #25–26</span>
+  <span class="mm-chip" style="color:#7bd0ff">Backend Laravel</span>
+  <span class="mm-chip" style="color:#c084fc">Web Angular</span>
+  <span class="mm-chip" style="color:#34d399">Mobile Expo</span>
 </div>
