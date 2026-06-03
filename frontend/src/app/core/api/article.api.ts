@@ -1,14 +1,16 @@
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
-import { Observable, catchError, forkJoin, of, throwError } from 'rxjs';
+import { Observable, catchError, forkJoin, of, tap, throwError } from 'rxjs';
 import { environment } from '@environments/environment';
 import { ArticleSchema, type Article } from '../schemas/article.schema';
 import { parseResponse } from './parse-response';
+import { ResourceCache } from './resource-cache';
 import { iriToId } from '../utils/iri';
 
 @Injectable({ providedIn: 'root' })
 export class ArticleApi {
   private readonly http = inject(HttpClient);
+  private readonly cache = inject(ResourceCache);
   private readonly apiUrl = environment.apiUrl;
 
   getById(id: number): Observable<Article> {
@@ -53,13 +55,20 @@ export class ArticleApi {
   ): Observable<Article> {
     return this.http
       .patch<unknown>(`${this.apiUrl}/chapter-contents/${id}`, payload)
-      .pipe(parseResponse(ArticleSchema), catchError(this.passError));
+      .pipe(
+        parseResponse(ArticleSchema),
+        tap(() => this.cache.invalidate(`${this.apiUrl}/chapter-contents/${id}`)),
+        catchError(this.passError),
+      );
   }
 
   delete(id: number): Observable<void> {
     return this.http
       .delete<void>(`${this.apiUrl}/chapter-contents/${id}`)
-      .pipe(catchError(this.passError));
+      .pipe(
+        tap(() => this.cache.invalidate(`${this.apiUrl}/chapter-contents/${id}`)),
+        catchError(this.passError),
+      );
   }
 
   /**
@@ -67,11 +76,12 @@ export class ArticleApi {
    */
   listByIris(contentIris: string[]): Observable<Article[]> {
     if (contentIris.length === 0) return of([]);
-    const requests = contentIris.map((iri) =>
-      this.http
-        .get<unknown>(`${this.apiUrl}/chapter-contents/${iriToId(iri)}`)
-        .pipe(parseResponse(ArticleSchema)),
-    );
+    const requests = contentIris.map((iri) => {
+      const url = `${this.apiUrl}/chapter-contents/${iriToId(iri)}`;
+      return this.cache.get(url, () =>
+        this.http.get<unknown>(url).pipe(parseResponse(ArticleSchema)),
+      );
+    });
     return forkJoin(requests).pipe(catchError(this.toError));
   }
 

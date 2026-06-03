@@ -1,11 +1,12 @@
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
-import { Observable, catchError, forkJoin, map, of, throwError } from 'rxjs';
+import { Observable, catchError, forkJoin, map, of, tap, throwError } from 'rxjs';
 import { z } from 'zod';
 import { environment } from '@environments/environment';
 import { ChapitreSchema, type Chapitre } from '../schemas/chapitre.schema';
 import { FormationSchema, type Formation } from '../schemas/formation.schema';
 import { parseResponse, parseHydraCollection } from './parse-response';
+import { ResourceCache } from './resource-cache';
 import { iriToId } from '../utils/iri';
 
 /** Réponse de /me/subjects : matières accessibles + verrouillées (role-scopé). */
@@ -17,6 +18,7 @@ const MySubjectsSchema = z.object({
 @Injectable({ providedIn: 'root' })
 export class FormationApi {
   private readonly http = inject(HttpClient);
+  private readonly cache = inject(ResourceCache);
   private readonly apiUrl = environment.apiUrl;
 
   list(): Observable<Formation[]> {
@@ -108,13 +110,20 @@ export class FormationApi {
   ): Observable<Chapitre> {
     return this.http
       .patch<unknown>(`${this.apiUrl}/chapters/${id}`, payload)
-      .pipe(parseResponse(ChapitreSchema), catchError(this.passError));
+      .pipe(
+        parseResponse(ChapitreSchema),
+        tap(() => this.cache.invalidate(`${this.apiUrl}/chapters/${id}`)),
+        catchError(this.passError),
+      );
   }
 
   deleteChapitre(id: number): Observable<void> {
     return this.http
       .delete<void>(`${this.apiUrl}/chapters/${id}`)
-      .pipe(catchError(this.passError));
+      .pipe(
+        tap(() => this.cache.invalidate(`${this.apiUrl}/chapters/${id}`)),
+        catchError(this.passError),
+      );
   }
 
   /**
@@ -123,11 +132,12 @@ export class FormationApi {
    */
   getChapitresByIris(chapterIris: string[]): Observable<Chapitre[]> {
     if (chapterIris.length === 0) return of([]);
-    const requests = chapterIris.map((iri) =>
-      this.http
-        .get<unknown>(`${this.apiUrl}/chapters/${iriToId(iri)}`)
-        .pipe(parseResponse(ChapitreSchema)),
-    );
+    const requests = chapterIris.map((iri) => {
+      const url = `${this.apiUrl}/chapters/${iriToId(iri)}`;
+      return this.cache.get(url, () =>
+        this.http.get<unknown>(url).pipe(parseResponse(ChapitreSchema)),
+      );
+    });
     return forkJoin(requests).pipe(catchError(this.toError));
   }
 
