@@ -7,7 +7,7 @@ transition: slide-left
 <div class="text-base opacity-70 mt-2">Architecture logicielle · Maquettes · BDD · UML</div>
 
 <!--
-[~15 s — transition] Deuxième partie : la conception. Je vais dérouler les spécifications, l'architecture en couches, les maquettes, puis la modélisation de données et l'UML.
+Deuxième partie : la conception. On va dérouler les spécifications, l'architecture en couches, les maquettes, puis la modélisation de données et l'UML.
 -->
 
 ---
@@ -50,7 +50,7 @@ layout: default
 </div>
 
 <!--
-[~50 s] J'ai formalisé cinq fonctionnalités clés : l'authentification et les rôles, la gestion multi-écoles, les parcours de cours, le cœur du projet — la lecture vidéo contrôlée anti-triche — et le suivi de progression avec ses dashboards. Je m'appuie sur des user stories : celle de l'élève qui veut que son temps se valide automatiquement quand il regarde vraiment, et celle du formateur qui veut un suivi fiable. Vous voyez que ces deux stories pointent la même exigence : la fiabilité de la donnée de progression. C'est elle qui justifie tout le dispositif technique que je vais détailler.
+On a formalisé cinq fonctionnalités clés : l'authentification et les rôles, la gestion multi-écoles, les parcours de cours, le cœur du projet — la lecture vidéo contrôlée anti-triche — et le suivi de progression avec ses dashboards. On s'appuie sur des user stories : celle de l'élève qui veut que son temps se valide automatiquement quand il regarde vraiment, et celle du formateur qui veut un suivi fiable. Vous voyez que ces deux stories pointent la même exigence : la fiabilité de la donnée de progression. C'est elle qui justifie tout le dispositif technique qu'on va détailler.
 -->
 
 ---
@@ -84,7 +84,7 @@ flowchart LR
 ```
 
 <!--
-[~55 s] Voici la vue d'ensemble. Un monorepo, trois applications, mais une seule API. Les deux clients — Angular avec signals et Zod, Expo avec zustand — parlent à l'API Laravel en REST, au format JSON-LD/Hydra produit par API Platform. Particularité que je détaillerai : l'API est déclarée directement sur les modèles Eloquent via l'attribut ApiResource, sans contrôleurs REST classiques. La requête traverse Sanctum pour l'authentification, puis les Gates RBAC pour l'autorisation, avant d'atteindre MariaDB. Et Redis, à côté, porte l'état éphémère de l'anti-triche — les nonces et le cache. Ce découplage clients/API est ce qui m'a permis de développer le web et le mobile en parallèle sans dupliquer la logique métier.
+Voici la vue d'ensemble. Un monorepo, trois applications, mais une seule API. Les deux clients — Angular avec signals et Zod, Expo avec zustand — parlent à l'API Laravel en REST, au format JSON-LD/Hydra produit par API Platform. Particularité qu'on détaillera : l'API est déclarée directement sur les modèles Eloquent via l'attribut ApiResource, sans contrôleurs REST classiques. La requête traverse Sanctum pour l'authentification, puis les Gates RBAC pour l'autorisation, avant d'atteindre MariaDB. Et Redis, à côté, porte l'état éphémère de l'anti-triche — les nonces et le cache. Ce découplage clients/API est ce qui nous a permis de développer le web et le mobile en parallèle sans dupliquer la logique métier.
 -->
 
 ---
@@ -125,7 +125,7 @@ flowchart TB
 </div>
 
 <!--
-[~50 s] En zoomant sur l'API, on retrouve une architecture en couches classique mais bien séparée. Couche présentation : les opérations ApiResource, qui génèrent aussi l'OpenAPI. Couche validation : des DTO d'entrée dédiés, découplés du modèle. Couche métier : les State Processors et Providers, et les services. Couche accès données : Eloquent pour le SQL, Redis pour le NoSQL. Le diagramme de droite montre le trajet d'une requête : middleware d'auth, puis Gate, puis DTO validé, puis Processor, puis persistance. Cette séparation est exactement ce que le référentiel attend sous « concevoir et développer une application en couches ».
+En zoomant sur l'API, on retrouve une architecture en couches classique mais bien séparée. Couche présentation : les opérations ApiResource, qui génèrent aussi l'OpenAPI. Couche validation : des DTO d'entrée dédiés, découplés du modèle. Couche métier : les State Processors et Providers, et les services. Couche accès données : Eloquent pour le SQL, Redis pour le NoSQL. Le diagramme de droite montre le trajet d'une requête : middleware d'auth, puis Gate, puis DTO validé, puis Processor, puis persistance. Cette séparation est exactement ce que le référentiel attend sous « concevoir et développer une application en couches ».
 -->
 
 ---
@@ -174,7 +174,7 @@ Les captures des interfaces réelles (web & mobile) sont présentées en section
 </div>
 
 <!--
-[~40 s] Côté maquettes, j'ai d'abord travaillé l'enchaînement des écrans pour le parcours élève : du login jusqu'à « ma progression », en passant par le catalogue, le chapitre et le lecteur contrôlé. À droite, une maquette du tableau de suivi formateur — la donnée certifiée remontée par classe et par matière. Je montre ici la basse-fidélité ; les captures des écrans réels arrivent en partie Réalisations, pour bien distinguer la phase de conception de la phase de réalisation.
+Côté maquettes, on a d'abord travaillé l'enchaînement des écrans pour le parcours élève : du login jusqu'à « ma progression », en passant par le catalogue, le chapitre et le lecteur contrôlé. À droite, une maquette du tableau de suivi formateur — la donnée certifiée remontée par classe et par matière. On montre ici la basse-fidélité ; les captures des écrans réels arrivent en partie Réalisations, pour bien distinguer la phase de conception de la phase de réalisation.
 -->
 
 ---
@@ -213,7 +213,7 @@ flowchart TB
 </div>
 
 <!--
-[~40 s] Cette arborescence illustre la parité que j'évoquais. À gauche le web, organisé par routes ; à droite le mobile, organisé par onglets avec Expo Router. Mêmes domaines des deux côtés — dashboard, matières, formation, lecteur, progression — mais une navigation adaptée à chaque plateforme : du routing classique sur le web, une tab bar sur mobile. Six écrans de chaque côté. C'est le même modèle mental pour l'utilisateur, qu'il soit sur navigateur ou sur téléphone.
+Cette arborescence illustre la parité qu'on évoquait. À gauche le web, organisé par routes ; à droite le mobile, organisé par onglets avec Expo Router. Mêmes domaines des deux côtés — dashboard, matières, formation, lecteur, progression — mais une navigation adaptée à chaque plateforme : du routing classique sur le web, une tab bar sur mobile. Six écrans de chaque côté. C'est le même modèle mental pour l'utilisateur, qu'il soit sur navigateur ou sur téléphone.
 -->
 
 ---
@@ -286,7 +286,7 @@ layout: default
 </div>
 
 <!--
-[~40 s] Voici les wireframes basse-fidélité des trois écrans élève côté web : le hub « mon espace », le catalogue avec recherche et filtres par catégorie, et le détail d'une formation. Notez sur ce dernier le verrou — le « gating » : les chapitres se déverrouillent au fur et à mesure, on ne peut pas sauter en avant. C'est la traduction visuelle de l'anti-triche au niveau du parcours. Ces squelettes monochromes m'ont servi à figer la structure avant de coder l'UI.
+Voici les wireframes basse-fidélité des trois écrans élève côté web : le hub « mon espace », le catalogue avec recherche et filtres par catégorie, et le détail d'une formation. Notez sur ce dernier le verrou — le « gating » : les chapitres se déverrouillent au fur et à mesure, on ne peut pas sauter en avant. C'est la traduction visuelle de l'anti-triche au niveau du parcours. Ces squelettes monochromes nous ont servi à figer la structure avant de coder l'UI.
 -->
 
 ---
@@ -336,7 +336,7 @@ layout: default
 </div>
 
 <!--
-[~45 s] Ces deux écrans sont la signature du projet. À gauche, le lecteur vidéo contrôlé : sous la vidéo, un encart « temps certifié » qui matérialise le dispositif — un heartbeat toutes les 30 secondes, un token HMAC, un nonce en Redis. C'est là que se joue l'anti-triche, je détaillerai le mécanisme en partie Réalisations. À droite, l'écran « ma progression » : des KPI en haut — temps, pourcentage, formations en cours et terminées — puis le statut par matière. L'enjeu de conception ici était de rendre lisible une donnée qui, derrière, est garantie côté serveur.
+Ces deux écrans sont la signature du projet. À gauche, le lecteur vidéo contrôlé : sous la vidéo, un encart « temps certifié » qui matérialise le dispositif — un heartbeat toutes les 30 secondes, un token HMAC, un nonce en Redis. C'est là que se joue l'anti-triche, on détaillera le mécanisme en partie Réalisations. À droite, l'écran « ma progression » : des KPI en haut — temps, pourcentage, formations en cours et terminées — puis le statut par matière. L'enjeu de conception ici était de rendre lisible une donnée qui, derrière, est garantie côté serveur.
 -->
 
 ---
@@ -413,7 +413,7 @@ layout: default
 </div>
 
 <!--
-[~35 s] Et les mêmes écrans côté mobile, au format 393×852, en navigation par onglets. Vous retrouvez le dashboard, les matières avec recherche, le programme d'une formation avec son gating, et le lecteur avec son sommaire et son temps certifié. J'insiste : ce ne sont pas deux conceptions distinctes, c'est la même pensée déclinée sur deux supports — ce qui réduit fortement le coût de maintenance.
+Et les mêmes écrans côté mobile, au format 393×852, en navigation par onglets. Vous retrouvez le dashboard, les matières avec recherche, le programme d'une formation avec son gating, et le lecteur avec son sommaire et son temps certifié. On insiste : ce ne sont pas deux conceptions distinctes, c'est la même pensée déclinée sur deux supports — ce qui réduit fortement le coût de maintenance.
 -->
 
 ---
@@ -438,7 +438,7 @@ erDiagram
 ```
 
 <!--
-[~50 s] Le modèle conceptuel. La hiérarchie descend d'école vers classe et matière, puis matière → chapitre → vidéos et contenus. Deux associations many-to-many que je souligne : un utilisateur peut être rattaché à plusieurs écoles — via user_school — et une classe suit plusieurs matières — via classroom_subject. Enfin la progression est mesurée à deux niveaux : video_progress par vidéo, et chapter_progress par chapitre. Je peux mentionner ici un point de modélisation que j'ai identifié et tracé dans ma roadmap : le contenu réellement affiché aux élèves est un ChapterContent, alors que la progression est indexée sur Video — relier proprement les deux est le prochain chantier backend.
+Le modèle conceptuel. La hiérarchie descend d'école vers classe et matière, puis matière → chapitre → vidéos et contenus. Deux associations many-to-many qu'on souligne : un utilisateur peut être rattaché à plusieurs écoles — via user_school — et une classe suit plusieurs matières — via classroom_subject. Enfin la progression est mesurée à deux niveaux : video_progress par vidéo, et chapter_progress par chapitre. On peut mentionner ici un point de modélisation qu'on a identifié et tracé dans la roadmap : le contenu réellement affiché aux élèves est un ChapterContent, alors que la progression est indexée sur Video — relier proprement les deux est le prochain chantier backend.
 -->
 
 ---
@@ -505,7 +505,7 @@ erDiagram
 </div>
 
 <!--
-[~45 s] Le passage au modèle physique. Les clés primaires en bigint auto-incrémentées, les clés étrangères matérialisées — school_id, classroom_id, teacher_id — et des contraintes que j'ai posées explicitement : un slug unique sur les écoles, un index unique composite sur l'ordre des chapitres. Je veux attirer l'attention sur video_progress : la colonne watched_seconds_validated, c'est le temps validé côté serveur — le mot « validated » est important, il dit que cette valeur n'est jamais acceptée telle quelle depuis le client. Les SoftDeletes sont actifs sur les entités métier pour ne jamais perdre l'historique.
+Le passage au modèle physique. Les clés primaires en bigint auto-incrémentées, les clés étrangères matérialisées — school_id, classroom_id, teacher_id — et des contraintes qu'on a posées explicitement : un slug unique sur les écoles, un index unique composite sur l'ordre des chapitres. On veut attirer l'attention sur video_progress : la colonne watched_seconds_validated, c'est le temps validé côté serveur — le mot « validated » est important, il dit que cette valeur n'est jamais acceptée telle quelle depuis le client. Les SoftDeletes sont actifs sur les entités métier pour ne jamais perdre l'historique.
 -->
 
 ---
@@ -540,7 +540,7 @@ flowchart LR
 ```
 
 <!--
-[~40 s] Le diagramme de cas d'utilisation synthétise qui fait quoi. L'admin et l'école gèrent la structure et les utilisateurs ; le formateur crée les contenus et suit la progression de ses élèves ; l'élève consulte ses cours, visionne en temps certifié et consulte sa progression. Chaque cas se traduit, dans le code, par une opération ApiResource protégée par une Gate. Le cas le plus significatif — celui que je détaille juste après — est « visionner une vidéo en temps certifié », car c'est lui qui porte toute la logique anti-fraude.
+Le diagramme de cas d'utilisation synthétise qui fait quoi. L'admin et l'école gèrent la structure et les utilisateurs ; le formateur crée les contenus et suit la progression de ses élèves ; l'élève consulte ses cours, visionne en temps certifié et consulte sa progression. Chaque cas se traduit, dans le code, par une opération ApiResource protégée par une Gate. Le cas le plus significatif — celui qu'on détaille juste après — est « visionner une vidéo en temps certifié », car c'est lui qui porte toute la logique anti-fraude.
 -->
 
 ---
@@ -580,6 +580,6 @@ sequenceDiagram
 ```
 
 <!--
-[~70 s] Voici le diagramme de séquence du cas anti-triche, à lire pas à pas. Premier temps : le client demande une session de visionnage pour un segment ; le serveur vérifie d'abord la Gate videos.view, puis génère un token via le WatchTokenService et dépose un nonce « en attente » dans Redis avec un TTL court. Le client reçoit un token signé HMAC, borné dans le temps. Deuxième temps : après environ 30 secondes de lecture, le client renvoie le token en heartbeat. Le serveur valide la signature, vérifie la fenêtre temporelle, et consulte l'état du nonce. Si la clé est valide, il consomme le nonce — passage à « used » — et crédite le temps dans VideoProgress, borné à la durée réelle de la vidéo. Sinon, 422 : que ce soit un rejeu, une soumission trop tôt, une clé expirée ou une signature altérée. C'est la pièce maîtresse de ma conception, et je vais maintenant montrer comment elle est implémentée. Je passe aux réalisations.
+Voici le diagramme de séquence du cas anti-triche, à lire pas à pas. Premier temps : le client demande une session de visionnage pour un segment ; le serveur vérifie d'abord la Gate videos.view, puis génère un token via le WatchTokenService et dépose un nonce « en attente » dans Redis avec un TTL court. Le client reçoit un token signé HMAC, borné dans le temps. Deuxième temps : après environ 30 secondes de lecture, le client renvoie le token en heartbeat. Le serveur valide la signature, vérifie la fenêtre temporelle, et consulte l'état du nonce. Si la clé est valide, il consomme le nonce — passage à « used » — et crédite le temps dans VideoProgress, borné à la durée réelle de la vidéo. Sinon, 422 : que ce soit un rejeu, une soumission trop tôt, une clé expirée ou une signature altérée. C'est la pièce maîtresse de notre conception, et on va maintenant montrer comment elle est implémentée. On passe aux réalisations.
 -->
 

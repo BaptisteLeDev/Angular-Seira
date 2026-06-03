@@ -5,7 +5,7 @@ info: |
   ## MontoMaster V2
   Présentation de projet — Titre professionnel Concepteur Développeur d'Applications.
   Plateforme e-learning, remplaçant de Seira.
-author: Candidat CDA
+author: Baptiste & Nicolas
 addons:
   - slidev-addon-qrcode
 colorSchema: dark
@@ -37,11 +37,11 @@ Présentation de projet · Titre professionnel <b>Concepteur Développeur d'Appl
 </div>
 
 <div class="abs-br m-6 text-xs opacity-50">
-  Candidat · Baptiste — Session CDA
+  Baptiste & Nicolas — Session CDA
 </div>
 
 <!--
-[~45 s — accroche] Bonjour, je vous présente MontoMaster V2, une plateforme e-learning sécurisée qui remplace l'ancienne solution Seira. Le besoin métier central : certifier le temps réellement visionné par un élève — pas du déclaratif. Trois briques : une API Laravel unique, un client web Angular et un client mobile Expo qui consomment exactement le même contrat. Mon plan suit le dossier CDA : besoins, gestion de projet, conception, réalisations, tests, déploiement, puis veille et conclusion. Je précise d'emblée une limite assumée : la couche IA est spécifiée mais volontairement hors périmètre de cette session.
+Bonjour à tous, on est Baptiste et Nicolas et on vous présente MontoMaster V2, une plateforme e-learning sécurisée qui remplace l'ancienne solution Seira. Le besoin métier central : certifier le temps réellement visionné par un élève — pas du déclaratif. Trois briques pour ça : une API Laravel unique, un client web Angular et un client mobile Expo qui consomment exactement le même contrat. Notre plan suit le dossier CDA : besoins, gestion de projet, conception, réalisations, tests, déploiement, puis veille et conclusion. On précise d'emblée une limite assumée : la couche IA est spécifiée mais volontairement hors périmètre de cette session.
 -->
 
 ---
@@ -73,7 +73,7 @@ Une plateforme pédagogique <b>écoles → classes → matières → chapitres �
 </div>
 
 <!--
-[~40 s] Voici le fil de ma présentation, en six temps. Si je devais résumer le projet en une phrase : une plateforme pédagogique organisée en écoles, classes, matières, chapitres et vidéos, avec un suivi de progression pensé pour être anti-triche, le tout exposé par une API unique consommée par un web et un mobile développés en miroir. Gardez en tête cette idée de « contrat unique, deux clients » : c'est le fil rouge de toute la conception.
+Voici le fil de la présentation, en six temps. Si on devait résumer le projet en une phrase : une plateforme pédagogique organisée en écoles, classes, matières, chapitres et vidéos, avec un suivi de progression pensé pour être anti-triche, le tout exposé par une API unique consommée par un web et un mobile développés en miroir. Gardez en tête cette idée de « contrat unique, deux clients » : c'est le fil rouge de toute la conception.
 -->
 
 ---
@@ -120,7 +120,7 @@ layout: default
 </div>
 
 <!--
-[~50 s] Cette diapo est ma grille de lecture pour le jury : elle annonce où chaque compétence du référentiel est démontrée. À gauche, le développement d'une application sécurisée — l'environnement Docker, les interfaces Angular et Expo, les composants métier comme l'anti-triche, et la gestion de projet par issues et PR. Au centre, la conception en couches : analyse, maquettes, architecture monorepo, base de données relationnelle, accès SQL et NoSQL. À droite, la préparation au déploiement : plans de tests, documentation, mise en production DevOps. Chacun de ces points sera illustré par un schéma, une capture ou un extrait de code dans les diapos qui suivent — rien d'abstrait.
+Cette diapo est notre grille de lecture pour le jury : elle annonce où chaque compétence du référentiel est démontrée. À gauche, le développement d'une application sécurisée — l'environnement Docker, les interfaces Angular et Expo, les composants métier comme l'anti-triche, et la gestion de projet par issues et PR. Au centre, la conception en couches : analyse, maquettes, architecture monorepo, base de données relationnelle, accès SQL et NoSQL. À droite, la préparation au déploiement : plans de tests, documentation, mise en production DevOps. Chacun de ces points est illustré par un schéma, une capture ou un extrait de code dans les diapos qui suivent — rien d'abstrait.
 -->
 
 ---
@@ -132,7 +132,7 @@ transition: slide-left
 <div class="text-base opacity-70 mt-2">Analyser les besoins · Contribuer à la gestion d'un projet</div>
 
 <!--
-[~15 s — transition] J'entre dans la première partie : l'expression des besoins et la façon dont j'ai piloté le projet.
+On entre dans la première partie : l'expression des besoins et la façon dont on a piloté le projet.
 -->
 
 ---
@@ -177,7 +177,7 @@ Remplacer **Seira**, l'ancienne plateforme e-learning, par une solution **multi-
 </div>
 
 <!--
-[~60 s] Le contexte : on remplace Seira par une solution multi-écoles, multi-clients, et surtout anti-triche sur le temps de visionnage. C'est ce dernier point qui fait l'originalité du projet : sur l'ancienne plateforme, le temps « regardé » était déclaratif, donc falsifiable. Mes objectifs découlent de là : diffuser des parcours structurés, certifier le temps réellement visionné, offrir un suivi à trois niveaux — élève, formateur, école — et tout faire passer par une API unique. Trois acteurs : l'admin ou l'école qui gère la structure, le formateur qui crée les contenus et suit ses élèves, et l'élève qui consomme et progresse. Et je redis la limite : la couche IA est cadrée mais pas développée ici.
+Le contexte : on remplace Seira par une solution multi-écoles, multi-clients, et surtout anti-triche sur le temps de visionnage. C'est ce dernier point qui fait l'originalité du projet — sur l'ancienne plateforme, le temps « regardé » était déclaratif, donc falsifiable : un élève pouvait ouvrir une vidéo, partir faire autre chose, et la cocher « vue » à la fin. Nos objectifs découlent de là : diffuser des parcours structurés, certifier le temps réellement visionné, offrir un suivi à trois niveaux — élève, formateur, école — et tout faire passer par une API unique. Trois acteurs : l'admin ou l'école qui gère la structure, le formateur qui crée les contenus et suit ses élèves, et l'élève qui consomme et progresse. Et on redit la limite : la couche IA est cadrée mais pas développée ici.
 -->
 
 ---
@@ -212,7 +212,7 @@ Documentation : <code>SCHEMA_BDD.md</code>, <code>CLAUDE.md</code>, <code>TODO.m
 </div>
 
 <!--
-[~45 s] Côté contraintes, quatre exigences ont guidé chaque choix technique : la sécurité — authentification, rôles, anti-fraude ; le multi-plateforme — web et mobile sur la même API ; l'évolutivité — l'architecture devait rester prête à accueillir la couche IA ; et la reproductibilité — d'où l'environnement entièrement conteneurisé. En face, quatre livrables concrets : l'API REST documentée en OpenAPI, l'app web déployée sur Vercel, l'app mobile Expo, et le schéma de base accompagné de la suite de tests. Toute la documentation vit dans le dépôt : SCHEMA_BDD pour le modèle, CLAUDE.md pour l'architecture, et un TODO de suivi.
+Côté contraintes, quatre exigences ont guidé chaque choix technique : la sécurité — authentification Sanctum, rôles, anti-fraude ; le multi-plateforme — web et mobile sur la même API, aucun endpoint dupliqué ; l'évolutivité — l'architecture devait rester prête à accueillir la couche IA ; et la reproductibilité — d'où l'environnement entièrement conteneurisé, un simple docker compose up et tout est là. En face, quatre livrables concrets : l'API REST documentée en OpenAPI, l'app web déployée sur Vercel, l'app mobile Expo, et le schéma de base accompagné de la suite de tests. Toute la documentation vit dans le dépôt : SCHEMA_BDD pour le modèle, CLAUDE.md pour l'architecture, et un TODO de suivi.
 -->
 
 ---
@@ -249,7 +249,7 @@ layout: default
 </div>
 
 <!--
-[~60 s] J'ai piloté le projet avec les GitHub Issues et un Project board « MontoMaster Roadmap ». J'ai d'abord découpé en epics, puis en issues fines réparties backend, web et mobile — j'en ai géré plusieurs dizaines, et je viens encore de les réorganiser en trois grands chantiers pour ce qui reste à faire. Trois principes de méthode : la priorisation par dépendances — l'anti-triche backend débloquant le web et le mobile, je l'ai livrée en premier ; le TDD sur les règles métier sensibles — les tests d'attaque écrits avant l'implémentation ; et la parité web/mobile — mêmes domaines, mêmes contrats, développés en miroir. Une branche par lot, intégration par Pull Request. Voilà pour la gestion de projet ; je passe à la conception.
+On a piloté le projet avec les GitHub Issues et un Project board « MontoMaster Roadmap ». On a d'abord découpé en epics, puis en issues fines réparties backend, web et mobile — plusieurs dizaines, qu'on a encore réorganisées en grands chantiers pour ce qui reste à faire. Le TODO.md sert de tableau de bord : [x] livré, [ ] à faire, ⚠️ partiel avec un commentaire. Trois principes de méthode : la priorisation par dépendances — l'anti-triche backend débloquant le web et le mobile, on l'a livrée en premier ; le TDD sur les règles métier sensibles, notamment le heartbeat, avec les tests écrits avant l'implémentation ; et la parité web/mobile — mêmes domaines, mêmes contrats, développés en miroir. Une branche par lot, intégration par Pull Request. On passe à la conception.
 -->
 
 ---
