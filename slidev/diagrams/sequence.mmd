@@ -1,0 +1,25 @@
+sequenceDiagram
+    actor Utilisateur
+    participant Client as Client (Web/Mobile)
+    participant API as API Laravel
+    participant DB as MariaDB
+
+    Utilisateur->>Client: Saisit email + mot de passe
+
+    Client->>+API: POST /auth/login\n{ email, password }
+
+    API->>+DB: SELECT * FROM users\nWHERE email = ?
+    DB-->>-API: Enregistrement utilisateur
+
+    API->>API: Hash::check(password, hash)
+
+    alt Credentials invalides
+        API-->>Client: 401 Unauthorized
+    else Credentials valides
+        API->>+DB: INSERT INTO personal_access_tokens\n(tokenable_id, name, token, abilities)
+        DB-->>-API: Token créé
+        API-->>-Client: { token, email, role }
+    end
+
+    Client->>Client: Stocke le token\n(localStorage / SecureStore)
+    Utilisateur->>Client: Accède à l'application

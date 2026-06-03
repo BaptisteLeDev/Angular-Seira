@@ -1,0 +1,101 @@
+erDiagram
+    SCHOOL {
+        int id PK
+        string name
+        string slug
+        datetime deleted_at
+    }
+    CLASSROOM {
+        int id PK
+        int school_id FK
+        string name
+        string level
+        datetime deleted_at
+    }
+    SUBJECT {
+        int id PK
+        int school_id FK
+        int teacher_id FK
+        string name
+        text description
+        string referential_file_path
+        int expected_hours
+        datetime deleted_at
+    }
+    CHAPTER {
+        int id PK
+        int subject_id FK
+        string title
+        int sort_order
+        datetime deleted_at
+    }
+    VIDEO {
+        int id PK
+        int chapter_id FK
+        int created_by FK
+        string title
+        string source_url
+        int duration_seconds
+        int sort_order
+        boolean is_published
+        datetime deleted_at
+    }
+    CHAPTER_CONTENT {
+        int id PK
+        int chapter_id FK
+        string type
+        string title
+        text content
+        string source_url
+        int sort_order
+        boolean is_published
+        datetime deleted_at
+    }
+    USER {
+        int id PK
+        string first_name
+        string last_name
+        string email
+        string password
+        enum role
+        int school_id FK
+        int classroom_id FK
+    }
+    VIDEO_PROGRESS {
+        int id PK
+        int user_id FK
+        int video_id FK
+        int watched_seconds_validated
+        decimal completion_percent
+        enum status
+        datetime last_seen_at
+    }
+    CHAPTER_PROGRESS {
+        int id PK
+        int user_id FK
+        int chapter_id FK
+        decimal completion_percent
+        string status
+        datetime last_seen_at
+    }
+    USER_SCHOOL {
+        int user_id FK
+        int school_id FK
+    }
+    CLASSROOM_SUBJECT {
+        int classroom_id FK
+        int subject_id FK
+    }
+
+    SCHOOL ||--o{ CLASSROOM : "contient (1,N)"
+    SCHOOL ||--o{ SUBJECT : "propose (1,N)"
+    USER }o--o{ SCHOOL : "user_school (N,N)"
+    CLASSROOM }o--o{ SUBJECT : "classroom_subject (N,N)"
+    USER }o--o| CLASSROOM : "inscrit dans (0,1)"
+    SUBJECT ||--|{ CHAPTER : "organise (1,N)"
+    CHAPTER ||--o{ VIDEO : "compose (0,N)"
+    CHAPTER ||--o{ CHAPTER_CONTENT : "contient (0,N)"
+    USER ||--o{ VIDEO_PROGRESS : "génère (0,N)"
+    VIDEO ||--o{ VIDEO_PROGRESS : "suivi par (0,N)"
+    USER ||--o{ CHAPTER_PROGRESS : "génère (0,N)"
+    CHAPTER ||--o{ CHAPTER_PROGRESS : "suivi par (0,N)"

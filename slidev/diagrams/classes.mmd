@@ -1,0 +1,102 @@
+classDiagram
+    direction LR
+
+    class School {
+        +int id
+        +string name
+        +string slug
+        +datetime deleted_at
+        +classrooms() HasMany
+        +subjects() HasMany
+        +users() HasMany
+    }
+
+    class Classroom {
+        +int id
+        +string name
+        +string level
+        +datetime deleted_at
+        +school() BelongsTo
+        +students() HasMany
+        +subjects() BelongsToMany
+    }
+
+    class Subject {
+        +int id
+        +string name
+        +text description
+        +string referential_file_path
+        +int expected_hours
+        +datetime deleted_at
+        +school() BelongsTo
+        +teacher() BelongsTo
+        +classrooms() BelongsToMany
+        +chapters() HasMany
+    }
+
+    class Chapter {
+        +int id
+        +string title
+        +int sort_order
+        +datetime deleted_at
+        +subject() BelongsTo
+        +videos() HasMany
+        +contents() HasMany
+    }
+
+    class Video {
+        +int id
+        +string title
+        +string source_url
+        +int duration_seconds
+        +int sort_order
+        +bool is_published
+        +datetime deleted_at
+        +chapter() BelongsTo
+        +progressEntries() HasMany
+    }
+
+    class User {
+        +int id
+        +string first_name
+        +string last_name
+        +string email
+        +string password
+        +enum role
+        +isAdmin() bool
+        +school() BelongsTo
+        +schools() BelongsToMany
+        +classroom() BelongsTo
+        +videoProgresses() HasMany
+    }
+
+    class VideoProgress {
+        +int id
+        +int watched_seconds_validated
+        +decimal completion_percent
+        +enum status
+        +datetime last_seen_at
+        UNIQUE(user_id, video_id)
+        +user() BelongsTo
+        +video() BelongsTo
+    }
+
+    class ChapterProgress {
+        +int id
+        +decimal completion_percent
+        +string status
+        +datetime last_seen_at
+        UNIQUE(user_id, chapter_id)
+    }
+
+    School "1" *-- "0..*" Classroom : contient
+    School "1" *-- "0..*" Subject : propose
+    School "0..*" <-- "0..*" User : user_school
+    Classroom "0..*" o-- "0..*" Subject : classroom_subject
+    Classroom "0..1" <-- "0..*" User : inscrit dans
+    Subject "1" *-- "1..*" Chapter : organise
+    Chapter "1" *-- "0..*" Video : compose
+    User "1" --> "0..*" VideoProgress : génère
+    Video "1" --> "0..*" VideoProgress : suivi par
+    User "1" --> "0..*" ChapterProgress : génère
+    Chapter "1" --> "0..*" ChapterProgress : suivi par

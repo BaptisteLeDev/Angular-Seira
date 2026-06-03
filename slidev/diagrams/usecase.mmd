@@ -1,0 +1,42 @@
+graph LR
+    Admin["👤 Admin"]
+    Formateur["👤 Formateur"]
+    Eleve["👤 Élève"]
+
+    subgraph Système["Système MontoMaster"]
+        subgraph Admin_UC["Administration"]
+            direction TB
+            A1(["Gérer les écoles"])
+            A2(["Gérer les classes"])
+            A3(["Gérer les utilisateurs"])
+            A4(["Gérer les matières"])
+            A5(["Consulter progression école"])
+            A6(["Assigner utilisateurs aux écoles"])
+        end
+        subgraph Teacher_UC["Formation"]
+            direction TB
+            T1(["Consulter ses matières"])
+            T2(["Organiser les chapitres"])
+            T3(["Déposer des vidéos"])
+            T4(["Ajouter du contenu"])
+            T5(["Suivre la progression élèves"])
+        end
+        subgraph Student_UC["Apprentissage"]
+            direction TB
+            S1(["Visionner une vidéo"])
+            S2(["Naviguer dans les chapitres"])
+            S3(["Consulter sa progression"])
+        end
+        subgraph Auth_UC["Commun"]
+            direction TB
+            C1(["S'authentifier"])
+            C2(["Obtenir token heartbeat"])
+        end
+    end
+
+    Admin --> A1 & A2 & A3 & A4 & A5 & A6
+    Formateur --> T1 & T2 & T3 & T4 & T5
+    Eleve --> S1 & S2 & S3
+
+    A1 & A2 & A3 & A4 & T3 & S1 -. "«include»" .-> C1
+    S1 -. "«include»" .-> C2

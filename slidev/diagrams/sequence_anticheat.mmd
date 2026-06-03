@@ -1,0 +1,30 @@
+sequenceDiagram
+    actor Élève
+    participant Client as Client (Web/Mobile)
+    participant API as API Laravel
+    participant Redis
+    participant DB as MariaDB
+
+    Élève->>Client: Démarre la vidéo
+
+    Client->>+API: POST /api/watch-sessions/request\n{ video_id, segment_start }
+    Note right of API: Génère token HMAC-SHA256\n+ nonce aléatoire 32 chars
+    API->>Redis: SET watch_nonce:{nonce} "pending" EX 150
+    API-->>-Client: { token, seg_start: 0, seg_end: 30, expires_at }
+
+    rect rgb(20, 50, 20)
+        Note over Élève,Client: ⏱ L'élève visionne réellement 30 secondes
+    end
+
+    Client->>+API: POST /api/watch-sessions/heartbeat\n{ token }
+    API->>API: Vérifie signature HMAC-SHA256
+    API->>Redis: GET watch_nonce:{nonce} → "pending"
+    API->>API: Vérifie fenêtre temporelle
+
+    alt Valide (signature ✓ · nonce ✓ · timing ✓)
+        API->>Redis: SET watch_nonce:{nonce} "used" EX 300
+        API->>DB: UPDATE video_progress\nSET watched_seconds_validated += 30
+        API-->>-Client: { validated_seconds, completion_percent, status }
+    else Invalide
+        API-->>Client: 422 — motif précis
+    end
