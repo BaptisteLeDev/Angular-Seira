@@ -1,14 +1,16 @@
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
-import { Observable, catchError, forkJoin, map, of, throwError } from 'rxjs';
+import { Observable, catchError, forkJoin, map, of, tap, throwError } from 'rxjs';
 import { environment } from '@environments/environment';
 import { ClassroomSchema, type Classroom } from '../schemas/class.schema';
 import { parseResponse, parseHydraCollection } from './parse-response';
+import { ResourceCache } from './resource-cache';
 import { iriToId } from '../utils/iri';
 
 @Injectable({ providedIn: 'root' })
 export class ClassApi {
   private readonly http = inject(HttpClient);
+  private readonly cache = inject(ResourceCache);
   private readonly apiUrl = environment.apiUrl;
 
   /**
@@ -51,11 +53,12 @@ export class ClassApi {
    */
   getByIris(classIris: string[]): Observable<Classroom[]> {
     if (classIris.length === 0) return of([]);
-    const requests = classIris.map((iri) =>
-      this.http
-        .get<unknown>(`${this.apiUrl}/classrooms/${iriToId(iri)}`)
-        .pipe(parseResponse(ClassroomSchema)),
-    );
+    const requests = classIris.map((iri) => {
+      const url = `${this.apiUrl}/classrooms/${iriToId(iri)}`;
+      return this.cache.get(url, () =>
+        this.http.get<unknown>(url).pipe(parseResponse(ClassroomSchema)),
+      );
+    });
     return forkJoin(requests).pipe(catchError(this.toError));
   }
 
@@ -82,7 +85,11 @@ export class ClassApi {
   ): Observable<Classroom> {
     return this.http
       .patch<unknown>(`${this.apiUrl}/classrooms/${id}`, payload)
-      .pipe(parseResponse(ClassroomSchema), catchError(this.toError));
+      .pipe(
+        parseResponse(ClassroomSchema),
+        tap(() => this.cache.invalidate(`${this.apiUrl}/classrooms/${id}`)),
+        catchError(this.toError),
+      );
   }
 
   /**
@@ -91,7 +98,10 @@ export class ClassApi {
   delete(id: number): Observable<void> {
     return this.http
       .delete<void>(`${this.apiUrl}/classrooms/${id}`)
-      .pipe(catchError(this.toError));
+      .pipe(
+        tap(() => this.cache.invalidate(`${this.apiUrl}/classrooms/${id}`)),
+        catchError(this.toError),
+      );
   }
 
   private readonly toError = (error: unknown): Observable<never> => {

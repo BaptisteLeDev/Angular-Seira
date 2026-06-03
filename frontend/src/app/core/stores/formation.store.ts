@@ -1,6 +1,7 @@
 import { Injectable, computed, inject, signal } from '@angular/core';
 import { Observable, catchError, tap, throwError } from 'rxjs';
 import { FormationApi } from '../api/formation.api';
+import { AuthStore } from './auth.store';
 import type { Chapitre } from '../schemas/chapitre.schema';
 import type { Formation } from '../schemas/formation.schema';
 
@@ -9,8 +10,11 @@ type Status = 'idle' | 'loading' | 'error';
 @Injectable({ providedIn: 'root' })
 export class FormationStore {
   private readonly api = inject(FormationApi);
+  private readonly auth = inject(AuthStore);
 
   private readonly _items = signal<readonly Formation[]>([]);
+  /** Matières hors parcours de l'élève (affichées verrouillées). */
+  private readonly _locked = signal<readonly Formation[]>([]);
   private readonly _status = signal<Status>('idle');
   private readonly _error = signal<string | null>(null);
   private readonly _chapitresByFormation = signal<Record<number, readonly Chapitre[]>>({});
@@ -18,6 +22,7 @@ export class FormationStore {
   private readonly _chapitresError = signal<Record<number, string>>({});
 
   readonly items = this._items.asReadonly();
+  readonly locked = this._locked.asReadonly();
   readonly status = this._status.asReadonly();
   readonly error = this._error.asReadonly();
   readonly isLoading = computed(() => this._status() === 'loading');
@@ -39,6 +44,26 @@ export class FormationStore {
     }
     this._status.set('loading');
     this._error.set(null);
+    // Les élèves n'ont pas accès à la collection /subjects (403) : on passe par
+    // le catalogue role-scopé /me/subjects. Admin/prof gardent /subjects (qui
+    // inclut déjà les IRIs de chapitres).
+    if (this.auth.isStudent()) {
+      this.api.listMine().subscribe({
+        next: ({ available, locked }) => {
+          this._items.set(available);
+          this._locked.set(locked);
+          this._status.set('idle');
+        },
+        error: (error: unknown) => {
+          this._status.set('error');
+          this._error.set(
+            error instanceof Error ? error.message : 'Impossible de charger les formations.',
+          );
+        },
+      });
+      return;
+    }
+
     this.api.list().subscribe({
       next: (items) => {
         this._items.set(items);
@@ -49,6 +74,40 @@ export class FormationStore {
         this._error.set(
           error instanceof Error ? error.message : 'Impossible de charger les formations.',
         );
+      },
+    });
+  }
+
+  /** Détails déjà en cours de chargement (dédup, non réactif). */
+  private readonly detailLoading = new Set<number>();
+
+  /**
+   * Charge une formation complète via /subjects/{id}, qui inclut les IRIs de
+   * chapitres. Indispensable pour les élèves : leur catalogue /me/subjects ne
+   * renvoie pas ces IRIs. No-op si la formation est déjà complète (admin/prof
+   * via /subjects) ou déjà en vol. Idempotent → sûr à appeler dans un effect.
+   */
+  loadOne(id: number): void {
+    const existing = this._items().find((f) => f.id === id);
+    if (existing?.chapters !== undefined || this.detailLoading.has(id)) {
+      return;
+    }
+    this.detailLoading.add(id);
+    this.api.getById(id).subscribe({
+      next: (formation) => {
+        this.detailLoading.delete(id);
+        this._items.update((items) => {
+          const exists = items.some((f) => f.id === formation.id);
+          return exists
+            ? items.map((f) => (f.id === formation.id ? formation : f))
+            : [...items, formation];
+        });
+        // Les IRIs de chapitres viennent d'arriver : (re)charge les chapitres.
+        this.loadChapitres(formation.id, true);
+      },
+      error: () => {
+        this.detailLoading.delete(id);
+        /* Détail inaccessible (403/404) : géré par l'UI via byId() null. */
       },
     });
   }

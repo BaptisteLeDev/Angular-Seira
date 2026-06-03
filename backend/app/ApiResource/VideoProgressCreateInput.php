@@ -10,9 +10,6 @@ class VideoProgressCreateInput
 
     public ?int $video_id = null;
 
-    #[Assert\PositiveOrZero]
-    public int $watched_seconds_validated = 0;
-
     #[Assert\Range(min: 0, max: 100)]
     public float $completion_percent = 0;
 

@@ -6,7 +6,10 @@ import type { Chapitre } from '../../../core/schemas/chapitre.schema';
 import type { Formation } from '../../../core/schemas/formation.schema';
 import { ArticleStore } from '../../../core/stores/article.store';
 import { FormationStore } from '../../../core/stores/formation.store';
+import { ProgressStore } from '../../../core/stores/progress.store';
 import { ArticleBody } from '../../../shared/article/article-body';
+import { isChapterUnlocked, effectiveCompleted } from '../../../core/utils/chapter-gating';
+import { buildChapterProgressPayload } from '../../../core/utils/video-progress';
 
 interface ArticleEntry {
   readonly article: Article;
@@ -26,6 +29,7 @@ export class CourseDetail {
   private readonly router = inject(Router);
   private readonly formationStore = inject(FormationStore);
   private readonly articleStore = inject(ArticleStore);
+  private readonly progress = inject(ProgressStore);
 
   readonly formationId = input.required<string>();
   readonly articleId = input<string>();
@@ -41,6 +45,34 @@ export class CourseDetail {
     if (!current) return [];
     return this.formationStore.chapitresOf(current.id)();
   });
+
+  /**
+   * Chapitres terminés (qui déverrouillent le suivant), lus depuis la
+   * progression serveur de l'élève. Tant que rien n'est hydraté, la liste est
+   * vide → seul le 1er chapitre est accessible (verrouillage séquentiel).
+   */
+  protected readonly completedChapterIds = computed<readonly number[]>(() => {
+    const completed = Object.entries(this.progress.byChapterId())
+      .filter(([, entry]) => entry.status === 'completed')
+      .map(([id]) => Number(id));
+    const all = this.chapitres().map((c) => c.id);
+    // Chapitres ayant au moins une vidéo traçable (videoId non nul).
+    const withTrackable = this.chapitres()
+      .filter((ch) =>
+        this.articleStore
+          .byChapitre(ch.id)()
+          .some((a) => a.type === 'video' && a.videoId != null),
+      )
+      .map((ch) => ch.id);
+    // Gating assoupli : un chapitre sans vidéo traçable ne bloque pas (#29).
+    return effectiveCompleted(completed, withTrackable, all);
+  });
+
+  /** Verrouillage séquentiel : 1er ouvert, suivant ouvert si le précédent est fait. */
+  protected isChapterLocked(chapterId: number): boolean {
+    const order = this.chapitres().map((c) => c.id);
+    return !isChapterUnlocked(order, chapterId, this.completedChapterIds());
+  }
 
   protected readonly isLoading = computed(() => {
     if (this.formationStore.status() === 'loading') return true;
@@ -106,12 +138,58 @@ export class CourseDetail {
   protected readonly nextEntry = computed<ArticleEntry | null>(() => {
     const active = this.activeArticle();
     if (!active) return null;
-    return this.articleEntries().find((entry) => entry.index === active.index + 1) ?? null;
+    const candidate =
+      this.articleEntries().find((entry) => entry.index === active.index + 1) ?? null;
+    // Le bouton « suivant » ne franchit pas un chapitre verrouillé.
+    if (!candidate || this.isChapterLocked(candidate.chapitre.id)) return null;
+    return candidate;
   });
 
+  /** Premier article d'un chapitre accessible (pour rediriger hors d'un verrou). */
+  private readonly firstAccessibleEntry = computed<ArticleEntry | null>(
+    () => this.articleEntries().find((e) => !this.isChapterLocked(e.chapitre.id)) ?? null,
+  );
+
   constructor() {
+    // Charge la progression connue de l'élève (gating + reprise + dashboard).
+    effect(() => {
+      void this.progress.hydrate();
+    });
+
+    // Émet la progression du chapitre dérivée de l'avancement de ses vidéos.
+    // Idempotent : on ne renvoie que si l'agrégat a réellement changé, ce qui
+    // empêche toute boucle (le report met à jour le store lu ici).
+    effect(() => {
+      const byVideo = this.progress.byVideoId();
+      const byChapter = this.progress.byChapterId();
+      for (const chapitre of this.chapitres()) {
+        const videoArticles = this.articleStore
+          .byChapitre(chapitre.id)()
+          .filter((a) => a.type === 'video' && a.videoId != null);
+        if (videoArticles.length === 0) continue;
+        const percents = videoArticles.map(
+          (a) => byVideo[a.videoId as number]?.completionPercent ?? 0,
+        );
+        const payload = buildChapterProgressPayload(chapitre.id, percents);
+        const current = byChapter[chapitre.id];
+        if (
+          current?.completionPercent === payload.completionPercent &&
+          current?.status === payload.status
+        ) {
+          continue;
+        }
+        this.progress.reportChapter(chapitre.id, payload).subscribe();
+      }
+    });
+
     effect(() => {
       this.formationStore.load();
+      // Récupère le subject complet (avec IRIs de chapitres) : pour les élèves,
+      // le catalogue /me/subjects ne les inclut pas. Idempotent côté store.
+      const id = Number(this.formationId());
+      if (!isNaN(id)) {
+        this.formationStore.loadOne(id);
+      }
     });
 
     effect(() => {
@@ -138,6 +216,22 @@ export class CourseDetail {
       this.router.navigate(['/formations', formation.id, entries[0].article.id], {
         replaceUrl: true,
       });
+    });
+
+    // Garde d'accès : si l'article ouvert (via URL directe) est dans un chapitre
+    // verrouillé, on redirige vers le 1er contenu accessible. On attend que la
+    // progression soit hydratée pour ne pas rejeter à tort un chapitre déjà fait.
+    effect(() => {
+      if (!this.progress.hydrated()) return;
+      const formation = this.formation();
+      const active = this.activeArticle();
+      if (!formation || !active || !this.isChapterLocked(active.chapitre.id)) return;
+      const target = this.firstAccessibleEntry();
+      if (target && target.article.id !== active.article.id) {
+        this.router.navigate(['/formations', formation.id, target.article.id], {
+          replaceUrl: true,
+        });
+      }
     });
   }
 

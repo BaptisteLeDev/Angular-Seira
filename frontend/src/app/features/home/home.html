@@ -32,9 +32,9 @@
             [attr.aria-expanded]="userMenuOpen()"
             aria-haspopup="menu"
             aria-label="Menu utilisateur"
-            class="h-10 w-10 overflow-hidden rounded-full ghost-border bg-surface-container-high focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+            class="flex h-10 w-10 items-center justify-center overflow-hidden rounded-full ghost-border bg-primary/15 font-headline text-sm font-bold text-primary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
           >
-            <img [src]="avatarUrl" alt="Avatar utilisateur" class="h-full w-full object-cover" />
+            {{ userInitial() }}
           </button>
 
           @if (userMenuOpen()) {

@@ -10,6 +10,7 @@ use ApiPlatform\Metadata\Patch;
 use ApiPlatform\Metadata\Post;
 use App\ApiResource\ChapterContentCreateInput;
 use App\State\ChapterContent\ChapterContentCreateProcessor;
+use App\State\ChapterContent\ChapterContentUpdateProcessor;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -37,8 +38,8 @@ use Illuminate\Database\Eloquent\SoftDeletes;
         ),
         new Patch(
             uriTemplate: '/chapter-contents/{id}',
-            policy: 'chapter_contents.update',
-            middleware: ['auth:sanctum']
+            middleware: ['auth:sanctum'],
+            processor: ChapterContentUpdateProcessor::class
         ),
         new Delete(
             uriTemplate: '/chapter-contents/{id}',
@@ -67,6 +68,8 @@ class ChapterContent extends Model
     ];
 
     protected $casts = [
+        'duration_seconds' => 'integer',
+        'sort_order' => 'integer',
         'is_published' => 'boolean',
     ];
 

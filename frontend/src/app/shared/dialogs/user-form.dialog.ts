@@ -1,6 +1,7 @@
 import { ChangeDetectionStrategy, Component, computed, effect, inject, input, output, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ModalShell } from '../feedback/modal-shell.component';
+import { SchoolStore } from '../../core/stores/school.store';
 import type { User, UserRole } from '../../core/schemas/user.schema';
 
 export interface UserFormPayload {
@@ -88,14 +89,17 @@ const ROLE_OPTIONS: readonly { value: UserRole; label: string }[] = [
 
         <label class="flex flex-col gap-1.5">
           <span class="font-headline text-xs font-bold uppercase tracking-widest text-on-surface-variant"
-            >ID école (optionnel)</span
+            >École (optionnel)</span
           >
-          <input
-            type="number"
-            min="1"
+          <select
             formControlName="schoolId"
             class="squircle-md bg-surface-container px-4 py-2.5 text-sm text-on-surface ghost-border focus:outline-2 focus:outline-primary"
-          />
+          >
+            <option [ngValue]="null">— Aucune —</option>
+            @for (s of schools(); track s.id) {
+              <option [ngValue]="s.id">{{ s.name }}</option>
+            }
+          </select>
         </label>
 
         <footer class="mt-2 flex justify-end gap-2">
@@ -130,6 +134,9 @@ export class UserFormDialog {
   );
 
   private readonly fb = inject(FormBuilder);
+  private readonly schoolStore = inject(SchoolStore);
+  protected readonly schools = this.schoolStore.items;
+
   protected readonly form = this.fb.nonNullable.group({
     name: ['', [Validators.required, Validators.minLength(2)]],
     email: ['', [Validators.required, Validators.email]],
@@ -148,6 +155,7 @@ export class UserFormDialog {
         this.hydrated.set(false);
         return;
       }
+      this.schoolStore.load().subscribe({ error: () => {} });
       if (this.hydrated()) return;
       if (u) {
         this.form.reset({

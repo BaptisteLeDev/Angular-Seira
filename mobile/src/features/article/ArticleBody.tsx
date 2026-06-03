@@ -6,7 +6,7 @@ import { VideoPlayer } from '@src/ui/VideoPlayer';
 import { PdfViewer } from '@src/ui/PdfViewer';
 import { MarkdownView } from '@src/ui/MarkdownView';
 import { SpeakButton } from '@src/ui/SpeakButton';
-import { colors } from '@src/constants/theme';
+import { useThemeColors } from '@src/ui/useThemeColors';
 import type { Article } from '@src/schemas/article.schema';
 
 type Props = {
@@ -14,11 +14,14 @@ type Props = {
 };
 
 export function ArticleBody({ article }: Props) {
+  const palette = useThemeColors();
   const body = article.content ?? article.description ?? null;
 
   return (
     <View className="gap-5">
-      {article.type === 'video' ? <VideoPlayer url={article.sourceUrl} /> : null}
+      {article.type === 'video' ? (
+        <VideoPlayer url={article.sourceUrl} videoId={article.videoId ?? null} />
+      ) : null}
 
       {article.type === 'link' && article.sourceUrl ? (
         <LinkCard
@@ -27,7 +30,7 @@ export function ArticleBody({ article }: Props) {
           }}
           icon="link"
           iconBg="rgba(123,208,255,0.15)"
-          iconColor={colors.primary}
+          iconColor={palette.primary}
           title="Ouvrir le lien"
           subtitle={article.sourceUrl}
         />
@@ -39,10 +42,12 @@ export function ArticleBody({ article }: Props) {
 
       {article.type === 'file' && article.filePath ? (
         <LinkCard
-          onPress={() => {}}
+          onPress={() => {
+            void Linking.openURL(article.filePath!);
+          }}
           icon="attach-outline"
           iconBg="rgba(123,208,255,0.1)"
-          iconColor={colors.primary}
+          iconColor={palette.primary}
           title="Fichier joint"
           subtitle={article.filePath}
         />
@@ -85,6 +90,7 @@ function LinkCard({
   title: string;
   subtitle?: string | null;
 }) {
+  const palette = useThemeColors();
   return (
     <Pressable
       onPress={onPress}
@@ -108,7 +114,7 @@ function LinkCard({
           </Text>
         ) : null}
       </View>
-      <Icon name="open-outline" size={16} color={colors.onSurfaceVariant} />
+      <Icon name="open-outline" size={16} color={palette.onSurfaceVariant} />
     </Pressable>
   );
 }

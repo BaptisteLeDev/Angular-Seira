@@ -5,12 +5,18 @@ import {
   computed,
   inject,
   input,
+  signal,
 } from '@angular/core';
-import { RouterLink } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { SchoolStore } from '../../../core/stores/school.store';
 import { ClassStore } from '../../../core/stores/class.store';
 import { FormationStore } from '../../../core/stores/formation.store';
 import { AuthStore } from '../../../core/stores/auth.store';
+import { ToastService } from '../../../shared/feedback/toast.service';
+import { ConfirmDialogService } from '../../../shared/feedback/confirm-dialog.service';
+import { SchoolFormDialog, type SchoolFormPayload } from '../../../shared/dialogs/school-form.dialog';
+import { FormationFormDialog, type FormationFormPayload } from '../../../shared/dialogs/formation-form.dialog';
+import type { Formation } from '../../../core/schemas/formation.schema';
 
 /**
  * Vue : détail d'une école + résumé des classes + liens.
@@ -19,7 +25,7 @@ import { AuthStore } from '../../../core/stores/auth.store';
  */
 @Component({
   selector: 'app-school-detail',
-  imports: [RouterLink],
+  imports: [RouterLink, SchoolFormDialog, FormationFormDialog],
   templateUrl: './school-detail.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
@@ -28,8 +34,14 @@ export class SchoolDetail implements OnInit {
   protected readonly classStore = inject(ClassStore);
   protected readonly formationStore = inject(FormationStore);
   protected readonly auth = inject(AuthStore);
+  private readonly router = inject(Router);
+  private readonly toast = inject(ToastService);
+  private readonly confirmSvc = inject(ConfirmDialogService);
 
   protected readonly schoolId = input.required<string>();
+  protected readonly dialogOpen = signal(false);
+  protected readonly formationDialogOpen = signal(false);
+  protected readonly editingFormation = signal<Formation | null>(null);
 
   protected readonly school = computed(() => this.schoolStore.selected());
   protected readonly classrooms = computed(() => {
@@ -63,6 +75,92 @@ export class SchoolDetail implements OnInit {
       this.classStore.hasError() ||
       this.formationStore.status() === 'error',
   );
+
+  protected onSubmit(payload: SchoolFormPayload): void {
+    const current = this.school();
+    if (!current) return;
+    const body = payload.slug ? { name: payload.name, slug: payload.slug } : { name: payload.name };
+    this.schoolStore.update(current.id, body).subscribe({
+      next: () => {
+        this.dialogOpen.set(false);
+        this.toast.success('École mise à jour.');
+      },
+      error: (err: unknown) =>
+        this.toast.error(err instanceof Error ? err.message : 'Erreur lors de la mise à jour.'),
+    });
+  }
+
+  protected async onDelete(): Promise<void> {
+    const current = this.school();
+    if (!current) return;
+    const ok = await this.confirmSvc.confirm({
+      title: `Supprimer « ${current.name} » ?`,
+      message: 'Cette action est irréversible (suppression logique).',
+      confirmLabel: 'Supprimer',
+      tone: 'danger',
+    });
+    if (!ok) return;
+    this.schoolStore.delete(current.id).subscribe({
+      next: () => {
+        this.toast.success('École supprimée.');
+        void this.router.navigate(['/schools']);
+      },
+      error: (err: unknown) =>
+        this.toast.error(err instanceof Error ? err.message : 'Erreur lors de la suppression.'),
+    });
+  }
+
+  // ── Matières (formations) ────────────────────────────────────────────────
+  protected openCreateFormation(): void {
+    this.editingFormation.set(null);
+    this.formationDialogOpen.set(true);
+  }
+
+  protected openEditFormation(formation: Formation): void {
+    this.editingFormation.set(formation);
+    this.formationDialogOpen.set(true);
+  }
+
+  protected onFormationSubmit(payload: FormationFormPayload): void {
+    const current = this.school();
+    if (!current) return;
+    const editing = this.editingFormation();
+    const op = editing
+      ? this.formationStore.update(editing.id, {
+          name: payload.name,
+          description: payload.description ?? undefined,
+          expectedHours: payload.expectedHours ?? undefined,
+        })
+      : this.formationStore.create({
+          name: payload.name,
+          description: payload.description ?? undefined,
+          expectedHours: payload.expectedHours ?? undefined,
+          school: `/api/schools/${current.id}`,
+        });
+    op.subscribe({
+      next: () => {
+        this.formationDialogOpen.set(false);
+        this.toast.success(editing ? 'Matière mise à jour.' : 'Matière créée.');
+      },
+      error: (err: unknown) =>
+        this.toast.error(err instanceof Error ? err.message : 'Erreur sur la matière.'),
+    });
+  }
+
+  protected async onDeleteFormation(formation: Formation): Promise<void> {
+    const ok = await this.confirmSvc.confirm({
+      title: `Supprimer « ${formation.name} » ?`,
+      message: 'Cette matière et son rattachement seront retirés (suppression logique).',
+      confirmLabel: 'Supprimer',
+      tone: 'danger',
+    });
+    if (!ok) return;
+    this.formationStore.delete(formation.id).subscribe({
+      next: () => this.toast.success('Matière supprimée.'),
+      error: (err: unknown) =>
+        this.toast.error(err instanceof Error ? err.message : 'Erreur lors de la suppression.'),
+    });
+  }
 
   ngOnInit(): void {
     const ref = this.schoolId().trim();

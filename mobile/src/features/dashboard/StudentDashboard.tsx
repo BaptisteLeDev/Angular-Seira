@@ -54,6 +54,35 @@ export function StudentDashboard() {
               </View>
             </Pressable>
           </Link>
+
+          <View className="mt-3 flex-row gap-3">
+            <Link href="/classes" asChild>
+              <Pressable className="flex-1 squircle-xl bg-surface-container p-5 ghost-border">
+                <View className="mb-3 size-10 items-center justify-center squircle-lg bg-primary/10">
+                  <Icon name="school-outline" size={20} color="#7bd0ff" />
+                </View>
+                <Text className="font-headline text-base font-bold text-on-surface">
+                  Ma classe
+                </Text>
+                <Text className="mt-1 text-xs text-on-surface-variant">
+                  Vos matières rattachées.
+                </Text>
+              </Pressable>
+            </Link>
+            <Link href="/progress" asChild>
+              <Pressable className="flex-1 squircle-xl bg-surface-container p-5 ghost-border">
+                <View className="mb-3 size-10 items-center justify-center squircle-lg bg-primary/10">
+                  <Icon name="bar-chart-outline" size={20} color="#7bd0ff" />
+                </View>
+                <Text className="font-headline text-base font-bold text-on-surface">
+                  Ma progression
+                </Text>
+                <Text className="mt-1 text-xs text-on-surface-variant">
+                  Temps, % et statut.
+                </Text>
+              </Pressable>
+            </Link>
+          </View>
         </View>
       </ScrollView>
     </SafeAreaView>

@@ -9,8 +9,10 @@ use ApiPlatform\Metadata\GetCollection;
 use ApiPlatform\Metadata\Patch;
 use ApiPlatform\Metadata\Post;
 use App\ApiResource\VideoProgressCreateInput;
+use App\ApiResource\VideoProgressUpdateInput;
 use App\State\VideoProgress\VideoProgressCollectionProvider;
 use App\State\VideoProgress\VideoProgressCreateProcessor;
+use App\State\VideoProgress\VideoProgressUpdateProcessor;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -38,8 +40,9 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
         ),
         new Patch(
             uriTemplate: '/video-progress/{id}',
-            policy: 'video_progress.update',
-            middleware: ['auth:sanctum']
+            middleware: ['auth:sanctum'],
+            input: VideoProgressUpdateInput::class,
+            processor: VideoProgressUpdateProcessor::class
         ),
         new Delete(
             uriTemplate: '/video-progress/{id}',

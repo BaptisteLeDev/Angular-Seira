@@ -2,6 +2,7 @@
 
 namespace Tests\Feature\Api;
 
+use App\Models\Classroom;
 use App\Models\School;
 use App\Models\Subject;
 use App\Models\User;
@@ -55,5 +56,58 @@ class SubjectApiTest extends TestCase
             'referential_file_path' => null,
             'expected_hours' => 42,
         ])->assertCreated();
+    }
+
+    public function test_teacher_can_view_their_subject(): void
+    {
+        $school = School::factory()->create();
+        $teacher = User::factory()->create(['role' => User::ROLE_TEACHER, 'school_id' => $school->id]);
+        $subject = Subject::factory()->create(['school_id' => $school->id, 'teacher_id' => $teacher->id]);
+        Sanctum::actingAs($teacher);
+
+        $this->getJson("/api/subjects/{$subject->id}")->assertOk();
+    }
+
+    public function test_teacher_cannot_view_other_subject(): void
+    {
+        $school = School::factory()->create();
+        $teacher = User::factory()->create(['role' => User::ROLE_TEACHER, 'school_id' => $school->id]);
+        $otherSubject = Subject::factory()->create(['school_id' => $school->id]);
+        Sanctum::actingAs($teacher);
+
+        $this->getJson("/api/subjects/{$otherSubject->id}")->assertForbidden();
+    }
+
+    public function test_student_can_view_subject_of_their_classroom(): void
+    {
+        $school = School::factory()->create();
+        $classroom = Classroom::factory()->create(['school_id' => $school->id]);
+        $subject = Subject::factory()->create(['school_id' => $school->id]);
+        $classroom->subjects()->attach($subject->id);
+
+        $student = User::factory()->create([
+            'role' => User::ROLE_STUDENT,
+            'school_id' => $school->id,
+            'classroom_id' => $classroom->id,
+        ]);
+        Sanctum::actingAs($student);
+
+        $this->getJson("/api/subjects/{$subject->id}")->assertOk();
+    }
+
+    public function test_student_cannot_view_subject_outside_their_classroom(): void
+    {
+        $school = School::factory()->create();
+        $classroom = Classroom::factory()->create(['school_id' => $school->id]);
+        $otherSubject = Subject::factory()->create(['school_id' => $school->id]);
+
+        $student = User::factory()->create([
+            'role' => User::ROLE_STUDENT,
+            'school_id' => $school->id,
+            'classroom_id' => $classroom->id,
+        ]);
+        Sanctum::actingAs($student);
+
+        $this->getJson("/api/subjects/{$otherSubject->id}")->assertForbidden();
     }
 }

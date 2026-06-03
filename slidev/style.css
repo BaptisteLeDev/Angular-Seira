@@ -1,0 +1,185 @@
+/* ===========================================================================
+   Thème MontoMaster — DA dark + accent cyan (#7bd0ff), Manrope / Inter, squircle
+   Chargé automatiquement par Slidev (style.css à la racine du projet).
+   =========================================================================== */
+
+:root {
+  /* Palette MontoMaster (dark) */
+  --mm-primary: #7bd0ff;
+  --mm-primary-dim: #47c4ff;
+  --mm-primary-container: #0e3a4d;
+  --mm-bg: #0b0b0c;
+  --mm-surface: #18181b;
+  --mm-surface-high: #242428;
+  --mm-on-surface: #fafafa;
+  --mm-on-surface-variant: #a1a1aa;
+  --mm-outline: #3f3f46;
+
+  /* Catégories / accents */
+  --mm-dev: #7bd0ff;
+  --mm-design: #c084fc;
+  --mm-projet: #fbbf24;
+  --mm-comm: #34d399;
+  --mm-secu: #f87171;
+  --mm-data: #818cf8;
+
+  /* Mapping thème Slidev */
+  --slidev-theme-primary: #7bd0ff;
+}
+
+/* Fond global sombre + texte */
+.slidev-layout {
+  background-color: var(--mm-bg);
+  color: var(--mm-on-surface);
+  --slidev-code-font-size: 0.8em;
+}
+
+.slidev-layout h1,
+.slidev-layout h2,
+.slidev-layout h3 {
+  font-family: 'Manrope', ui-sans-serif, system-ui, sans-serif;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: var(--mm-on-surface);
+}
+
+.slidev-layout h1 {
+  background-image: linear-gradient(92deg, #7bd0ff 0%, #47c4ff 60%, #c084fc 120%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.slidev-layout a {
+  color: var(--mm-primary-dim);
+  text-decoration-color: rgba(123, 208, 255, 0.4);
+}
+
+/* Liens / marqueurs accentués */
+.slidev-layout strong { color: var(--mm-on-surface); }
+.slidev-layout em { color: var(--mm-primary); font-style: normal; }
+
+/* Barre d'accent sous les H1 des dividers (layout section) */
+.slidev-layout.slidev-page section h1::after {
+  content: '';
+}
+
+/* ---- Cartes & chips utilitaires (UnoCSS-friendly via class) ---- */
+.mm-card {
+  background: var(--mm-surface);
+  border: 1px solid var(--mm-outline);
+  border-radius: 0.875rem;
+  padding: 0.75rem 1rem;
+  box-shadow: 0 6px 24px -8px rgba(0, 0, 0, 0.55);
+}
+
+.mm-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  padding: 0.15rem 0.55rem;
+  border-radius: 999px;
+  border: 1px solid currentColor;
+}
+.mm-chip-done { color: #34d399; }
+.mm-chip-todo { color: #fbbf24; }
+.mm-chip-partial { color: #818cf8; }
+
+/* Tableaux plus lisibles sur fond sombre */
+.slidev-layout table {
+  font-size: 0.82em;
+}
+.slidev-layout th {
+  color: var(--mm-primary);
+  border-bottom: 1px solid var(--mm-outline);
+}
+.slidev-layout td {
+  border-bottom: 1px solid rgba(63, 63, 70, 0.5);
+}
+
+/* Code inline */
+.slidev-layout :not(pre) > code {
+  color: var(--mm-primary);
+  background: rgba(123, 208, 255, 0.1);
+  border-radius: 0.375rem;
+  padding: 0.1em 0.35em;
+}
+
+/* Mermaid : centrage + respiration */
+.slidev-layout .mermaid {
+  display: flex;
+  justify-content: center;
+}
+
+/* Footer discret avec marque */
+.slidev-layout::after {
+  content: 'MontoMaster';
+  position: absolute;
+  bottom: 0.6rem;
+  left: 1rem;
+  font-size: 0.6rem;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--mm-on-surface-variant);
+  opacity: 0.35;
+}
+/* Pas de footer sur cover / section */
+.slidev-layout.cover::after,
+.slidev-layout.intro::after,
+.slidev-layout.section::after,
+.slidev-layout.end::after {
+  content: none;
+}
+
+/* ============================================================
+   Kit wireframe basse-fidélité (monochrome bleu)
+   Squelette UI : placeholders image ✕, boutons, recherche,
+   nav, avatars, onglets — utilisé dans la section Conception.
+   ============================================================ */
+.wf-cap{font-size:11px;color:#7f9fb5;text-align:center;margin-top:6px}
+.wf-win{background:#0b1a28;border:1px solid #24405a;border-radius:9px;overflow:hidden}
+.wf-phone{background:#0b1a28;border:2px solid #24405a;border-radius:20px;overflow:hidden}
+.wf-top{display:flex;align-items:center;gap:5px;padding:5px 7px;background:#102537;border-bottom:1px solid #24405a}
+.wf-dot{width:6px;height:6px;border-radius:50%;background:#2f5572}
+.wf-url{flex:1;font-size:8px;color:#6f9bb8;background:#0b1a28;border:1px solid #24405a;border-radius:20px;padding:1px 8px;text-align:center}
+.wf-notch{height:14px;background:#102537;display:flex;align-items:center;justify-content:center}
+.wf-notch i{display:block;width:34px;height:4px;border-radius:3px;background:#2f5572}
+.wf-body{padding:9px;display:flex;flex-direction:column;gap:7px}
+.wf-nav{display:flex;align-items:center;gap:8px;padding-bottom:7px;border-bottom:1px solid #1d3346}
+.wf-nav .lo{font-size:11px;font-weight:800;color:#7bd0ff}
+.wf-nav .mn{margin-left:auto;font-size:8px;color:#6f9bb8}
+.wf-av{width:18px;height:18px;border-radius:50%;border:1px solid #3d5f78;color:#9fc2d8;font-size:8px;display:flex;align-items:center;justify-content:center}
+.wf-img{position:relative;min-height:42px;border:1px solid #3d5f78;border-radius:5px;background:linear-gradient(to top right,transparent calc(50% - .6px),#33536b calc(50% - .6px),#33536b calc(50% + .6px),transparent calc(50% + .6px)),linear-gradient(to bottom right,transparent calc(50% - .6px),#33536b calc(50% - .6px),#33536b calc(50% + .6px),transparent calc(50% + .6px));display:flex;align-items:center;justify-content:center}
+.wf-img.vid::after{content:"";position:relative;width:0;height:0;border-style:solid;border-width:7px 0 7px 12px;border-color:transparent transparent transparent #7bd0ff;filter:drop-shadow(0 0 0 #0b1a28)}
+.wf-img.vid::before{content:"";position:absolute;width:30px;height:30px;border-radius:50%;background:#0b1a28;border:1px solid #3d5f78}
+.wf-h{height:8px;width:60%;border-radius:3px;background:#5b86a3}
+.wf-l{height:5px;border-radius:3px;background:#314e64}
+.wf-t{display:flex;flex-direction:column;gap:4px}
+.wf-b{display:inline-flex;align-items:center;justify-content:center;gap:4px;font-size:9px;color:#9fc2d8;border:1px solid #3d5f78;border-radius:6px;padding:4px 8px;background:none}
+.wf-b.p{background:#7bd0ff;color:#06121d;border-color:#7bd0ff;font-weight:700}
+.wf-b.bl{width:100%}
+.wf-in{display:flex;align-items:center;gap:5px;border:1px solid #3d5f78;border-radius:6px;padding:5px 8px;font-size:9px;color:#6f9bb8}
+.wf-in::before{content:"⌕";font-size:11px;color:#6f9bb8}
+.wf-c{font-size:8px;color:#9fc2d8;border:1px solid #3d5f78;border-radius:999px;padding:2px 7px;white-space:nowrap}
+.wf-c.on{background:#7bd0ff;color:#06121d;border-color:#7bd0ff;font-weight:700}
+.wf-pg{height:6px;border-radius:4px;background:#1b3144;overflow:hidden}
+.wf-pg i{display:block;height:100%;background:#7bd0ff}
+.wf-card{border:1px solid #2c4a61;border-radius:6px;padding:6px;background:rgba(123,208,255,.03)}
+.wf-g2{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.wf-row{display:flex;gap:6px;align-items:center}
+.wf-ic{width:18px;height:18px;border-radius:5px;border:1px solid #3d5f78;background:rgba(123,208,255,.05);flex:none}
+.wf-mut{opacity:.45}
+.wf-bc{font-size:8px;color:#6f9bb8}
+.wf-k{color:#7bd0ff;font-size:14px;font-weight:800}
+.wf-lab{font-size:8px;color:#8fb6cf;font-weight:700;text-transform:uppercase;letter-spacing:.03em}
+.wf-tb{display:flex;justify-content:space-around;padding:6px 0;background:#102537;border-top:1px solid #24405a}
+.wf-tb div{display:flex;flex-direction:column;align-items:center;gap:3px}
+.wf-tb .ic{width:14px;height:14px;border-radius:4px;border:1px solid #3d5f78}
+.wf-tb span{font-size:7px;color:#6f9bb8}
+.wf-tb .on .ic{border-color:#7bd0ff;background:rgba(123,208,255,.25)}
+.wf-tb .on span{color:#7bd0ff;font-weight:700}

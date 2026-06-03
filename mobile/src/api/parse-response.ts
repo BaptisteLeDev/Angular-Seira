@@ -1,14 +1,9 @@
 import { ZodType } from 'zod';
-import {
-  withEnvelope,
-  withHydraCollection,
-  unwrapEnvelope,
-} from '@src/schemas/api-envelope.schema';
+import { withEnvelope, withHydraCollection } from '@src/schemas/api-envelope.schema';
 
 export function parseResponse<T>(schema: ZodType<T>, raw: unknown): T {
-  const envelopeSchema = withEnvelope(schema);
-  const parsed = envelopeSchema.parse(raw);
-  return unwrapEnvelope(parsed) as T;
+  // withEnvelope déballe lui-même la branche `{ data }` via transform.
+  return withEnvelope(schema).parse(raw) as T;
 }
 
 export function parseHydraCollection<T>(itemSchema: ZodType<T>, raw: unknown): T[] {

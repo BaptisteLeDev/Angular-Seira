@@ -1,6 +1,7 @@
 import { z } from 'zod';
 import { apiRequest } from './client';
-import { parseHydraCollection, parseResponse } from './parse-response';
+import { parseResponse } from './parse-response';
+import { fetchHydraAll } from './pagination';
 import {
   ChapitreSchema,
   type Chapitre,
@@ -22,8 +23,7 @@ export const FormationApi = {
     const search = new URLSearchParams();
     if (params.schoolId != null) search.set('school', String(params.schoolId));
     const qs = search.toString();
-    const raw = await apiRequest<unknown>(`/subjects${qs.length > 0 ? `?${qs}` : ''}`);
-    return parseHydraCollection(FormationSchema, raw);
+    return fetchHydraAll(`/subjects${qs.length > 0 ? `?${qs}` : ''}`, FormationSchema);
   },
 
   async listForMe(): Promise<MySubjects> {
@@ -37,10 +37,11 @@ export const FormationApi = {
   },
 
   async getChapitresByIris(chapterIris: string[]): Promise<Chapitre[]> {
-    if (chapterIris.length === 0) return [];
+    const ids = chapterIris.map(iriToId).filter((id): id is number => id != null);
+    if (ids.length === 0) return [];
     return Promise.all(
-      chapterIris.map(async (iri) => {
-        const raw = await apiRequest<unknown>(`/chapters/${iriToId(iri)}`);
+      ids.map(async (id) => {
+        const raw = await apiRequest<unknown>(`/chapters/${id}`);
         return parseResponse(ChapitreSchema, raw);
       }),
     );

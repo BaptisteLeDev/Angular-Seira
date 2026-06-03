@@ -29,6 +29,14 @@ export class CourseList implements OnInit {
     })),
   );
 
+  /** Matières hors du parcours de l'élève (verrouillées, non cliquables). */
+  protected readonly lockedFormations = computed<readonly FormationView[]>(() =>
+    this.store.locked().map((formation) => ({
+      formation,
+      variant: variantFor(formation.id),
+    })),
+  );
+
   protected readonly selectedFormationId = signal<number | null>(null);
 
   protected readonly selectedFormation = computed<FormationView | null>(() => {

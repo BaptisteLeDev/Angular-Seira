@@ -23,6 +23,17 @@ function resolve(pref: ThemePreference, system: ColorScheme | null | undefined):
   return pref;
 }
 
+/**
+ * Force le color scheme natif. `Appearance.setColorScheme` n'est pas implémentée
+ * partout (ex. Expo Go sur Android) : on garde l'appel optionnel pour ne pas
+ * crasher. Le thème applicatif reste piloté par `effective` / ThemeProvider.
+ */
+function applyNativeColorScheme(pref: ThemePreference): void {
+  if (typeof Appearance.setColorScheme === 'function') {
+    Appearance.setColorScheme(pref === 'system' ? null : pref);
+  }
+}
+
 export const useThemeStore = create<ThemeState>((set, get) => ({
   preference: 'system',
   effective: 'dark',
@@ -34,13 +45,13 @@ export const useThemeStore = create<ThemeState>((set, get) => ({
       raw === 'light' || raw === 'dark' || raw === 'system' ? raw : 'system';
     const system = Appearance.getColorScheme();
     const effective = resolve(pref, system);
-    Appearance.setColorScheme(pref === 'system' ? null : pref);
+    applyNativeColorScheme(pref);
     set({ preference: pref, effective, hydrated: true });
   },
 
   setPreference: async (pref) => {
     await storage.set(THEME_KEY, pref);
-    Appearance.setColorScheme(pref === 'system' ? null : pref);
+    applyNativeColorScheme(pref);
     const system = Appearance.getColorScheme();
     set({ preference: pref, effective: resolve(pref, system) });
   },

@@ -4,6 +4,7 @@ namespace App\Providers;
 
 use App\Models\Chapter;
 use App\Models\ChapterContent;
+use App\Models\ChapterProgress;
 use App\Models\Classroom;
 use App\Models\Subject;
 use App\Models\User;
@@ -54,7 +55,23 @@ class AppServiceProvider extends ServiceProvider
         Gate::define('classrooms.delete', fn (User $user): bool => $user->isAdmin());
 
         Gate::define('subjects.list', fn (User $user): bool => $user->isAdmin() || $user->role === User::ROLE_TEACHER);
-        Gate::define('subjects.view', fn (User $user): bool => $user->isAdmin());
+        Gate::define('subjects.view', function (User $user, mixed $subject): bool {
+            if ($user->isAdmin()) return true;
+            if (!$subject instanceof Subject) return false;
+
+            if ($user->role === User::ROLE_TEACHER) {
+                return $subject->teacher_id === $user->id;
+            }
+
+            if ($user->role === User::ROLE_STUDENT) {
+                if ($user->classroom_id === null) return false;
+                return $subject->classrooms()
+                    ->where('classrooms.id', $user->classroom_id)
+                    ->exists();
+            }
+
+            return false;
+        });
         Gate::define('subjects.create', fn (User $user): bool => $user->isAdmin());
         Gate::define('subjects.update', fn (User $user): bool => $user->isAdmin());
         Gate::define('subjects.delete', fn (User $user): bool => $user->isAdmin());
@@ -158,6 +175,24 @@ class AppServiceProvider extends ServiceProvider
         Gate::define('video_progress.delete', function (User $user, mixed $subject = null): bool {
             if ($user->isAdmin()) return true;
             if (!$subject instanceof VideoProgress) return false;
+            return $subject->user_id === $user->id;
+        });
+
+        Gate::define('chapter_progress.list', fn (User $user): bool => $user->exists);
+        Gate::define('chapter_progress.view', function (User $user, mixed $subject = null): bool {
+            if ($user->isAdmin()) return true;
+            if (!$subject instanceof ChapterProgress) return false;
+            return $subject->user_id === $user->id;
+        });
+        Gate::define('chapter_progress.create', fn (User $user): bool => $user->exists);
+        Gate::define('chapter_progress.update', function (User $user, mixed $subject = null): bool {
+            if ($user->isAdmin()) return true;
+            if (!$subject instanceof ChapterProgress) return false;
+            return $subject->user_id === $user->id;
+        });
+        Gate::define('chapter_progress.delete', function (User $user, mixed $subject = null): bool {
+            if ($user->isAdmin()) return true;
+            if (!$subject instanceof ChapterProgress) return false;
             return $subject->user_id === $user->id;
         });
     }

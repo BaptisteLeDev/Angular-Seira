@@ -1,20 +1,22 @@
 import {
   ChangeDetectionStrategy,
   Component,
+  HostListener,
   computed,
+  effect,
   inject,
   input,
   signal,
 } from '@angular/core';
+import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
-import { environment } from '../../../environments/environment';
 
 /**
- * PDF local utilisé comme placeholder en dev (Lorem ipsum), évite les 404
- * backend tant que les fichiers seedés ne sont pas servis.
+ * PDF de démonstration (Lorem ipsum) affiché en fallback dès qu'aucune URL n'est
+ * fournie OU que le fichier backend est injoignable (404), quel que soit
+ * l'environnement. Servi depuis frontend/public/dev-assets.
  */
-const DEV_FALLBACK_PDF = '/dev-assets/sample.pdf';
-const USE_DEV_FALLBACK_ALWAYS = true;
+const FALLBACK_PDF = '/dev-assets/sample.pdf';
 
 @Component({
   selector: 'app-pdf-viewer',
@@ -33,27 +35,53 @@ const USE_DEV_FALLBACK_ALWAYS = true;
           <button
             type="button"
             class="flex size-9 items-center justify-center squircle-md bg-surface-container-high text-on-surface transition-colors hover:bg-surface-container-highest focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
-            [attr.aria-label]="fullscreen() ? 'Quitter le plein écran' : 'Plein écran'"
-            (click)="toggleFullscreen()"
+            aria-label="Agrandir le document"
+            (click)="open()"
           >
-            <span
-              class="text-base"
-              [class]="
-                fullscreen()
-                  ? 'icon-[heroicons--arrows-pointing-in]'
-                  : 'icon-[heroicons--arrows-pointing-out]'
-              "
-              aria-hidden="true"
-            ></span>
+            <span class="icon-[heroicons--arrows-pointing-out] text-base" aria-hidden="true"></span>
           </button>
         </header>
         <iframe
           [src]="safeUrl()"
-          class="block w-full border-0"
-          [style.height]="fullscreen() ? '80vh' : '480px'"
+          class="block h-[480px] w-full border-0"
           [title]="fileName() ?? 'PDF'"
         ></iframe>
       </div>
+
+      <!-- Modal plein écran -->
+      @if (fullscreen()) {
+        <div
+          class="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4 sm:p-8"
+          role="dialog"
+          aria-modal="true"
+          [attr.aria-label]="fileName() ?? 'Document PDF'"
+          (click)="close()"
+        >
+          <div
+            class="flex h-[92vh] w-full max-w-6xl flex-col overflow-hidden squircle-xl bg-surface-container-lowest ghost-border"
+            (click)="$event.stopPropagation()"
+          >
+            <header class="flex items-center justify-between bg-surface-container-low px-4 py-3">
+              <p class="min-w-0 flex-1 truncate pr-3 font-headline text-sm font-bold text-on-surface">
+                {{ fileName() ?? 'Document PDF' }}
+              </p>
+              <button
+                type="button"
+                class="flex size-9 items-center justify-center squircle-md bg-surface-container-high text-on-surface transition-colors hover:bg-surface-container-highest focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+                aria-label="Fermer"
+                (click)="close()"
+              >
+                <span class="icon-[heroicons--x-mark] text-lg" aria-hidden="true"></span>
+              </button>
+            </header>
+            <iframe
+              [src]="safeUrl()"
+              class="block w-full flex-1 border-0"
+              [title]="fileName() ?? 'PDF'"
+            ></iframe>
+          </div>
+        </div>
+      }
     } @else {
       <div
         class="flex flex-col items-center squircle-xl bg-surface-container-low p-6 ghost-border"
@@ -72,14 +100,37 @@ export class PdfViewer {
   readonly fileName = input<string | null>(null);
 
   private readonly sanitizer = inject(DomSanitizer);
+  private readonly http = inject(HttpClient);
   protected readonly fullscreen = signal(false);
 
-  protected readonly resolvedUrl = computed<string | null>(() => {
-    if (!environment.production && USE_DEV_FALLBACK_ALWAYS) return DEV_FALLBACK_PDF;
+  /** Passe à true quand la vraie URL est injoignable, pour basculer sur le placeholder (dev). */
+  private readonly failed = signal(false);
+
+  constructor() {
+    // On sonde l'URL réelle via HttpClient (intercepteur JWT appliqué → un PDF
+    // protégé renvoie 200 au lieu de 401). Seul un 404 bascule sur le
+    // placeholder ; 401/403/réseau restent indéterminés (on garde l'URL).
+    effect((onCleanup) => {
+      const u = this.url();
+      this.failed.set(false);
+      if (!u || u.length === 0) return;
+      const sub = this.http.head(u, { observe: 'response' }).subscribe({
+        next: () => {},
+        error: (err: unknown) => {
+          if (err instanceof HttpErrorResponse && err.status === 404) {
+            this.failed.set(true);
+          }
+        },
+      });
+      onCleanup(() => sub.unsubscribe());
+    });
+  }
+
+  protected readonly resolvedUrl = computed<string>(() => {
+    if (this.failed()) return FALLBACK_PDF;
     const u = this.url();
-    if (u && u.length > 0) return u;
-    if (!environment.production) return DEV_FALLBACK_PDF;
-    return null;
+    // Pas de vraie source → PDF de démonstration.
+    return u && u.length > 0 ? u : FALLBACK_PDF;
   });
 
   protected readonly safeUrl = computed<SafeResourceUrl | null>(() => {
@@ -87,7 +138,16 @@ export class PdfViewer {
     return u ? this.sanitizer.bypassSecurityTrustResourceUrl(u) : null;
   });
 
-  protected toggleFullscreen(): void {
-    this.fullscreen.update((v) => !v);
+  protected open(): void {
+    this.fullscreen.set(true);
+  }
+
+  protected close(): void {
+    this.fullscreen.set(false);
+  }
+
+  @HostListener('document:keydown.escape')
+  protected onEscape(): void {
+    if (this.fullscreen()) this.close();
   }
 }

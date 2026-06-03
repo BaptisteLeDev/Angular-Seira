@@ -202,15 +202,26 @@
 
           <ol role="list" class="space-y-5">
             @for (chapitre of chapitres(); track chapitre.id) {
-              <li>
+              @let locked = isChapterLocked(chapitre.id);
+              <li [class.opacity-50]="locked">
                 <p
-                  class="mb-2 font-headline text-xs font-bold uppercase tracking-[0.15em] text-on-surface"
+                  class="mb-2 flex items-center gap-1.5 font-headline text-xs font-bold uppercase tracking-[0.15em] text-on-surface"
                 >
                   <span class="text-primary">{{ chapitre.sortOrder }}.</span>
                   {{ chapitre.title }}
+                  @if (locked) {
+                    <span
+                      class="icon-[heroicons--lock-closed] text-on-surface-variant"
+                      aria-hidden="true"
+                    ></span>
+                  }
                 </p>
                 @let entries = entriesForChapitre(chapitre.id);
-                @if (entries.length === 0) {
+                @if (locked) {
+                  <p class="pl-4 text-xs italic text-on-surface-variant">
+                    Terminez le chapitre précédent pour débloquer ce contenu.
+                  </p>
+                } @else if (entries.length === 0) {
                   <p class="pl-4 text-xs italic text-on-surface-variant">Contenus a venir.</p>
                 } @else {
                   <ul role="list" class="space-y-1">

@@ -36,6 +36,18 @@ export const routes: Routes = [
     canActivate: [authGuard],
     loadComponent: () => import('./features/settings/settings.page').then((m) => m.Settings),
   },
+  {
+    path: 'progression',
+    canActivate: [authGuard],
+    loadComponent: () =>
+      import('./features/progression/progression.page').then((m) => m.Progression),
+  },
+  {
+    path: 'student',
+    ...requireRoles('student'),
+    loadComponent: () =>
+      import('./features/student/student-space.page').then((m) => m.StudentSpace),
+  },
 
   // ── Teacher hub (teacher only — l'admin a son propre hub /admin) ─────────
   {
@@ -55,6 +67,12 @@ export const routes: Routes = [
     ...requireRoles('teacher'),
     loadComponent: () =>
       import('./features/teacher/teacher-students.page').then((m) => m.TeacherStudents),
+  },
+  {
+    path: 'teacher/suivi',
+    ...requireRoles('teacher'),
+    loadComponent: () =>
+      import('./features/teacher/teacher-progress.page').then((m) => m.TeacherProgress),
   },
 
   // ── Formations ───────────────────────────────────────────────────────────
@@ -88,6 +106,12 @@ export const routes: Routes = [
     ...requireRoles('admin'),
     loadComponent: () =>
       import('./features/admin/admin-users.page').then((m) => m.AdminUsers),
+  },
+  {
+    path: 'admin/suivi',
+    ...requireRoles('admin'),
+    loadComponent: () =>
+      import('./features/admin/school-progress.page').then((m) => m.SchoolProgress),
   },
   {
     path: 'admin/articles',
@@ -156,7 +180,7 @@ export const routes: Routes = [
 
   // ── Legacy redirects ─────────────────────────────────────────────────────
   { path: 'courses', redirectTo: 'formations', pathMatch: 'full' },
-  { path: 'courses/:id', redirectTo: 'formations', pathMatch: 'full' },
+  { path: 'courses/:formationId', redirectTo: 'formations/:formationId', pathMatch: 'full' },
 
   // ── 404 ──────────────────────────────────────────────────────────────────
   {

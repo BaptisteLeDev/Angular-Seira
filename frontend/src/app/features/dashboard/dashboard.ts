@@ -83,6 +83,12 @@ export class Dashboard {
           icon: 'icon-[heroicons--document-text]',
           routerLink: '/admin/articles',
         },
+        {
+          label: 'Suivi global',
+          description: 'Progression des élèves par classe.',
+          icon: 'icon-[heroicons--chart-bar]',
+          routerLink: '/admin/suivi',
+        },
       ];
     }
 
@@ -101,11 +107,29 @@ export class Dashboard {
           icon: 'icon-[heroicons--user-group]',
           routerLink: '/teacher/students',
         },
+        {
+          label: 'Suivi des élèves',
+          description: 'Progression par matière et par classe.',
+          icon: 'icon-[heroicons--chart-bar]',
+          routerLink: '/teacher/suivi',
+        },
       ];
     }
 
     return [
+      {
+        label: 'Mon espace',
+        description: 'Ma classe, mes matières, ma progression.',
+        icon: 'icon-[heroicons--home-modern]',
+        routerLink: '/student',
+      },
       base,
+      {
+        label: 'Ma progression',
+        description: 'Suivez votre avancement par matière.',
+        icon: 'icon-[heroicons--chart-bar]',
+        routerLink: '/progression',
+      },
       {
         label: 'Mes paramètres',
         description: 'Gérez votre thème et votre session.',

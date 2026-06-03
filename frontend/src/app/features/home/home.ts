@@ -33,8 +33,11 @@ export class Home {
   private readonly router = inject(Router);
 
   protected readonly categories: readonly FormationVariant[] = Object.values(FORMATION_VARIANTS);
-  protected readonly avatarUrl = 'https://cdn.flyonui.com/fy-assets/avatar/avatar-1.png';
   protected readonly beamNodes = this.buildBeamNodes();
+  /** Initiale de l'utilisateur (remplace l'avatar CDN tiers). */
+  protected readonly userInitial = computed(
+    () => (this.auth.user()?.name ?? '').trim().charAt(0).toUpperCase() || '?',
+  );
 
   protected readonly userMenuOpen = signal(false);
   protected readonly currentUser = computed(() => this.auth.user());

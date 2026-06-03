@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { UserRoleSchema } from './user.schema';
 
 export const LoginRequestSchema = z.object({
   email: z.string().email(),
@@ -10,8 +11,8 @@ export const AuthResponseSchema = z.object({
   tokenType: z.string(),
   token: z.string(),
   user: z.object({
-    email: z.string(),
-    role: z.string(),
+    email: z.string().email(),
+    role: UserRoleSchema,
   }),
 });
 export type AuthResponse = z.infer<typeof AuthResponseSchema>;

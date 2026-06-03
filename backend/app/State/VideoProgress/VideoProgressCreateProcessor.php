@@ -36,10 +36,6 @@ class VideoProgressCreateProcessor implements ProcessorInterface
 
         $user = Auth::user();
 
-        if ($user === null) {
-            throw new UnprocessableEntityHttpException('Authenticated user required.');
-        }
-
         if (VideoProgress::query()->where('user_id', $user->id)->where('video_id', $videoId)->exists()) {
             throw new ConflictHttpException('Progress already exists for this user and video.');
         }
@@ -47,7 +43,7 @@ class VideoProgressCreateProcessor implements ProcessorInterface
         return VideoProgress::query()->create([
             'user_id' => $user->id,
             'video_id' => $videoId,
-            'watched_seconds_validated' => $data->watched_seconds_validated,
+            'watched_seconds_validated' => 0,
             'completion_percent' => $data->completion_percent,
             'status' => $data->status,
             'last_seen_at' => $data->last_seen_at,

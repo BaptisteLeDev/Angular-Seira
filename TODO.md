@@ -1,0 +1,119 @@
+# TODO — Plateforme e-learning (remplacement Seira)
+
+> Plateforme pédagogique : écoles → classes → matières → chapitres → vidéos, avec suivi de progression certifié et IA intégrée. API centralisée Laravel + API Platform exposée via Swagger/OpenAPI.
+
+**État vérifié le 2026-06-02** — `[x]` = codé · `[ ]` = à faire · ⚠️ = partiel (détail entre parenthèses).
+
+---
+
+## 🛠️ Backend (Laravel + API Platform)
+
+### Architecture & API
+- [x] API RESTful exposée via API Platform *(8 modèles `#[ApiResource]`)*
+- [x] Documentation automatique Swagger / OpenAPI *(`config/api-platform.php`, `/api/docs`)*
+- [x] Interopérabilité, documentation auto et évolutivité
+
+### Authentification & rôles
+- [x] Authentification sécurisée (Sanctum, `/auth/login`, tokens) *(`app/State/Auth/`)*
+- [x] Gestion fine des rôles (RBAC) : `admin` / `teacher` / `student` *(30+ Gates dans `AppServiceProvider`)*
+- [x] Un utilisateur peut gérer **plusieurs** écoles *(pivot `user_school` + `User::schools()` + routes `/users/{id}/schools` — #19)*
+- [x] Isolation des données entre écoles *(filtrage par `school_id`/`classroom_id` dans les Gates)* — ⚠️ pas de middleware global
+
+### Modèle métier
+- [x] **École** : créer matières, créer classes, associer formateurs, assigner élèves *(`School` hasMany Classroom/Subject/User)*
+- [x] **Matière** : nom, référentiel PDF, attentes pédagogiques, volume horaire, classes associées (M-N), vidéos *(`Subject`)*
+- [x] **Formateur** : ajouter des vidéos à une matière, organiser en séquence *(`teacher_id`, `Chapter.sort_order`)*
+- [x] **Élève** : rattachement aux classes attribuées *(`classroom_id`)*
+
+### Téléversement de fichiers
+- [x] Stockage des référentiels PDF par matière *(`Subject.referential_file_path`, `ChapterContent` type `pdf`)*
+- [x] Gestion des contenus vidéo *(`Video.source_url`, `duration_seconds`)*
+
+### Suivi avancé anti-triche (cœur backend)
+- [x] Génération serveur de **clés temporelles dynamiques** *(`WatchTokenService`, HMAC-SHA256)*
+- [x] Validation du temps de visionnage par segment via clé valide *(`POST /api/watch-sessions/heartbeat`)*
+- [x] Rendre impossible la simulation de temps sans validation serveur *(fenêtre temporelle stricte + anti-replay nonce)*
+- [x] Persistance d'un suivi **certifié** par élève *(`watched_seconds_validated` modifiable uniquement via heartbeat)*
+
+### Données de suivi pédagogique (exposition API)
+- [x] Temps total visionné *(`VideoProgress.watched_seconds_validated`)*
+- [x] Pourcentage par vidéo *(`completion_percent`)*
+- [x] Statut (vu / partiellement vu / non vu) *(`status`: not_started/in_progress/completed)*
+- [x] Avancement par matière *(agrégeable via `VideoProgress`)*
+- [x] Vues agrégées élève / formateur / école *(`GET /api/aggregates/teacher` + `GET /api/aggregates/school`)*
+
+### Sécurité & conformité
+- [ ] Logs d'activité *(aucune table audit/activity_log — #20)*
+- [x] Protection anti-fraude *(clés temporelles HMAC + anti-replay nonce + fenêtre temporelle stricte ; reste : compléter l'enforcement quand ChapterContent expose `video_id` #29, et chapitre certifié serveur #71)*
+- [ ] Conformité RGPD — ⚠️ SoftDeletes présents, pas d'anonymisation ni de routes RGPD *(#21)*
+
+---
+
+## 🤖 IA / Backend IA (LLM + RAG)
+
+- [ ] Transcription automatique de chaque vidéo
+- [ ] Stockage et indexation des transcriptions
+- [ ] Agent IA conversationnel contextuel
+- [ ] RAG (transcription, métadonnées, référentiel PDF, historique élève)
+- [ ] Endpoint chat contextuel *(aucune dépendance LLM dans `composer.json`)*
+
+---
+
+## 🌐 Frontend Web (Angular)
+
+### Interfaces par rôle
+- [ ] Interface **élève** dédiée — ⚠️ accès via `/dashboard` générique → `/formations`, pas d'espace student propre
+- [x] Interface **formateur** *(`/teacher`, `/teacher/classes`, `/teacher/students`)*
+- [x] Interface **école / administrateur** *(`/admin`, `/admin/users`, `/schools/*`)*
+
+### Parcours élève
+- [ ] Affichage des classes attribuées à l'élève — ⚠️ classes stockées en IRIs, affichage seulement côté prof
+- [x] Accès aux matières *(`/formations`, `/formations/{id}`)*
+- [x] Ouverture d'un cours *(`/formations/{id}/{articleId}`, navigation prev/next)*
+- [x] Liste des vidéos à visionner *(sommaire/programme avec icônes + durée)*
+- [x] Suivi de progression en temps réel *(émission VideoProgress + ChapterProgress, reprise position, throttle — `core/api/progress.api.ts`, `core/stores/progress.store.ts`)*
+
+### Lecteur vidéo contrôlé (anti-triche côté client)
+- [x] Lecteur vidéo *(`shared/ui/video-player.ts`, HTML5 + `controlsList=nodownload`)*
+- [x] Détection lecture active *(signal `isPlaying` sur `play`/`pause`/`ended` + indicateur)*
+- [x] Détection onglet actif / premier plan *(pause auto sur `visibilitychange`)*
+- [x] Blocage / invalidation au-delà de 2x *(`clampPlaybackRate` sur `ratechange`)*
+- [x] Réception et envoi des clés temporelles serveur par segment *(`WatchSessionApi` + `WatchSessionService` : request/heartbeat pilotés par le plafond vu ; YouTube géré via IFrame API `youtube-player`)*
+- [x] Gating chapitre : bouton suivant + garde d'accès URL (sommaire déjà protégé) — critère = vidéos terminées *(non-vidéo → backend #69)*
+
+### Tableaux de bord de suivi
+- [x] Vue auto-évaluation élève *(`/progression` : KPIs temps/%/vidéos + avancement par matière)*
+- [x] Vue suivi individuel formateur *(`/teacher/suivi` : matières → classes → élèves, branché sur `/aggregates/teacher`)*
+- [x] Vue globale école *(`/admin/suivi` : classes → élèves → matières, branché sur `/aggregates/school`)*
+- [x] Affichage : temps total, % par vidéo, statut, avancement par matière *(côté élève sur `/progression`)* — ⚠️ vues formateur/école à brancher
+
+### Interface IA enrichie
+- [ ] Chat contextuel à droite de la vidéo *(aucun composant chat/IA)*
+- [ ] Questions contextuelles sur le contenu du cours
+
+---
+
+## 📱 Mobile (Expo / React Native)
+
+- [x] Parcours élève : classes → matières → cours → vidéos *(écran `/classes` : classe attribuée → matières — `ClassroomApi.get`)*
+- [x] Lecteur vidéo contrôlé *(`src/ui/VideoPlayer.tsx`, `expo-video`, vitesse verrouillée à 1x, anti-seek)*
+- [x] Détection lecture active + vitesse ≤ 2x *(listener `isPlaying`, `LOCKED_RATE = 1`)* — ⚠️ bypass possible en fullscreen natif
+- [x] Réception / envoi des clés temporelles serveur *(`watch-session.store` : request/heartbeat par segment, piloté par le plafond vu ; YouTube via `react-native-youtube-iframe`)*
+- [x] Suivi de progression en temps réel *(`progress.store` sync VideoProgress, POST/PATCH best-effort)*
+- [x] Affichage du suivi pédagogique (temps, %, statut, avancement) *(écran `/progress` : temps visionné, % moyen, vidéos commencées/terminées)*
+- [ ] Chat IA contextuel
+- [x] Authentification (token Sanctum + `expo-secure-store`) *(`src/stores/auth.store.ts`)*
+- [x] Gestion des rôles (`RoleGate` / `use-role-guard`) *(`src/ui/RoleGate.tsx`)*
+
+---
+
+## 🎯 Objectifs pédagogiques transverses (projet fil rouge)
+
+- [x] Architecture API REST avancée *(API Platform opérationnel)*
+- [x] Gestion des rôles et permissions *(Gates + guards web/mobile)*
+- [x] Sécurisation applicative *(auth + anti-triche : clés temporelles serveur branchées web & mobile)* — ⚠️ reste logs/RGPD
+- [x] Streaming et tracking vidéo *(lecture + tracking certifié via watch-sessions, web & mobile)*
+- [x] Synchronisation frontend / backend *(schémas Zod + API layer web & mobile)*
+- [ ] Intégration IA (LLM + RAG)
+- [x] UX orientée apprentissage *(navigation matières/chapitres/articles)*
+- [x] Modélisation métier complète *(8 modèles + relations + soft deletes)*

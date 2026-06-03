@@ -53,10 +53,11 @@ export const useArticleStore = create<ArticleState>((set, get) => ({
     }));
 
     try {
-      const articles = await ArticleApi.listByIris(contentIris);
-      const sorted = [...articles].sort(
-        (a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0),
-      );
+      // Tous les ChapterContent (y compris type vidéo), comme le web. La
+      // relation `videos` n'est plus utilisée : c'était une représentation
+      // parallèle (placeholders de seed) qui masquait les vraies vidéos-contenus.
+      const contents = await ArticleApi.listByIris(contentIris);
+      const sorted = [...contents].sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0));
       set((s) => ({
         byChapitre: { ...s.byChapitre, [chapitreId]: sorted },
         status: { ...s.status, [chapitreId]: 'idle' },

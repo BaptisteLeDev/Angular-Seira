@@ -12,6 +12,7 @@
       <button
         type="button"
         data-testid="school-create-btn"
+        (click)="openCreate()"
         class="inline-flex items-center gap-2 squircle-lg bg-primary px-5 py-2.5 font-headline text-sm font-bold text-on-primary transition-opacity hover:opacity-90 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
         aria-label="Créer une nouvelle école"
       >
@@ -101,4 +102,9 @@
     </ul>
   }
 
+  <app-school-form-dialog
+    [open]="dialogOpen()"
+    (submitted)="onSubmit($event)"
+    (closed)="dialogOpen.set(false)"
+  />
 </div>

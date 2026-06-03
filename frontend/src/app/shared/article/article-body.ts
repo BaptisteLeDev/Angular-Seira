@@ -14,7 +14,7 @@ import { VideoPlayer } from '../ui/video-player';
     <div class="flex flex-col gap-5">
       @switch (article().type) {
         @case ('video') {
-          <app-video-player [url]="article().sourceUrl" />
+          <app-video-player [url]="article().sourceUrl" [videoId]="article().videoId" />
         }
 
         @case ('link') {

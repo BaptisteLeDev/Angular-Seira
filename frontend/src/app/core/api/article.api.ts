@@ -1,14 +1,16 @@
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
-import { Observable, catchError, forkJoin, of, throwError } from 'rxjs';
+import { Observable, catchError, forkJoin, of, tap, throwError } from 'rxjs';
 import { environment } from '@environments/environment';
 import { ArticleSchema, type Article } from '../schemas/article.schema';
 import { parseResponse } from './parse-response';
+import { ResourceCache } from './resource-cache';
 import { iriToId } from '../utils/iri';
 
 @Injectable({ providedIn: 'root' })
 export class ArticleApi {
   private readonly http = inject(HttpClient);
+  private readonly cache = inject(ResourceCache);
   private readonly apiUrl = environment.apiUrl;
 
   getById(id: number): Observable<Article> {
@@ -34,7 +36,7 @@ export class ArticleApi {
   }): Observable<Article> {
     return this.http
       .post<unknown>(`${this.apiUrl}/chapter-contents`, payload)
-      .pipe(parseResponse(ArticleSchema), catchError(this.toError));
+      .pipe(parseResponse(ArticleSchema), catchError(this.passError));
   }
 
   update(
@@ -53,13 +55,20 @@ export class ArticleApi {
   ): Observable<Article> {
     return this.http
       .patch<unknown>(`${this.apiUrl}/chapter-contents/${id}`, payload)
-      .pipe(parseResponse(ArticleSchema), catchError(this.toError));
+      .pipe(
+        parseResponse(ArticleSchema),
+        tap(() => this.cache.invalidate(`${this.apiUrl}/chapter-contents/${id}`)),
+        catchError(this.passError),
+      );
   }
 
   delete(id: number): Observable<void> {
     return this.http
       .delete<void>(`${this.apiUrl}/chapter-contents/${id}`)
-      .pipe(catchError(this.toError));
+      .pipe(
+        tap(() => this.cache.invalidate(`${this.apiUrl}/chapter-contents/${id}`)),
+        catchError(this.passError),
+      );
   }
 
   /**
@@ -67,18 +76,32 @@ export class ArticleApi {
    */
   listByIris(contentIris: string[]): Observable<Article[]> {
     if (contentIris.length === 0) return of([]);
-    const requests = contentIris.map((iri) =>
-      this.http
-        .get<unknown>(`${this.apiUrl}/chapter-contents/${iriToId(iri)}`)
-        .pipe(parseResponse(ArticleSchema)),
-    );
+    const requests = contentIris.map((iri) => {
+      const url = `${this.apiUrl}/chapter-contents/${iriToId(iri)}`;
+      return this.cache.get(url, () =>
+        this.http.get<unknown>(url).pipe(parseResponse(ArticleSchema)),
+      );
+    });
     return forkJoin(requests).pipe(catchError(this.toError));
   }
 
   private readonly toError = (error: unknown): Observable<never> => {
     if (error instanceof HttpErrorResponse) {
+      if (error.status === 422) {
+        const detail = (error.error?.detail ?? error.error?.['hydra:description']) as
+          | string
+          | undefined;
+        return throwError(() => new Error(detail ?? 'Données invalides.'));
+      }
+      if (error.status === 403) return throwError(() => new Error('Accès refusé.'));
+      if (error.status === 404) return throwError(() => new Error('Contenu introuvable.'));
       return throwError(() => new Error('Impossible de charger les contenus.'));
     }
     return throwError(() => error);
   };
+
+  // Mutations : on propage l'erreur HTTP brute (status + detail) pour que l'UI
+  // affiche un message précis (409 sort_order, 422 validation…).
+  private readonly passError = (error: unknown): Observable<never> =>
+    throwError(() => error);
 }

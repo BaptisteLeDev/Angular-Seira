@@ -25,6 +25,7 @@
         <button
           type="button"
           data-testid="class-create-btn"
+          (click)="dialogOpen.set(true)"
           class="inline-flex items-center gap-2 squircle-lg bg-primary px-5 py-2.5 font-headline text-sm font-bold text-on-primary transition-opacity hover:opacity-90 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
         >
           <span class="icon-[heroicons--plus] text-base" aria-hidden="true"></span>
@@ -120,6 +121,7 @@
                 <button
                   type="button"
                   [attr.data-testid]="'class-delete-btn-' + cls.id"
+                  (click)="onDelete(cls)"
                   class="ml-auto font-headline text-xs font-bold uppercase tracking-widest text-error/70 transition-colors hover:text-error focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
                 >
                   Supprimer
@@ -131,5 +133,11 @@
       }
     </ul>
   }
+
+  <app-class-form-dialog
+    [open]="dialogOpen()"
+    (submitted)="onSubmit($event)"
+    (closed)="dialogOpen.set(false)"
+  />
 
 </div>

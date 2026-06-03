@@ -1,5 +1,4 @@
-import { apiRequest } from './client';
-import { parseHydraCollection } from './parse-response';
+import { fetchHydraAll } from './pagination';
 import { UserListItemSchema, type UserListItem } from '@src/schemas/user.schema';
 
 type ListParams = {
@@ -17,7 +16,6 @@ function toQuery(params: ListParams): string {
 
 export const UserApi = {
   async list(params: ListParams = {}): Promise<UserListItem[]> {
-    const raw = await apiRequest<unknown>(`/users${toQuery(params)}`);
-    return parseHydraCollection(UserListItemSchema, raw);
+    return fetchHydraAll(`/users${toQuery(params)}`, UserListItemSchema);
   },
 };

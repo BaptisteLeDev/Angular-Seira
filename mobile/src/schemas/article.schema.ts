@@ -7,6 +7,7 @@ export const ArticleSchema = z.object({
   '@id': z.string().optional(),
   '@type': z.string().optional(),
   id: z.number().int(),
+  videoId: z.number().int().nullable().optional(),
   chapterId: z.number().int().optional(),
   createdBy: z.number().int().nullable().optional(),
   type: ContentTypeSchema,

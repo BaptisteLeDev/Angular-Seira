@@ -8,9 +8,11 @@ import {
   output,
   signal,
 } from '@angular/core';
+import { toSignal } from '@angular/core/rxjs-interop';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ModalShell } from '../feedback/modal-shell.component';
 import type { Article, ContentType } from '../../core/schemas/article.schema';
+import { isContentPayloadValid } from '../../core/utils/content-validation';
 
 export interface ArticleFormPayload {
   readonly type: ContentType;
@@ -160,7 +162,7 @@ const TYPES: readonly { value: ContentType; label: string; icon: string }[] = [
           <button
             type="submit"
             class="squircle-md bg-primary px-4 py-2 text-sm font-bold text-on-primary disabled:opacity-50 hover:opacity-90"
-            [disabled]="form.invalid"
+            [disabled]="form.invalid || typeFieldMissing()"
           >
             {{ article() ? 'Enregistrer' : 'Créer' }}
           </button>
@@ -194,6 +196,21 @@ export class ArticleFormDialog {
     isPublished: [true],
   });
 
+  // Valeurs réactives du formulaire pour la validation dynamique par type.
+  private readonly formValue = toSignal(this.form.valueChanges, {
+    initialValue: this.form.getRawValue(),
+  });
+
+  /** Le champ requis par le type courant est manquant (bloque l'envoi → évite un 422). */
+  protected readonly typeFieldMissing = computed(() => {
+    const v = this.formValue();
+    return !isContentPayloadValid(v.type ?? 'markdown', {
+      content: v.content,
+      sourceUrl: v.sourceUrl,
+      filePath: v.filePath,
+    });
+  });
+
   private readonly hydrated = signal(false);
   constructor() {
     effect(() => {
@@ -219,7 +236,7 @@ export class ArticleFormDialog {
   }
 
   protected submit(): void {
-    if (this.form.invalid) return;
+    if (this.form.invalid || this.typeFieldMissing()) return;
     const v = this.form.getRawValue();
     this.submitted.emit({
       type: v.type,

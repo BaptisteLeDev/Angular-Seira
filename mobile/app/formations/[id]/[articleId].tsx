@@ -11,12 +11,15 @@ import { SommaireSheet, type SommaireEntry } from '@src/ui/SommaireSheet';
 import { Fab } from '@src/ui/Fab';
 import { useArticleStore } from '@src/stores/article.store';
 import { useFormationStore } from '@src/stores/formation.store';
+import { useProgressStore } from '@src/stores/progress.store';
+import { unlockedChapterIds, effectiveCompleted } from '@src/utils/chapter-gating';
 import type { Chapitre } from '@src/schemas/chapitre.schema';
-import { colors } from '@src/constants/theme';
+import { useThemeColors } from '@src/ui/useThemeColors';
 import { variantFor } from '@src/ui/formation-visual';
 import { hexToRgba } from '@src/utils/color';
 import {
   articleDurationMin,
+  articleKey,
   contentTypeIcon,
   contentTypeLabel,
 } from '@src/utils/article-meta';
@@ -26,20 +29,28 @@ const EMPTY: readonly Chapitre[] = [];
 
 export default function ArticleScreen() {
   const router = useRouter();
+  const palette = useThemeColors();
   const { id, articleId } = useLocalSearchParams<{ id: string; articleId: string }>();
   const formationId = Number(id);
-  const currentArticleId = Number(articleId);
+  const currentArticleKey = articleId;
 
   const formation = useFormationStore((s) => s.byId(formationId));
   const formationStatus = useFormationStore((s) => s.status);
   const chapitres =
     useFormationStore((s) => s.chapitresByFormation[formationId]) ?? EMPTY;
   const chapitresStatus = useFormationStore((s) => s.chapitresStatusOf(formationId));
+  const formationError = useFormationStore((s) => s.error);
+  const chapitresError = useFormationStore((s) => s.chapitresErrorOf(formationId));
   const loadFormations = useFormationStore((s) => s.loadMine);
   const loadChapitres = useFormationStore((s) => s.loadChapitres);
 
   const articlesByChapitre = useArticleStore((s) => s.byChapitre);
   const loadByChapitre = useArticleStore((s) => s.loadByChapitre);
+
+  const progressByVideo = useProgressStore((s) => s.byVideoId);
+  const hydrateProgress = useProgressStore((s) => s.hydrate);
+  const progressHydrated = useProgressStore((s) => s.hydrated);
+  useEffect(() => { void hydrateProgress(); }, [hydrateProgress]);
 
   const [sheetOpen, setSheetOpen] = useState(false);
   const { visible: fabVisible, onScroll } = useScrollDirection();
@@ -47,7 +58,8 @@ export default function ArticleScreen() {
   useEffect(() => { void loadFormations(); }, [loadFormations]);
   useEffect(() => { if (formation) void loadChapitres(formation.id); }, [formation, loadChapitres]);
   useEffect(() => {
-    for (const c of chapitres) void loadByChapitre(c.id, [...(c.contents ?? [])]);
+    for (const c of chapitres)
+      void loadByChapitre(c.id, [...(c.contents ?? [])]);
   }, [chapitres, loadByChapitre]);
 
   const entries = useMemo<SommaireEntry[]>(() => {
@@ -62,29 +74,68 @@ export default function ArticleScreen() {
     return r;
   }, [chapitres, articlesByChapitre]);
 
+  // Chapitres déverrouillés. Gating assoupli : un chapitre sans vidéo traçable
+  // (videoId null, en attendant le backend #29) ne bloque pas le suivant.
+  const unlockedIds = useMemo(() => {
+    const allIds = chapitres.map((c) => c.id);
+    const reallyCompleted = chapitres
+      .filter((ch) => {
+        const vids = entries
+          .filter((e) => e.chapitre.id === ch.id && e.article.videoId != null)
+          .map((e) => e.article.videoId as number);
+        return vids.length > 0 && vids.every((vid) => (progressByVideo[vid]?.completionPercent ?? 0) >= 100);
+      })
+      .map((ch) => ch.id);
+    const withTrackable = chapitres
+      .filter((ch) => entries.some((e) => e.chapitre.id === ch.id && e.article.videoId != null))
+      .map((ch) => ch.id);
+    const completed = effectiveCompleted(reallyCompleted, withTrackable, allIds);
+    return new Set(unlockedChapterIds(allIds, completed));
+  }, [chapitres, entries, progressByVideo]);
+  const isLockedChapter = (chapterId: number) => !unlockedIds.has(chapterId);
+
   const accent = variantFor(formationId).color;
-  const active = entries.find((e) => e.article.id === currentArticleId) ?? null;
-  const next = active ? entries.find((e) => e.index === active.index + 1) ?? null : null;
+  const active = entries.find((e) => articleKey(e.article) === currentArticleKey) ?? null;
+  const nextRaw = active ? entries.find((e) => e.index === active.index + 1) ?? null : null;
+  // Le bouton « suivant » ne franchit pas un chapitre verrouillé.
+  const next = nextRaw && !isLockedChapter(nextRaw.chapitre.id) ? nextRaw : null;
   const prev = active ? entries.find((e) => e.index === active.index - 1) ?? null : null;
+
+  // Garde d'accès : si l'article ouvert est dans un chapitre verrouillé,
+  // redirige vers le 1er contenu accessible (attend l'hydratation progression).
+  useEffect(() => {
+    if (!progressHydrated || !active || !isLockedChapter(active.chapitre.id)) return;
+    const target = entries.find((e) => !isLockedChapter(e.chapitre.id));
+    if (target && articleKey(target.article) !== currentArticleKey) {
+      router.replace({
+        pathname: '/formations/[id]/[articleId]',
+        params: { id: String(formationId), articleId: articleKey(target.article) },
+      });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [progressHydrated, active, entries, unlockedIds, currentArticleKey, formationId]);
 
   const isLoading =
     formationStatus === 'loading' ||
     chapitresStatus === 'loading' ||
     (!active && entries.length === 0);
+  const errorMessage = formationError ?? chapitresError ?? null;
 
   const goTo = (entry: SommaireEntry) => {
     setSheetOpen(false);
-    router.push({
+    // replace (pas push) : naviguer prev/suivant ne doit pas empiler les écrans,
+    // ainsi la flèche « Retour » du haut revient toujours à la formation.
+    router.replace({
       pathname: '/formations/[id]/[articleId]',
-      params: { id: String(formationId), articleId: String(entry.article.id) },
+      params: { id: String(formationId), articleId: articleKey(entry.article) },
     });
   };
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: colors.background }} edges={['top']}>
+    <SafeAreaView style={{ flex: 1, backgroundColor: palette.background }} edges={['top']}>
       <ScrollView
-        style={{ backgroundColor: colors.background }}
-        contentContainerStyle={{ paddingBottom: 120, backgroundColor: colors.background }}
+        style={{ backgroundColor: palette.background }}
+        contentContainerStyle={{ paddingBottom: 120, backgroundColor: palette.background }}
         onScroll={onScroll}
         scrollEventThrottle={16}
       >
@@ -95,12 +146,14 @@ export default function ArticleScreen() {
             accessibilityRole="link"
             accessibilityLabel="Retour"
           >
-            <Icon name="arrow-back" size={16} color={colors.onSurfaceVariant} />
+            <Icon name="arrow-back" size={16} color={palette.onSurfaceVariant} />
             <Text className="text-sm text-on-surface-variant">Retour</Text>
           </Pressable>
 
           {isLoading ? (
             <LoadingView label="Chargement..." />
+          ) : errorMessage ? (
+            <ErrorCard message={errorMessage} />
           ) : !active ? (
             <ErrorCard message="Contenu introuvable." />
           ) : (
@@ -117,14 +170,14 @@ export default function ArticleScreen() {
                 </Text>
                 <View className="mt-4 flex-row flex-wrap items-center gap-4">
                   <View className="flex-row items-center gap-1.5">
-                    <Icon name={contentTypeIcon(active.article.type)} size={14} color={colors.onSurfaceVariant} />
+                    <Icon name={contentTypeIcon(active.article.type)} size={14} color={palette.onSurfaceVariant} />
                     <Text className="font-mono text-xs text-on-surface-variant">
                       {contentTypeLabel(active.article.type)}
                     </Text>
                   </View>
                   {articleDurationMin(active.article) ? (
                     <View className="flex-row items-center gap-1.5">
-                      <Icon name="time-outline" size={14} color={colors.onSurfaceVariant} />
+                      <Icon name="time-outline" size={14} color={palette.onSurfaceVariant} />
                       <Text className="font-mono text-xs text-on-surface-variant">
                         {articleDurationMin(active.article)} min
                       </Text>
@@ -144,7 +197,7 @@ export default function ArticleScreen() {
                       accessibilityRole="button"
                       accessibilityLabel="Article précédent"
                     >
-                      <Icon name="arrow-back" size={16} color={colors.onSurfaceVariant} />
+                      <Icon name="arrow-back" size={16} color={palette.onSurfaceVariant} />
                       <Text className="font-headline text-sm font-bold text-on-surface">
                         Retour
                       </Text>
@@ -187,7 +240,7 @@ export default function ArticleScreen() {
         onClose={() => setSheetOpen(false)}
         chapitres={chapitres}
         entries={entries}
-        activeArticleId={currentArticleId}
+        activeArticleKey={currentArticleKey}
         onSelect={goTo}
       />
     </SafeAreaView>

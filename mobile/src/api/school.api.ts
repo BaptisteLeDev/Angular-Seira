@@ -1,11 +1,11 @@
 import { apiRequest } from './client';
-import { parseHydraCollection, parseResponse } from './parse-response';
+import { parseResponse } from './parse-response';
+import { fetchHydraAll } from './pagination';
 import { SchoolSchema, type School } from '@src/schemas/school.schema';
 
 export const SchoolApi = {
   async list(): Promise<School[]> {
-    const raw = await apiRequest<unknown>('/schools');
-    return parseHydraCollection(SchoolSchema, raw);
+    return fetchHydraAll('/schools', SchoolSchema);
   },
 
   async getById(id: number): Promise<School> {

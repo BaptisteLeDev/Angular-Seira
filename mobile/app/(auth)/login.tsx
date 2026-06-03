@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import {
   View,
   Text,
@@ -8,6 +8,7 @@ import {
   KeyboardAvoidingView,
   Platform,
   ActivityIndicator,
+  Alert,
 } from 'react-native';
 import { Link, useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -28,8 +29,8 @@ export default function LoginScreen() {
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [remember, setRemember] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const passwordRef = useRef<TextInput>(null);
   const [touched, setTouched] = useState({ email: false, password: false });
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
@@ -114,6 +115,9 @@ export default function LoginScreen() {
                     autoCapitalize="none"
                     autoComplete="email"
                     textContentType="emailAddress"
+                    returnKeyType="next"
+                    blurOnSubmit={false}
+                    onSubmitEditing={() => passwordRef.current?.focus()}
                     className="w-full squircle-lg bg-surface-container-lowest py-3 pl-12 pr-4 text-sm text-on-surface ghost-border"
                   />
                 </View>
@@ -135,6 +139,7 @@ export default function LoginScreen() {
                     <Icon name="lock-closed-outline" size={18} color="#a1a1aa" />
                   </View>
                   <TextInput
+                    ref={passwordRef}
                     value={password}
                     onChangeText={setPassword}
                     onBlur={() => setTouched((t) => ({ ...t, password: true }))}
@@ -144,6 +149,10 @@ export default function LoginScreen() {
                     autoCapitalize="none"
                     autoComplete="current-password"
                     textContentType="password"
+                    returnKeyType="go"
+                    onSubmitEditing={() => {
+                      void onSubmit();
+                    }}
                     className="w-full squircle-lg bg-surface-container-lowest py-3 pl-12 pr-12 text-sm text-on-surface ghost-border"
                   />
                   <Pressable
@@ -169,22 +178,20 @@ export default function LoginScreen() {
                 ) : null}
               </View>
 
-              {/* Options */}
-              <View className="mb-5 flex-row items-center justify-between">
+              {/* Mot de passe oublié */}
+              <View className="mb-5 flex-row justify-end">
                 <Pressable
-                  onPress={() => setRemember((v) => !v)}
-                  className="flex-row items-center gap-2"
-                  accessibilityRole="checkbox"
-                  accessibilityState={{ checked: remember }}
+                  onPress={() =>
+                    Alert.alert(
+                      'Mot de passe oublié',
+                      'Contactez votre établissement pour réinitialiser votre mot de passe.',
+                    )
+                  }
+                  accessibilityRole="button"
+                  hitSlop={8}
                 >
-                  <View
-                    className={`size-4 squircle-sm ghost-border ${
-                      remember ? 'bg-primary' : 'bg-surface-container-lowest'
-                    }`}
-                  />
-                  <Text className="text-sm text-on-surface-variant">Se souvenir de moi</Text>
+                  <Text className="text-sm text-primary">Mot de passe oublié ?</Text>
                 </Pressable>
-                <Text className="text-sm text-primary">Mot de passe oublié ?</Text>
               </View>
 
               {/* Submit */}
