@@ -7,9 +7,11 @@ transition: slide-left
 <div class="text-base opacity-70 mt-2">Architecture · MCD · Classes · Cas d'utilisation · Séquence · Maquettes</div>
 
 <!--
-On passe à la conception. C'est la phase qui précède tout développement — c'est ici qu'on prend les décisions d'architecture qui conditionnent la qualité du code.
+**[CONCEPTION]** Les décisions d'architecture prises avant tout développement.
 
-On va couvrir : la stack technique, le MCD, le diagramme de classes, le diagramme de cas d'utilisation, le diagramme de séquence du heartbeat, et les maquettes.
+- On couvre : stack, MCD, classes, cas d'utilisation, séquences, maquettes
+
+→ Ce sont ces choix qui conditionnent la qualité de tout le code.
 -->
 
 ---
@@ -47,11 +49,14 @@ expo-video · expo-secure-store<br>
 </div>
 
 <!--
-La stack est organisée en trois couches indépendantes qui partagent une seule API.
+**[ARCHITECTURE]** Trois couches indépendantes, une seule API partagée.
 
-Laravel + API Platform génère automatiquement les endpoints CRUD et la documentation Swagger. Angular côté web pour la rigueur du typage TypeScript. Expo pour le mobile — iOS et Android depuis une seule base de code React Native.
+- **Laravel + API Platform** : CRUD + doc Swagger générés automatiquement
+- **Angular** : SPA web, typage TypeScript strict
+- **Expo** : iOS et Android depuis une seule base React Native
+- **Redis** : nonces anti-triche avec TTL — hors base relationnelle
 
-Redis sert spécifiquement au système anti-triche : les nonces des tokens de visionnage y sont stockés avec un TTL précis.
+→ Un seul dépôt, un seul `docker compose up`.
 -->
 
 ---
@@ -65,13 +70,14 @@ layout: default
 <div class="text-xs opacity-60 mt-2 text-center">Entités : rectangles · Cardinalités sur les liens · MCD = modèle métier pur, sans FK ni types SQL</div>
 
 <!--
-Le MCD représente les entités métier et leurs associations, sans se préoccuper de l'implémentation.
+**[MCD]** Modèle métier pur — entités et associations sans SQL.
 
-La hiérarchie pédagogique est linéaire : School → Classroom → Subject → Chapter → Video. Les deux relations N-N sont importantes : classroom_subject permet à une matière d'être enseignée dans plusieurs classes. Et user_school permet à un formateur de travailler dans plusieurs établissements.
+- Hiérarchie linéaire : **School → Classroom → Subject → Chapter → Video**
+- Relation N-N `classroom_subject` : une matière dans plusieurs classes
+- Relation N-N `user_school` : un formateur dans plusieurs établissements
+- `VideoProgress` : relie un élève à une vidéo, une ligne par vidéo visitée
 
-VideoProgress relie User et Video : un élève peut avoir plusieurs progressions, une par vidéo visitée.
-
-La différence avec le MPD : ici pas de clés étrangères ni de types SQL — c'est le modèle métier pur. Le MPD ajoute les FK, les index, les types de données SQL.
+→ Le MPD ajoute ensuite les FK, index et types SQL.
 -->
 
 ---
@@ -89,13 +95,13 @@ layout: default
 </div>
 
 <!--
-Le diagramme de classes traduit le MCD en structure orientée objet.
+**[CLASSES]** Le MCD traduit en structure orientée objet.
 
-La composition — losange plein — entre School et Classroom signifie qu'une Classroom ne peut pas exister sans son School. Même chose pour Subject, Chapter et Video. Dans le code, ça se traduit par des SoftDeletes.
+- **Composition** (losange plein) : `Classroom` ne vit pas sans `School` → SoftDeletes
+- **Agrégation** (losange vide) : une matière peut exister sans classe → pivot `classroom_subject`
+- **Association** (flèche) : `VideoProgress` relie élève et vidéo, entité indépendante
 
-L'agrégation — losange vide — entre Classroom et Subject : une matière peut exister sans être attachée à une classe. C'est la table pivot classroom_subject.
-
-La simple association flèche entre User, VideoProgress et Video : la progression est une entité indépendante qui relie l'élève à la vidéo.
+→ Chaque relation se retrouve directement dans le code Eloquent.
 -->
 
 ---
@@ -107,13 +113,14 @@ layout: default
 <img src="./diagrams/usecase.svg" class="mx-auto mt-2" style="max-height: 400px; object-fit: contain" />
 
 <!--
-Le diagramme de cas d'utilisation répond à "qui fait quoi" sans entrer dans le comment.
+**[CAS D'UTILISATION]** Qui fait quoi — sans entrer dans le comment.
 
-Trois acteurs : Admin, Formateur, Élève. Les ellipses représentent les cas d'utilisation — les fonctionnalités accessibles depuis l'extérieur du système.
+- Trois acteurs : **Admin**, **Formateur**, **Élève**
+- Lien `«include»` : dépendance obligatoire — visionner inclut toujours s'authentifier
+- Visionner inclut aussi l'obtention d'un **token heartbeat** — l'anti-triche est automatique
+- `«extend»` aurait été pour des fonctions optionnelles (ex. bannière hors-ligne)
 
-Les liens «include» en pointillés sont des dépendances obligatoires. Visionner une vidéo inclut systématiquement s'authentifier. Et visionner une vidéo inclut l'obtention d'un token heartbeat — le mécanisme anti-triche déclenché automatiquement.
-
-Si on avait une fonctionnalité optionnelle — "afficher bannière hors-ligne" seulement si le réseau est coupé — on utiliserait «extend» au lieu d'«include».
+→ Ces cas d'utilisation cadrent exactement les séquences qui suivent.
 -->
 
 ---
@@ -125,13 +132,15 @@ layout: default
 <img src="./diagrams/sequence.svg" class="mx-auto mt-2" style="max-height: 420px; object-fit: contain" />
 
 <!--
-Le diagramme de séquence représente les interactions dans le temps pour un scénario précis. Ici l'authentification — le scénario de base commun à tous les rôles.
+**[SÉQUENCE AUTH]** Scénario commun à tous les rôles — l'authentification.
 
-Les flèches pleines sont des messages synchrones : le client attend la réponse avant de continuer. Les flèches pointillées sont les messages de retour.
+- **Flèche pleine** : message synchrone, le client attend la réponse
+- Mot de passe vérifié par **hash bcrypt** — jamais en clair en base
+- Token **Sanctum** inséré dans `personal_access_tokens`, retourné au client
+- Stockage : `localStorage` côté web, `SecureStore` côté mobile
+- Fragment `alt/else` : credentials invalides → **401**, valides → **200**
 
-L'API interroge la base pour trouver l'utilisateur par email. Elle vérifie ensuite le mot de passe avec un hash bcrypt — jamais en clair en base. Si les credentials sont valides, elle insère un token Sanctum dans la table personal_access_tokens et le retourne. Le client le stocke localement — localStorage côté web, SecureStore côté mobile.
-
-Le fragment alt/else représente le branchement conditionnel : credentials invalides → 401, credentials valides → 200 avec token.
+→ Le token sert ensuite de clé pour toutes les routes protégées.
 -->
 
 ---
@@ -143,13 +152,25 @@ layout: default
 <img src="./diagrams/sequence_anticheat.svg" class="mx-auto mt-2" style="max-height: 420px; object-fit: contain" />
 
 <!--
-Second diagramme de séquence sur le cas le plus original du projet : le heartbeat anti-triche.
+**[HEARTBEAT]** Protocole en 3 temps — impossible de tricher sans regarder vraiment.
 
-Avant de visionner, le client demande un token signé HMAC-SHA256 avec un nonce stocké dans Redis. Après les 30 secondes de visionnage réel, il envoie le heartbeat.
+**Temps 1 — avant de regarder**
+- Client → `POST /watch-sessions/request` avec `video_id` + `segment_start`
+- Serveur génère un token signé **HMAC-SHA256** : contient user, vidéo, bornes [0–30s], timestamp
+- Un **nonce** aléatoire est stocké dans Redis — TTL 150s — il ne servira qu'une seule fois
 
-Le serveur vérifie en cascade : la signature cryptographique, la disponibilité du nonce dans Redis, et la fenêtre temporelle. Si tout est valide, le nonce passe à "used" — anti-replay — et les secondes sont créditées en base. Sinon, 422 avec un motif précis.
+**Temps 2 — 30 secondes s'écoulent réellement**
+- Le serveur ne fait rien — l'horloge murale tourne
+- Même en pause, même en seek, le temps réel s'écoule côté serveur
 
-Ce qui fait la robustesse du système : chaque vérification est indépendante et on ne peut pas sauter une étape.
+**Temps 3 — le client envoie le heartbeat**
+- Serveur vérifie dans l'ordre :
+  1. **Signature HMAC** — token falsifié → 422
+  2. **Nonce Redis** — déjà utilisé → 422 "replay détecté"
+  3. **Fenêtre temporelle** — envoyé trop tôt (< 25s) ou trop tard (> 90s) → 422
+- Si tout passe : nonce → `"used"`, `watched_seconds_validated += 30`
+
+→ Le seul moyen de valider un segment : obtenir un token ET attendre le temps réel.
 -->
 
 ---
@@ -182,9 +203,12 @@ Mes formations → chapitre → lecteur vidéo → progression
 </div>
 
 <!--
-Les maquettes ont été réalisées avant le développement pour valider le userflow.
+**[MAQUETTES]** Userflows validés avant tout développement — trois parcours.
 
-Trois parcours distincts selon le rôle. L'administrateur configure la structure. Le formateur dépose ses vidéos et consulte la progression via la vue agrégée. L'élève suit un parcours linéaire avec navigation prev/next, vitesse verrouillée à 1x.
+- **Admin** : configure la structure école → classes → utilisateurs
+- **Formateur** : dépose les vidéos, consulte la progression via vue agrégée
+- **Élève** : parcours linéaire, vitesse verrouillée à **1x**, navigation prev/next
+- Apprentissage clé : la vue formateur a révélé le besoin d'un **endpoint agrégé dédié**
 
-Ce qu'on a appris : anticiper les besoins en données dès la conception. Quand on a dessiné la vue formateur, on a réalisé qu'il fallait un endpoint agrégé spécifique — ce qui a influencé le schéma de BDD dès le début.
+→ Les maquettes ont influencé le schéma de BDD dès la conception.
 -->

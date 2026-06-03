@@ -6,7 +6,7 @@ transition: slide-left
 # 6 · Veille & conclusion
 
 <!--
-Dernière partie : notre veille sécurité, puis la synthèse, les difficultés rencontrées et la suite envisagée.
+**[CLÔTURE]** Dernière partie : veille sécurité, synthèse, difficultés et suite.
 -->
 
 ---
@@ -54,7 +54,15 @@ Reste à durcir : logs d'activité (audit) et conformité RGPD (anonymisation / 
 </div>
 
 <!--
-Notre veille s'organise autour de l'OWASP, en reliant chaque axe à une réalisation concrète. Le Broken Access Control, traité par nos Gates et l'isolation école/classe. Le Business Logic Abuse — c'est la faille centrale de ce projet : un temps de visionnage falsifiable — traité par tout le dispositif anti-triche. Le Mass Assignment, neutralisé par nos DTO d'entrée qui n'exposent jamais les champs sensibles. Et la gestion des tokens via Sanctum et le stockage sécurisé. À droite, on distingue ce qui est traité de ce qui reste à durcir : la falsification du temps est corrigée et prouvée ; et un audit qu'on a conduit a fait remonter des points qu'on a tracés en issues GitHub et priorisés — typiquement les logs d'activité et la conformité RGPD. Cette honnêteté sur le reste-à-faire fait partie de la démarche de veille : on ne sécurise jamais « une fois pour toutes ».
+**[VEILLE SÉCURITÉ]** OWASP comme grille de lecture — chaque axe relié à une réalisation.
+
+- **Broken Access Control** → Gates RBAC + isolation école/classe
+- **Business Logic Abuse** → faille centrale du projet, traitée par l'anti-triche complet
+- **Mass Assignment** → DTO d'entrée, champs sensibles jamais exposés
+- **Auth/token** → Sanctum + `SecureStore` mobile
+- Reste à durcir : **logs d'activité** et **conformité RGPD** — tracés en issues GitHub
+
+→ On ne sécurise jamais « une fois pour toutes » — c'est la démarche de veille.
 -->
 
 ---
@@ -96,7 +104,15 @@ layout: default
 </div>
 
 <!--
-En synthèse, nos satisfactions : une API unique propre, consommée par le web et le mobile en miroir ; une anti-triche robuste et, surtout, prouvée par les tests ; et une architecture en couches qui reste prête à accueillir la couche IA. Nos difficultés et apprentissages, honnêtement : la plus marquante a été de modéliser une anti-fraude impossible à contourner côté client — ça nous a obligés à penser « le client est hostile par défaut ». Ensuite, garder la parité web/mobile sans dupliquer la logique, et tenir la discipline TDD sur les règles sensibles. La suite est claire et déjà cadrée en issues : automatiser la CI, livrer les logs et le RGPD, finaliser le bout-en-bout de la progression, puis ouvrir la couche IA. On voulait montrer un projet vivant, avec un cap assumé, pas un projet figé.
+**[SYNTHÈSE]** Un projet vivant avec un cap assumé — pas un projet figé.
+
+- **Satisfactions** : API unique propre, anti-triche robuste prouvée par les tests, archi prête pour l'IA
+- Difficulté principale : modéliser une anti-fraude impossible à contourner côté client
+- Apprentissage clé : "le **client est hostile par défaut**"
+- Parité web/mobile sans dupliquer la logique — discipline **TDD** tenue
+- Suite cadrée : CI automatisée, logs/RGPD, couche IA
+
+→ Merci — on est prêts pour les questions.
 -->
 
 ---
@@ -139,7 +155,15 @@ class: text-center
 <div class="text-xs opacity-50 mt-6">Remplacer <code>localhost:4200</code> par l'URL Vercel le jour de la démo.</div>
 
 <!--
-Place à la démonstration. On se connecte avec le compte élève — eleve@monto.test — on montre le catalogue, on ouvre une formation, et on lance une vidéo. Observez l'encart « temps certifié » : à chaque heartbeat de 30 secondes, le temps validé monte côté serveur. On tente un saut en avant : le lecteur nous ramène en arrière, le skip est bloqué. Puis on bascule sur le compte formateur — prof@monto.test — pour montrer le tableau de suivi de ses élèves. Si la démo live pose souci, on a des captures de secours dans la présentation. Les QR codes à l'écran pointent vers l'application — il suffira de remplacer localhost par l'URL Vercel le jour J.
+**[DÉMO]** Démonstration en live — compte élève puis formateur.
+
+- Connexion `eleve@monto.test` → catalogue → formation → vidéo
+- Observer l'encart **« temps certifié »** monter à chaque heartbeat de 30 s
+- Tenter un saut en avant : le lecteur **bloque le skip**
+- Basculer sur `prof@monto.test` → tableau de suivi des élèves
+- Secours : captures dans la présentation si la démo live pose souci
+
+→ Remplacer `localhost:4200` par l'URL Vercel le jour J.
 -->
 
 ---
@@ -158,6 +182,11 @@ Questions / entretien technique
 </div>
 
 <!--
-Merci de votre attention. On est prêts pour vos questions et l'entretien technique — sur le backend Laravel, le web Angular ou le mobile Expo. Réponses types à préparer : pourquoi Sanctum plutôt que JWT, pourquoi HMAC plutôt qu'un chiffrement, pourquoi le calcul du pourcentage côté client, et comment on relierait ChapterContent à la progression.
+**[QUESTIONS]** Prêts pour l'entretien technique — quelques sujets à anticiper.
+
+- Pourquoi **Sanctum** plutôt que JWT ?
+- Pourquoi **HMAC** plutôt qu'un chiffrement symétrique ?
+- Pourquoi le calcul du pourcentage **côté client** ?
+- Comment on relierait `ChapterContent` à la progression ?
 -->
 

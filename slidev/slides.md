@@ -41,7 +41,14 @@ Présentation de projet · Titre professionnel <b>Concepteur Développeur d'Appl
 </div>
 
 <!--
-Bonjour à tous, on est Baptiste et Nicolas et on vous présente MontoMaster V2, une plateforme e-learning sécurisée qui remplace l'ancienne solution Seira. Le besoin métier central : certifier le temps réellement visionné par un élève — pas du déclaratif. Trois briques pour ça : une API Laravel unique, un client web Angular et un client mobile Expo qui consomment exactement le même contrat. Notre plan suit le dossier CDA : besoins, gestion de projet, conception, réalisations, tests, déploiement, puis veille et conclusion. On précise d'emblée une limite assumée : la couche IA est spécifiée mais volontairement hors périmètre de cette session.
+**[INTRODUCTION]** MontoMaster V2 remplace l'ancienne plateforme Seira.
+
+- **Besoin central** : certifier le temps réellement visionné — pas du déclaratif
+- **Trois briques** : API Laravel, client web Angular, client mobile Expo
+- **Même contrat** pour les deux clients — fil rouge de toute la conception
+- **Limite assumée** : la couche IA est spécifiée mais hors périmètre ici
+
+→ Le plan suit le dossier CDA en six parties.
 -->
 
 ---
@@ -73,7 +80,13 @@ Une plateforme pédagogique <b>écoles → classes → matières → chapitres �
 </div>
 
 <!--
-Voici le fil de la présentation, en six temps. Si on devait résumer le projet en une phrase : une plateforme pédagogique organisée en écoles, classes, matières, chapitres et vidéos, avec un suivi de progression pensé pour être anti-triche, le tout exposé par une API unique consommée par un web et un mobile développés en miroir. Gardez en tête cette idée de « contrat unique, deux clients » : c'est le fil rouge de toute la conception.
+**[PLAN]** Six parties, un fil rouge : un contrat unique, deux clients.
+
+- Hiérarchie : **écoles → classes → matières → chapitres → vidéos**
+- Suivi de progression **anti-triche** à tous les niveaux
+- **API unique** consommée par le web et le mobile en miroir
+
+→ Garder en tête « contrat unique, deux clients » pour toute la suite.
 -->
 
 ---
@@ -120,7 +133,13 @@ layout: default
 </div>
 
 <!--
-Cette diapo est notre grille de lecture pour le jury : elle annonce où chaque compétence du référentiel est démontrée. À gauche, le développement d'une application sécurisée — l'environnement Docker, les interfaces Angular et Expo, les composants métier comme l'anti-triche, et la gestion de projet par issues et PR. Au centre, la conception en couches : analyse, maquettes, architecture monorepo, base de données relationnelle, accès SQL et NoSQL. À droite, la préparation au déploiement : plans de tests, documentation, mise en production DevOps. Chacun de ces points est illustré par un schéma, une capture ou un extrait de code dans les diapos qui suivent — rien d'abstrait.
+**[RÉFÉRENTIEL]** Grille de lecture pour le jury — où chaque compétence est démontrée.
+
+- **Gauche** : appli sécurisée — Docker, Angular, Expo, anti-triche, gestion PR
+- **Centre** : conception en couches — analyse, maquettes, BDD, SQL + NoSQL
+- **Droite** : déploiement — 127 tests, documentation, DevOps
+
+→ Chaque point est illustré par un schéma, une capture ou un extrait de code.
 -->
 
 ---
@@ -132,7 +151,7 @@ transition: slide-left
 <div class="text-base opacity-70 mt-2">Analyser les besoins · Contribuer à la gestion d'un projet</div>
 
 <!--
-On entre dans la première partie : l'expression des besoins et la façon dont on a piloté le projet.
+**[BESOINS]** Première partie : expression des besoins et pilotage du projet.
 -->
 
 ---
@@ -177,7 +196,14 @@ Remplacer **Seira**, l'ancienne plateforme e-learning, par une solution **multi-
 </div>
 
 <!--
-Le contexte : on remplace Seira par une solution multi-écoles, multi-clients, et surtout anti-triche sur le temps de visionnage. C'est ce dernier point qui fait l'originalité du projet — sur l'ancienne plateforme, le temps « regardé » était déclaratif, donc falsifiable : un élève pouvait ouvrir une vidéo, partir faire autre chose, et la cocher « vue » à la fin. Nos objectifs découlent de là : diffuser des parcours structurés, certifier le temps réellement visionné, offrir un suivi à trois niveaux — élève, formateur, école — et tout faire passer par une API unique. Trois acteurs : l'admin ou l'école qui gère la structure, le formateur qui crée les contenus et suit ses élèves, et l'élève qui consomme et progresse. Et on redit la limite : la couche IA est cadrée mais pas développée ici.
+**[CONTEXTE]** On remplace Seira par une solution multi-écoles et anti-triche.
+
+- **Sur Seira** : le temps visionné était déclaratif — donc falsifiable
+- **Objectif clé** : certifier le temps réellement regardé, pas le déclaratif
+- **Trois acteurs** : admin (structure), formateur (contenus), élève (progression)
+- **Limite** : la couche IA est cadrée mais hors périmètre ici
+
+→ Tout passe par une API unique pour les deux clients.
 -->
 
 ---
@@ -212,7 +238,14 @@ Documentation : <code>SCHEMA_BDD.md</code>, <code>CLAUDE.md</code>, <code>TODO.m
 </div>
 
 <!--
-Côté contraintes, quatre exigences ont guidé chaque choix technique : la sécurité — authentification Sanctum, rôles, anti-fraude ; le multi-plateforme — web et mobile sur la même API, aucun endpoint dupliqué ; l'évolutivité — l'architecture devait rester prête à accueillir la couche IA ; et la reproductibilité — d'où l'environnement entièrement conteneurisé, un simple docker compose up et tout est là. En face, quatre livrables concrets : l'API REST documentée en OpenAPI, l'app web déployée sur Vercel, l'app mobile Expo, et le schéma de base accompagné de la suite de tests. Toute la documentation vit dans le dépôt : SCHEMA_BDD pour le modèle, CLAUDE.md pour l'architecture, et un TODO de suivi.
+**[CONTRAINTES]** Quatre exigences ont guidé tous les choix techniques.
+
+- **Sécurité** : auth Sanctum, rôles RBAC, anti-fraude
+- **Multi-plateforme** : web et mobile sur la même API, zéro doublon
+- **Évolutivité** : architecture prête pour la couche IA
+- **Reproductibilité** : `docker compose up` = stack complète en local
+
+→ Quatre livrables concrets : API, web, mobile, schéma + tests.
 -->
 
 ---
@@ -249,7 +282,15 @@ layout: default
 </div>
 
 <!--
-On a piloté le projet avec les GitHub Issues et un Project board « MontoMaster Roadmap ». On a d'abord découpé en epics, puis en issues fines réparties backend, web et mobile — plusieurs dizaines, qu'on a encore réorganisées en grands chantiers pour ce qui reste à faire. Le TODO.md sert de tableau de bord : [x] livré, [ ] à faire, ⚠️ partiel avec un commentaire. Trois principes de méthode : la priorisation par dépendances — l'anti-triche backend débloquant le web et le mobile, on l'a livrée en premier ; le TDD sur les règles métier sensibles, notamment le heartbeat, avec les tests écrits avant l'implémentation ; et la parité web/mobile — mêmes domaines, mêmes contrats, développés en miroir. Une branche par lot, intégration par Pull Request. On passe à la conception.
+**[GESTION DE PROJET]** GitHub Issues + Project board « MontoMaster Roadmap ».
+
+- Découpage en **epics** puis issues fines — backend, web, mobile
+- `TODO.md` comme tableau de bord : `[x]` livré, `[ ]` à faire, ⚠️ partiel
+- **Anti-triche** livrée en premier car elle débloque web et mobile
+- **TDD** sur les règles sensibles — tests écrits avant l'implémentation
+- **Parité web/mobile** : mêmes contrats, développés en miroir
+
+→ On passe à la conception.
 -->
 
 ---

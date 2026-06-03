@@ -1,0 +1,34 @@
+graph TB
+    Client(["🌐 Client\nWeb / Mobile"])
+
+    subgraph C["CONTROLLER"]
+        direction LR
+        Router["Router\nroutes/web.php"]
+        Gate["Gate RBAC\n30+ gates"]
+        APC["ApiPlatformController"]
+        Processor["Processor\nlogique métier"]
+        Provider["Provider\nfiltrage collections"]
+    end
+
+    subgraph M["MODEL"]
+        direction LR
+        Eloquent["Eloquent ORM\nModèles · Relations · SoftDeletes"]
+        DB[("MariaDB")]
+        Redis[("Redis")]
+    end
+
+    subgraph V["VIEW"]
+        Serializer["Serializer\nJSON · OpenAPI"]
+    end
+
+    Client -->|"HTTP Request"| Router
+    Router --> Gate
+    Gate --> APC
+    APC --> Processor
+    APC --> Provider
+    Processor --> Eloquent
+    Provider --> Eloquent
+    Eloquent <--> DB
+    Processor <--> Redis
+    Eloquent --> V
+    V -->|"HTTP Response JSON"| Client

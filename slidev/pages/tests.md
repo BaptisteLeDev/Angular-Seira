@@ -7,7 +7,7 @@ transition: slide-left
 <div class="text-base opacity-70 mt-2">Préparer et exécuter les plans de tests d'une application</div>
 
 <!--
-Quatrième partie : le plan de tests. On va présenter notre stratégie, puis la décliner sur l'anti-triche par les cas d'attaque, et finir sur un jeu d'essai formalisé.
+**[TESTS]** Quatrième partie : stratégie, cas d'attaque, jeu d'essai formalisé.
 -->
 
 ---
@@ -50,7 +50,15 @@ Tests écrits <b>avant/avec</b> l'implémentation des règles sensibles (TDD).
 </div>
 
 <!--
-Côté backend, on a 127 tests PHPUnit qui tournent sur une base SQLite en mémoire, avec RefreshDatabase et des factories par entité — c'est rapide et isolé. Pour les rôles, on utilise Sanctum::actingAs afin de jouer chaque profil, et surtout Carbon::setTestNow pour piloter le temps : indispensable pour tester la fenêtre temporelle et l'expiration des clés sans attendre réellement. Notre règle : chaque endpoint est testé sur ses quatre réponses — 401 non authentifié, 403 interdit, 422 invalide, 200 succès. La couverture porte sur le CRUD, l'auth, l'isolation école/classe, l'anti-triche, et les agrégats. Côté web, des tests Vitest sur les stores, le parsing Zod et le lecteur. Le tout en TDD sur les règles sensibles : les tests d'abord.
+**[STRATÉGIE TESTS]** 127 tests PHPUnit sur SQLite en mémoire — rapide et isolé.
+
+- `RefreshDatabase` + factories par entité à chaque test
+- `Sanctum::actingAs` pour jouer chaque rôle, `Carbon::setTestNow` pour piloter le temps
+- Règle : chaque endpoint testé sur **401 / 403 / 422 / 200**
+- **Web** : Vitest sur les stores, parsing Zod, lecteur
+- **TDD** sur les règles sensibles — les tests sont écrits en premier
+
+→ La couverture porte sur le CRUD, l'auth, l'anti-triche et les agrégats.
 -->
 
 ---
@@ -95,7 +103,14 @@ public function test_heartbeat_rejects_replay_of_same_token()
 </div>
 
 <!--
-Plutôt que de tester seulement le chemin nominal, on a testé l'anti-triche par ses cas d'attaque — c'est la bonne manière d'éprouver une sécurité. À gauche, la liste des rejets couverts : signature falsifiée, rejeu du même token, soumission trop tôt, token expiré au-delà du buffer, et accès d'un élève sans classe. À droite, un test concret : on demande un token, le premier heartbeat est accepté, et on vérifie que rejouer exactement le même token renvoie un 422. Chaque garde-fou décrit dans la partie réalisations a donc son test négatif correspondant. Si demain on casse l'anti-rejeu en refactorant, ce test échoue immédiatement.
+**[CAS D'ATTAQUE]** On teste la sécurité par ses vecteurs d'attaque, pas seulement le nominal.
+
+- Signature falsifiée, rejeu du même token, soumission trop tôt, token expiré
+- Accès d'un élève sans classe → `403`
+- Test concret : 1er heartbeat accepté, **rejeu du même token → 422**
+- Chaque garde-fou a son test négatif correspondant
+
+→ Si on casse l'anti-rejeu en refactorant, ce test échoue immédiatement.
 -->
 
 ---
@@ -123,6 +138,13 @@ Validation du temps de visionnage par segments successifs (`test_heartbeat_accum
 </div>
 
 <!--
-Voici notre jeu d'essai formalisé, sur la fonctionnalité la plus représentative : l'accumulation du temps validé sur plusieurs segments. Le tableau suit la structure attendue par le dossier — données en entrée, résultat attendu, résultat obtenu, écart. On demande un premier segment, on valide 30 secondes ; un deuxième segment, le total passe à 60 ; et à l'étape 5, on rejoue volontairement un ancien token, qui est rejeté en 422. Colonne « écart » : aucun, sur toutes les lignes. L'analyse, en bas : le temps ne s'accumule que par des clés valides soumises dans leur fenêtre, et le rejeu est bloqué — le comportement est conforme à la spécification anti-triche. C'est la preuve, chiffrée, que le cœur du projet fait ce qu'il promet. On passe au déploiement.
+**[JEU D'ESSAI]** Accumulation du temps validé sur segments successifs — 5 étapes.
+
+- Segment 1 → heartbeat à `t0+26s` → **30 s créditées** : aucun écart
+- Segment 2 → heartbeat à `t0+57s` → **60 s au total** : aucun écart
+- Étape 5 : rejeu volontaire d'un ancien token → **422** : aucun écart
+- Le temps ne s'accumule que par **clés valides dans leur fenêtre**
+
+→ Preuve chiffrée que le cœur du projet fait ce qu'il promet — on passe au déploiement.
 -->
 

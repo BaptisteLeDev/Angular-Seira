@@ -4,7 +4,7 @@ import { mkdirSync } from 'fs'
 const CHROME = 'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe'
 const MMDC = '.\\node_modules\\.bin\\mmdc'
 const env = { ...process.env, PUPPETEER_EXECUTABLE_PATH: CHROME }
-const diagrams = ['mcd', 'classes', 'usecase', 'sequence', 'sequence_anticheat']
+const diagrams = ['mcd', 'classes', 'usecase', 'sequence', 'sequence_anticheat', 'mvc']
 
 mkdirSync('pages/diagrams', { recursive: true })
 
