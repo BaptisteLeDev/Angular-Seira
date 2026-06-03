@@ -302,6 +302,14 @@ src: ./pages/realisations.md
 ---
 
 ---
+src: ./pages/frontend.md
+---
+
+---
+src: ./pages/mobile.md
+---
+
+---
 src: ./pages/tests.md
 ---
 
