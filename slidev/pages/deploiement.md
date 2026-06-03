@@ -1,91 +1,90 @@
 ---
 layout: section
-transition: slide-left
 ---
 
 # 5 · Déploiement & DevOps
-<div class="text-base opacity-70 mt-2">Préparer, documenter et mettre en production</div>
+<div class="text-base opacity-70 mt-2">Docker · Git Flow · Vercel · EAS</div>
+
+<!--
+On passe au déploiement et au DevOps. C'est une partie qu'on veut traiter sérieusement, parce qu'un code qui ne se déploie pas proprement n'est pas livrable — même s'il est parfait localement.
+
+On va couvrir deux aspects : d'abord l'environnement de développement avec Docker et le git flow qui structure notre collaboration. Ensuite le déploiement en production — Vercel pour le frontend Angular, EAS pour le mobile Expo, et Docker pour le backend.
+
+Cette section correspond à la compétence "Préparer le déploiement" du titre CDA.
+-->
 
 ---
 layout: default
 ---
 
-# Préparer & documenter le déploiement
+# Environnement & Docker
 
-<div class="grid grid-cols-2 gap-8 mt-2">
+<div class="grid grid-cols-2 gap-4 mt-2 text-sm">
 
-<div>
-
-### Backend — conteneurs
-
-- Stack décrite dans `docker-compose.yml` (nginx · php · mariadb · redis)
-- Migrations & seeders versionnés (`artisan migrate` / `db:seed`)
-- Configuration par `.env` (clés, BDD, Redis)
-
-### Frontend — Vercel
-
-- `vercel.json` : install **pnpm**, build, **rewrite SPA** → `index.html`
-- Sortie : `dist/Angular-Seira/browser`
-- Variables `NG_APP_*` définies dans Vercel
-
+<div class="mm-card">
+<b style="color:#7bd0ff">docker-compose.yml — 5 services</b>
+<ul class="text-xs mt-1">
+<li><b>php</b> — PHP-FPM 8.4 + extensions Laravel</li>
+<li><b>nginx</b> — reverse proxy</li>
+<li><b>mariadb</b> — base de données</li>
+<li><b>redis</b> — cache nonces anti-triche</li>
+<li><b>phpmyadmin</b> — administration BDD</li>
+</ul>
 </div>
 
-<div>
-
-### Documentation livrée
-
-<div class="text-sm flex flex-col gap-2">
-  <div class="mm-card"><code>CLAUDE.md</code> — architecture & commandes</div>
-  <div class="mm-card"><code>SCHEMA_BDD.md</code> — source de vérité du modèle</div>
-  <div class="mm-card"><code>TODO.md</code> — suivi d'avancement vérifié</div>
-  <div class="mm-card"><code>/api/docs</code> — contrat OpenAPI auto</div>
-</div>
-
-<div class="mm-card mt-3 text-xs" style="border-color:#34d399">
-Comptes de seed documentés pour démo : <code>admin</code> / <code>prof</code> / <code>eleve</code> @monto.test.
+<div class="mm-card">
+<b style="color:#c084fc">Git Flow</b>
+<ul class="text-xs mt-1">
+<li>Branche <code>master</code> — production stable</li>
+<li>Branche <code>dev</code> — intégration continue</li>
+<li>Feature branches → Pull Request vers dev</li>
+<li>Merge dev → master = release</li>
+</ul>
 </div>
 
 </div>
 
-</div>
+<!--
+L'environnement de développement est entièrement conteneurisé avec Docker Compose. Cinq services : PHP-FPM, Nginx comme reverse proxy, MariaDB, Redis pour l'anti-triche, et phpMyAdmin.
+
+Un développeur qui rejoint le projet fait un git clone, configure son .env depuis le .env.example, et docker compose up. L'environnement complet est opérationnel en deux à trois minutes. Pas besoin d'installer PHP, MariaDB, ou Redis en local.
+
+Le git flow est classique : une branche master pour la production stable, une branche dev pour l'intégration, et des feature branches pour chaque lot. Chaque fonctionnalité est développée sur sa propre branche, puis intégrée via Pull Request sur dev. Quand dev est stable et les tests passent, on merge sur master.
+
+Ce workflow garantit que master est toujours dans un état déployable.
+-->
 
 ---
 layout: default
 ---
 
-# Démarche DevOps
+# Déploiement continu
 
-<div class="grid grid-cols-2 gap-8 mt-2">
+<div class="grid grid-cols-2 gap-4 mt-2 text-sm">
 
-<div>
+<div class="mm-card" style="border-color:#c084fc">
+<b style="color:#c084fc">Frontend Angular</b><br>
+Déployé sur <b>Vercel</b><br>
+CD automatique à chaque push sur master<br>
+Preview deployments sur les Pull Requests
+</div>
 
-### Mise en production
-
-<div class="text-sm flex flex-col gap-2">
-  <div class="mm-card"><b style="color:#7bd0ff">Déploiement continu</b><br>Push sur GitHub → build & déploiement automatique sur Vercel (preview par branche, prod sur la principale).</div>
-  <div class="mm-card"><b style="color:#c084fc">Parité des environnements</b><br>Docker reproduit la stack en local comme en intégration.</div>
-  <div class="mm-card"><b style="color:#34d399">Intégration par PR</b><br>Une branche par lot, revue puis fusion.</div>
+<div class="mm-card" style="border-color:#34d399">
+<b style="color:#34d399">Mobile Expo</b><br>
+Build via <b>EAS</b> (Expo Application Services)<br>
+Distribution TestFlight iOS / APK Android
 </div>
 
 </div>
 
-<div>
-
-```mermaid {scale: 0.56}
-flowchart LR
-  DEV["Développement<br/>(branche)"] --> PR["Pull Request"]
-  PR --> REV["Revue + tests"]
-  REV --> MAIN["main"]
-  MAIN --> VC["Vercel (web)"]
-  MAIN --> BUILD["Image backend<br/>(Docker)"]
-  VC --> PROD["Préview / Prod"]
-  BUILD --> PROD
-```
-
-<div class="text-xs opacity-60 mt-2">
-Piste d'amélioration : ajouter une <b>CI</b> (GitHub Actions) exécutant la suite de tests à chaque PR.
+<div class="mm-card mt-4 text-xs" style="border-color:#7bd0ff">
+<b>Backend :</b> déployable sur tout VPS avec Docker. Aucun secret dans le code — toutes les variables sensibles passent par le fichier .env.
 </div>
 
-</div>
+<!--
+Le frontend Angular est déployé sur Vercel. À chaque push sur master, Vercel déclenche automatiquement un build et un déploiement. Les Pull Requests ont leurs propres preview deployments — on peut tester une fonctionnalité dans un environnement de staging avant de merger.
 
-</div>
+Le mobile Expo utilise EAS pour les builds. On génère un IPA pour iOS et un APK pour Android depuis la même commande. Distribution via TestFlight pour les testeurs iOS.
+
+Le backend peut être déployé sur n'importe quel VPS qui supporte Docker. Les variables d'environnement — clés secrètes, credentials base de données, configuration Redis — sont externalisées dans un fichier .env qui n'est jamais versionné. Aucun secret dans le code, c'est une règle non négociable.
+-->

@@ -1,457 +1,211 @@
 ---
 layout: section
-transition: slide-left
 ---
 
 # 3 · Réalisations
-<div class="text-base opacity-70 mt-2">Environnement · Interfaces · Métier · Accès données · Sécurité</div>
+<div class="text-base opacity-70 mt-2">Backend · Frontend Web · Mobile</div>
+
+<!--
+On passe aux réalisations — c'est la partie la plus longue de la présentation, environ 12 minutes.
+
+On va couvrir les trois couches dans l'ordre logique : le backend d'abord, parce qu'il conditionne tout le reste. Ensuite le frontend Angular. Et enfin l'application mobile Expo.
+
+Pour le backend, on ne va pas tout parcourir en détail — on se concentre sur les trois points les plus significatifs : l'architecture API Platform avec le contrôle d'accès, le système anti-triche qui est le coeur du projet, et les vues agrégées qui répondent au besoin formateur.
+-->
 
 ---
 layout: default
 ---
 
-# Environnement de travail
+# Backend — API & RBAC
 
-<div class="grid grid-cols-2 gap-8 mt-2">
-
-<div>
-
-### Stack conteneurisée (Docker Compose)
-
-<div class="text-sm flex flex-col gap-2">
-  <div class="mm-card"><code>nginx:1.27</code> → <code>php-fpm</code> (Laravel 12 · PHP 8.2)</div>
-  <div class="mm-card"><code>mariadb:11</code> · <code>redis:7</code> · <code>phpmyadmin</code></div>
-  <div class="mm-card">Un <code>docker compose up</code> = environnement complet, reproductible</div>
-</div>
-
-### Outillage
-
-- **Backend** : Composer, Artisan, PHPUnit
-- **Web** : pnpm, Angular CLI, Vitest, `@ngx-env`
-- **Mobile** : pnpm, Expo CLI
-- **Versionnage** : Git + GitHub (branches, PR)
-
-</div>
-
-<div>
-
-```mermaid {scale: 0.58}
-flowchart TB
-  subgraph Docker["docker compose"]
-    NG["nginx :8080"] --> PHP["php-fpm<br/>Laravel 12"]
-    PHP --> MDB[("mariadb :3307")]
-    PHP --> RDS[("redis")]
-    PMA["phpmyadmin :8081"] --> MDB
-  end
-  WEB["ng serve :4200"] -->|NG_APP_BACKEND_URL| NG
-  MOB["expo start"] --> NG
-```
-
-<div class="text-xs opacity-60 mt-2">
-Variables d'env : <code>NG_APP_*</code> (web), <code>src/constants/env.ts</code> (mobile).
-</div>
-
-</div>
-
-</div>
-
----
-
-# Interfaces utilisateur — parcours élève
-
-<div class="grid grid-cols-2 gap-4 mt-2">
-
-<div>
-
-![Catalogue des matières](../screens/ui-formations.png){class="rounded-lg shadow-xl border border-gray-700 max-h-[62vh]"}
-
-<div class="text-xs opacity-60 text-center mt-1">Catalogue — cartes par matière, code couleur catégorie</div>
-
-</div>
-
-<div>
-
-![Ma progression](../screens/ui-progression.png){class="rounded-lg shadow-xl border border-gray-700 max-h-[62vh]"}
-
-<div class="text-xs opacity-60 text-center mt-1">Ma progression — KPIs certifiés + avancement par matière</div>
-
-</div>
-
-</div>
-
----
-
-# Interfaces — cours & lecteur contrôlé
-
-<div class="grid grid-cols-2 gap-4 mt-2">
-
-<div>
-
-![Page de cours](../screens/ui-cours.png){class="rounded-lg shadow-xl border border-gray-700 max-h-[62vh]"}
-
-<div class="text-xs opacity-60 text-center mt-1">Cours — sommaire (vidéo · PDF · article) + progression</div>
-
-</div>
-
-<div>
-
-![Lecteur vidéo](../screens/ui-lecteur.png){class="rounded-lg shadow-xl border border-gray-700 max-h-[62vh]"}
-
-<div class="text-xs opacity-60 text-center mt-1">Lecteur contrôlé — support YouTube IFrame + suivi</div>
-
-</div>
-
-</div>
-
-<div class="text-xs opacity-60 text-center mt-2">
-L'application <b>mobile (Expo)</b> reprend ces mêmes écrans en parité, avec le lecteur <code>expo-video</code>.
-</div>
-
----
-
-# Interfaces — composants partagés web / mobile
-
-<div class="grid grid-cols-2 gap-6 mt-2 text-sm">
-
-<div>
-
-Web et mobile partagent **la même structure logique** (schémas Zod, API, stores, guards) et une **bibliothèque de composants** miroir.
-
-<div class="flex flex-col gap-2 mt-2">
-  <div class="mm-card"><b style="color:#c084fc">🌐 shared/ui/</b> — <code>video-player</code>, <code>markdown-view</code>, <code>pdf-viewer</code>, <code>empty-state</code>…</div>
-  <div class="mm-card"><b style="color:#34d399">📱 src/ui/</b> — <code>VideoPlayer</code>, <code>MarkdownView</code>, <code>PdfViewer</code>, <code>EmptyState</code>…</div>
-</div>
-
-</div>
-
-<div>
-
-Même validation Zod des deux côtés :
-
-```ts
-// web : opérateur RxJS
-parseHydraCollection(FormationSchema)
-// → map(r => schema.parse(r).member)
-
-// mobile : fonction pure
-parseHydraCollection(FormationSchema, raw)
-// → schema.parse(raw).member
-```
-
-<div class="text-xs opacity-60 mt-2">
-Différenciation : <b>signals</b> (web) vs <b>zustand</b> (mobile), <b>RxJS</b> vs <b>async/await</b>.
-</div>
-
-</div>
-
-</div>
-
----
-layout: section
-transition: slide-up
----
-
-# Composants métier
-<div class="text-base opacity-70 mt-2">State Processors · Services — la logique applicative</div>
-
----
-
-# Le pattern de mutation — DTO → Processor
-
-<div class="grid grid-cols-2 gap-6 mt-2">
-
-<div>
-
-```php {all|1-5|7-10|12-14}
-class AuthLoginProcessor
-  implements ProcessorInterface
-{
-  public function process(
-    mixed $data, Operation $op, ...
-  ): JsonResponse {
-    // $data = DTO validé
-    $user = User::where('email', $data->email)
-      ->first();
-    if (!$user || !Hash::check(
-        $data->password, $user->password)) {
-      throw new AuthenticationException();
-    }
-    $token = $user->createToken('api-token')
-      ->plainTextToken;
-    return new JsonResponse([...]);
-  }
-}
-```
-
-</div>
-
-<div class="text-sm flex flex-col gap-3 mt-4">
+<div class="grid grid-cols-2 gap-4 mt-2 text-sm">
 
 <div class="mm-card">
-<b style="color:#7bd0ff">1 · DTO d'entrée</b><br>
-Forme & validation du payload, découplé du modèle.
+<b style="color:#7bd0ff">API Platform + Eloquent</b>
+<ul class="text-xs mt-1">
+<li>8 modèles <code>#[ApiResource]</code> → endpoints générés</li>
+<li>Documentation Swagger sur <code>/api/docs</code></li>
+<li>State Processors pour la logique métier</li>
+<li>Providers pour les collections filtrées</li>
+</ul>
 </div>
+
 <div class="mm-card">
-<b style="color:#c084fc">2 · State Processor</b><br>
-Reçoit le DTO, applique la règle métier, persiste.
-</div>
-<div class="mm-card">
-<b style="color:#34d399">3 · State Provider</b><br>
-Personnalise la lecture (filtrage par propriétaire).
-</div>
-
-<div class="text-xs opacity-60">
-Aucun contrôleur REST classique : l'API est déclarée sur les modèles.
+<b style="color:#f87171">RBAC — 30+ Gates Laravel</b>
+<ul class="text-xs mt-1">
+<li>3 rôles : admin · teacher · student</li>
+<li>Isolation par school_id / classroom_id</li>
+<li>Chaque opération a sa gate dédiée</li>
+<li>Ex : un élève ne voit que ses VideoProgress</li>
+</ul>
 </div>
 
 </div>
 
-</div>
+<!--
+Le backend c'est le cœur du projet.
+
+API Platform nous fait gagner énormément de temps : on déclare un modèle Eloquent avec l'attribut ApiResource, et tous les endpoints CRUD sont générés automatiquement avec leur documentation Swagger. On n'écrit pas de routes à la main pour les opérations standard.
+
+Pour la logique métier complexe, on utilise des State Processors. Par exemple, quand un élève crée un enregistrement de progression vidéo, le processor vérifie que la vidéo existe, qu'il n'y a pas déjà un doublon pour cette paire utilisateur-vidéo, et force watched_seconds à zéro. Le client ne peut pas le définir lui-même.
+
+Le contrôle d'accès est géré par plus de 30 Gates Laravel. Chaque opération a sa gate. Un admin peut tout voir. Un formateur ne voit que ses matières. Un élève ne voit que ses propres données. Isolation stricte.
+-->
 
 ---
+layout: default
+---
 
-# Composant métier phare — l'anti-triche
+# Backend — Système anti-triche
 
-<div class="grid grid-cols-2 gap-6 mt-2">
-
-<div>
-
-```php {all|1-4|6-7|9-11}
-// WatchTokenService — clé signée par segment
-$payload = ['uid'=>$u, 'vid'=>$v,
-  'seg_start'=>$s, 'seg_end'=>$e,
-  'iat'=>now(), 'nonce'=>random()];
-
-$token = base64($payload) . '.' .
-  hash_hmac('sha256', $payload, $secret);
-
-// nonce en Redis, TTL court, à usage unique
-Cache::put("watch_nonce:$nonce",
-  'pending', $ttl);
-```
-
-</div>
-
-<div class="text-sm flex flex-col gap-2">
+<div class="grid grid-cols-2 gap-4 mt-2 text-xs">
 
 <div class="mm-card" style="border-color:#f87171">
-<b style="color:#f87171">Problème résolu</b><br>
-Sans contrôle serveur, un <code>curl</code> certifie 1 h de visionnage.
+<b style="color:#f87171">POST /api/watch-sessions/request</b><br>
+→ vérifie accès (gate videos.view)<br>
+→ génère token HMAC-SHA256<br>
+→ stocke nonce dans Redis (TTL segment)<br>
+→ retourne token + bornes + expires_at
 </div>
 
-<div class="mm-card"><b style="color:#7bd0ff">Signature HMAC-SHA256</b> — toute altération invalide le token.</div>
-<div class="mm-card"><b style="color:#7bd0ff">Anti-rejeu</b> — nonce <code>pending → used</code>, usage unique.</div>
-<div class="mm-card"><b style="color:#7bd0ff">Fenêtre temporelle</b> — ni trop tôt, ni trop tard.</div>
-
+<div class="mm-card" style="border-color:#34d399">
+<b style="color:#34d399">POST /api/watch-sessions/heartbeat</b><br>
+→ vérifie signature HMAC<br>
+→ vérifie fenêtre temporelle (±5s / +60s)<br>
+→ consomme le nonce (anti-replay)<br>
+→ crédite watched_seconds_validated
 </div>
 
 </div>
+
+<div class="mm-card mt-3 text-xs" style="border-color:#fbbf24">
+Impossible de simuler du temps de visionnage sans recevoir un token valide et attendre réellement la durée du segment.
+</div>
+
+<!--
+Le système anti-triche, c'est la réalisation dont on est le plus satisfaits.
+
+L'endpoint request émet un token signé. Ce token encode l'utilisateur, la vidéo, les bornes du segment de 30 secondes, et le moment d'émission. Il est signé avec la clé secrète de l'application via HMAC-SHA256. Un nonce aléatoire est stocké dans Redis avec une durée de vie précise.
+
+L'endpoint heartbeat reçoit ce token. Il vérifie trois choses : la signature cryptographique — si quelqu'un a modifié un octet, la vérification échoue. Le timing — le heartbeat ne peut être soumis ni trop tôt ni trop tard. Et le nonce — il est consommé après le premier heartbeat, ce qui empêche le replay.
+
+Seulement si tout est valide, le serveur crédite les secondes dans VideoProgress.
+-->
 
 ---
-layout: section
-transition: slide-up
+layout: default
 ---
 
-# Composants d'accès aux données
-<div class="text-base opacity-70 mt-2">SQL (Eloquent / MariaDB) & NoSQL (Redis)</div>
+# Backend — Vues agrégées & multi-école
 
----
-
-# Accès SQL — Eloquent + API Platform
-
-<div class="grid grid-cols-2 gap-6 mt-2">
-
-<div>
-
-La ressource est déclarée sur le **modèle Eloquent**, le **Provider** restreint la lecture au propriétaire.
-
-```php {all|1-2|4-8}
-// State Provider — isolation par user_id
-public function provide($op, ...): iterable
-{
-  $user = $request->user();
-  if ($user->isAdmin())
-    return VideoProgress::all();
-
-  return VideoProgress::where(
-    'user_id', $user->id)->get();
-}
-```
-
-</div>
-
-<div>
-
-```php {all|1-5|6-9}
-#[ApiResource(operations: [
-  new GetCollection(
-    uriTemplate: '/video-progress',
-    provider: ...CollectionProvider::class,
-  ),
-  new Patch(
-    input: ...UpdateInput::class,
-    processor: ...UpdateProcessor::class,
-  ),
-])]
-class VideoProgress extends Model { /* … */ }
-```
-
-<div class="text-xs opacity-60 mt-2">
-Relations Eloquent (<code>belongsTo</code> / <code>hasMany</code>), migrations versionnées, <b>SoftDeletes</b>.
-</div>
-
-</div>
-
-</div>
-
----
-
-# Accès NoSQL — Redis
-
-<div class="grid grid-cols-2 gap-6 mt-2">
-
-<div>
-
-Redis (clé-valeur) porte l'**état éphémère** de l'anti-triche : les **nonces** des clés temporelles, hors base relationnelle.
-
-```php {all|1-2|4-6|8-9}
-// émission : nonce "en attente", TTL court
-Cache::put("watch_nonce:$nonce", 'pending', $ttl);
-
-// validation : lecture de l'état
-$status = Cache::get("watch_nonce:$nonce");
-// null = expiré · 'used' = rejeu
-
-// consommation : usage unique
-Cache::put("watch_nonce:$nonce", 'used', 300);
-```
-
-</div>
-
-<div class="text-sm flex flex-col gap-2">
-
-<div class="mm-card"><b style="color:#34d399">Le bon outil</b><br>Des entrées à durée de vie courte, à très forte rotation → clé-valeur en mémoire, pas du SQL.</div>
-<div class="mm-card"><b style="color:#7bd0ff">TTL natif</b><br>L'expiration des clés est gérée par Redis lui-même.</div>
-<div class="mm-card"><b style="color:#c084fc">Aussi</b><br>Cache applicatif & sessions (config / route cache).</div>
-
-</div>
-
-</div>
-
----
-
-# Autres composants — contrôleur & API exposée
-
-<div class="grid grid-cols-2 gap-5 mt-2">
-
-<div>
-
-Quelques endpoints sortent du CRUD et utilisent un **contrôleur dédié** (`WatchSessionController`, `AggregateController`, `UserSchoolController`) :
-
-```php
-Route::middleware('auth:sanctum')
-  ->prefix('watch-sessions')->group(function () {
-    Route::post('/request',   [WatchSessionController::class, 'request']);
-    Route::post('/heartbeat', [WatchSessionController::class, 'heartbeat']);
-});
-```
-
-<div class="text-xs opacity-60 mt-1">
-Utilitaires côté client : intercepteurs (Bearer / 401), <code>parseResponse</code>, <code>utils/iri</code>.
-</div>
-
-</div>
-
-<div>
-
-![OpenAPI — /api/docs](../screens/swagger-overview.png){class="rounded-lg shadow-xl border border-gray-700 max-h-[58vh]"}
-
-<div class="text-xs opacity-60 text-center mt-1">Documentation OpenAPI générée automatiquement</div>
-
-</div>
-
-</div>
-
----
-layout: section
-transition: slide-up
----
-
-# Sécurité de l'application
-<div class="text-base opacity-70 mt-2">Authentification · Autorisation · Anti-fraude</div>
-
----
-
-# Authentification & autorisation
-
-<div class="grid grid-cols-2 gap-6 mt-2">
-
-<div>
-
-### Sanctum — tokens Bearer
-
-- `/auth/login` émet un token, persisté côté client
-- Toutes les routes protégées par `middleware: auth:sanctum`
-
-### RBAC — Gates centralisées
-
-```php
-Gate::define('subjects.view',
-  function (User $u, $subject) {
-    if ($u->isAdmin()) return true;
-    if ($u->role === ROLE_TEACHER)
-      return $subject->teacher_id === $u->id;
-    if ($u->role === ROLE_STUDENT)
-      return $subject->classrooms()
-        ->where('id', $u->classroom_id)->exists();
-    return false;
-  });
-```
-
-</div>
-
-<div class="text-sm flex flex-col gap-2">
-
-<div class="mm-card"><b style="color:#f87171">admin</b> — accès total</div>
-<div class="mm-card"><b style="color:#c084fc">teacher</b> — ses matières + contenus liés</div>
-<div class="mm-card"><b style="color:#34d399">student</b> — contenus de sa classe ; progression filtrée sur <code>user_id</code></div>
-
-<div class="mm-card text-xs" style="border-color:#7bd0ff">
-30+ Gates · isolation des données par école / classe · référencées par le champ <code>policy</code> de chaque opération.
-</div>
-
-</div>
-
-</div>
-
----
-
-# Sécurité — l'anti-fraude en défense en profondeur
-
-<div class="grid grid-cols-2 gap-6 mt-4 text-sm">
+<div class="grid grid-cols-2 gap-4 mt-3 text-sm">
 
 <div class="mm-card">
-<b style="color:#7bd0ff">Côté client</b><br>
-Lecture active requise · vitesse bridée (≤ 2x web / 1x mobile) · anti-seek · pause si onglet masqué.
+<b style="color:#c084fc">GET /api/aggregates/teacher</b><br>
+<span class="text-xs">Progression de chaque élève par matière<br>
+→ vidéos vues, secondes validées, % complétion</span>
 </div>
 
 <div class="mm-card">
-<b style="color:#7bd0ff">Signature serveur</b><br>
-Clé HMAC-SHA256 par segment ; le client ne peut pas la forger.
+<b style="color:#34d399">GET /api/aggregates/school</b><br>
+<span class="text-xs">Vue globale par classe pour l'admin<br>
+→ tous les élèves × toutes les matières</span>
+</div>
+
+</div>
+
+<div class="mm-card mt-3 text-xs" style="border-color:#7bd0ff">
+<b>Multi-école :</b> table pivot user_school — un formateur peut enseigner dans plusieurs écoles. Un élève ne peut avoir qu'une école à la fois (transfert automatique, classroom effacée).
+</div>
+
+<!--
+Deux endpoints agrégés répondent au besoin de suivi pédagogique.
+
+L'endpoint teacher donne au formateur une vue complète. En une requête, il voit pour chaque élève : vidéos vues, secondes validées, et pourcentage de complétion calculé sur la durée totale des vidéos.
+
+L'endpoint school est la vue globale pour l'administrateur.
+
+Performance : on charge toutes les VideoProgress en une seule requête SQL, puis on agrège en PHP. Ça évite le N+1 — sans ça, une école avec 100 élèves et 50 vidéos ferait 5000 requêtes. Là, c'est une seule.
+
+Sur le multi-école : un formateur peut être dans plusieurs écoles simultanément. Un élève peut changer d'école — le transfert est automatique et l'ancienne classe est effacée.
+-->
+
+---
+layout: default
+---
+
+# Frontend Web — Angular
+
+<div class="grid grid-cols-2 gap-4 mt-2 text-sm">
+
+<div class="mm-card">
+<b style="color:#c084fc">Architecture</b>
+<ul class="text-xs mt-1">
+<li>Routing protégé par guards par rôle</li>
+<li>Schémas Zod pour valider les réponses API</li>
+<li>Services dédiés par domaine</li>
+<li>PDF viewer pour les référentiels</li>
+</ul>
 </div>
 
 <div class="mm-card">
-<b style="color:#7bd0ff">Anti-rejeu</b><br>
-Nonce à usage unique en Redis : rejouer une clé → <code>422</code>.
+<b style="color:#7bd0ff">Interfaces par rôle</b>
+<ul class="text-xs mt-1">
+<li>Admin : gestion école, classes, utilisateurs</li>
+<li>Formateur : mes matières, mes élèves</li>
+<li>Élève : formations → chapitres → vidéos</li>
+<li>Navigation prev/next entre articles</li>
+</ul>
+</div>
+
+</div>
+
+<!--
+Le frontend web est une Single Page Application Angular 21.
+
+Le routing est protégé par des guards qui vérifient le rôle. Un élève qui tenterait d'accéder à /admin serait redirigé immédiatement.
+
+On utilise Zod pour valider les réponses de l'API. Ça peut paraître défensif, mais ça nous a sauvé plusieurs fois — quand le backend retourne un format inattendu, Zod plante proprement avec un message d'erreur lisible.
+
+Un point fonctionnel intéressant : le viewer de PDF pour les référentiels pédagogiques. Chaque matière peut avoir un document de référence consultable directement dans le navigateur.
+-->
+
+---
+layout: default
+---
+
+# Mobile — Expo / React Native
+
+<div class="grid grid-cols-2 gap-4 mt-2 text-sm">
+
+<div class="mm-card">
+<b style="color:#34d399">Lecteur vidéo contrôlé</b>
+<ul class="text-xs mt-1">
+<li>expo-video — vitesse verrouillée à 1x</li>
+<li>Détection lecture active (isPlaying)</li>
+<li>Anti-seek : retour arrière limité</li>
+<li>Bannière hors-ligne (NetInfo)</li>
+</ul>
 </div>
 
 <div class="mm-card">
-<b style="color:#7bd0ff">Fenêtre temporelle</b><br>
-Soumission contrainte dans le temps ; impossible de batcher les clés.
+<b style="color:#7bd0ff">Auth & navigation</b>
+<ul class="text-xs mt-1">
+<li>Token Sanctum dans expo-secure-store</li>
+<li>RoleGate — redirections par rôle</li>
+<li>Guard use-role-guard sur chaque écran</li>
+</ul>
 </div>
 
 </div>
 
-<div class="mm-card mt-4 text-xs" style="border-color:#f87171">
-<b style="color:#f87171">Principe :</b> le temps « validé » n'est <b>jamais</b> accepté tel quel — il n'est crédité que par consommation d'une clé serveur valide, et borné à la durée réelle de la vidéo.
-</div>
+<!--
+L'application mobile est construite avec Expo — iOS et Android depuis une seule base de code TypeScript.
+
+Le lecteur vidéo est la pièce centrale. Vitesse verrouillée à 1x, détection de la lecture active, anti-seek. On a aussi une bannière hors-ligne qui prévient l'utilisateur quand sa connexion est perdue.
+
+L'authentification utilise expo-secure-store pour stocker le token dans le keychain du téléphone. Jamais en clair dans AsyncStorage.
+
+Les écrans sont protégés par RoleGate et use-role-guard — un élève ne peut pas accéder aux écrans formateur.
+-->
