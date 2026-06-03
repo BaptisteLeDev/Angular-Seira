@@ -1,6 +1,7 @@
 import { z } from 'zod';
 import { apiRequest } from './client';
-import { parseHydraCollection, parseResponse } from './parse-response';
+import { parseResponse } from './parse-response';
+import { fetchHydraAll } from './pagination';
 import {
   ChapitreSchema,
   type Chapitre,
@@ -22,8 +23,7 @@ export const FormationApi = {
     const search = new URLSearchParams();
     if (params.schoolId != null) search.set('school', String(params.schoolId));
     const qs = search.toString();
-    const raw = await apiRequest<unknown>(`/subjects${qs.length > 0 ? `?${qs}` : ''}`);
-    return parseHydraCollection(FormationSchema, raw);
+    return fetchHydraAll(`/subjects${qs.length > 0 ? `?${qs}` : ''}`, FormationSchema);
   },
 
   async listForMe(): Promise<MySubjects> {
